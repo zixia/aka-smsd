@@ -103,13 +103,11 @@ int CDeliver::OnNotify(){
 				oldpath=m_IncomingDirectory+"/"+pDirInfo->d_name;
 				newpath=getDest(pDirInfo->d_name)+"/"+pDirInfo->d_name;
 				if (link(oldpath.c_str(),newpath.c_str())){
-					syslog(LOG_ERR,"can't link %s to %s",oldpath.c_str(),newpath.c_str());
-					throw std::runtime_error("link failed!");
+					syslog(LOG_ERR,"can't link %s to %s: errno %d",oldpath.c_str(),newpath.c_str(),errno);
 				}
 
 				if (unlink(oldpath.c_str())){
-					syslog(LOG_ERR,"can't unlink %s ",oldpath.c_str());
-					throw std::runtime_error("unlink failed!");
+					syslog(LOG_ERR,"can't unlink %s : errno %d",oldpath.c_str(),errno);
 				}
 				syslog(LOG_ERR,"deliver msg: %s", pDirInfo->d_name);
 			}

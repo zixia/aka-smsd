@@ -217,8 +217,10 @@ int sendSMS(PSMSMessage sms,const char* usrID, int bCheck=SEND_CHECK) {
 		if (m_pSMSFeeCodeGetter->getFee(sms->FeeType,&feeMoney)!=SUCCESS){
 			return SMS_BBS_CMD_DB_ERROR;
 		}
-		if ((retCode=countMoney(sms->FeeTargetNumber,usrID,feeMoney))!=SMS_BBS_CMD_OK) {
-			return retCode;
+		if (usrID!=NULL) {
+			if ((retCode=countMoney(sms->FeeTargetNumber,usrID,feeMoney))!=SMS_BBS_CMD_OK) {
+				return retCode;
+			}
 		}
 	}
 	if (m_pSMSStorage->writeSMStoStorage(sms->SenderNumber,sms->TargetNumber,(char *)sms,sms->length)==SUCCESS) {
@@ -1131,6 +1133,16 @@ int Send(PSMSMessage msg){
 			if (retCode!=PARSE_ERROR) {
 				break;
 			}
+			PSMSMessage sms;
+			DWORD smsLen;
+			char buf[101];
+			snprintf(buf, 100, "您发送的命令短信内容或格式有错。");
+			if (generateSMS(0,msg->SenderNumber, msg->SenderNumber,buf,strlen(buf),6, &sms,&smsLen)==NOENOUGHMEMORY) {
+				syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
+				exit(0);
+			}
+			retCode=sendSMS(sms,NULL);
+			free(sms);
 		case SMS_BBS_TYPE_COMMON:
 			retCode=deliverSMS(msg);
 			break;

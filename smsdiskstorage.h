@@ -34,6 +34,7 @@ class CSMSDiskStorage: public CSMSStorage {
 	unsigned int m_dataSize;
 	unsigned int m_bufSize;
 	int m_fp;
+	unsigned int m_count;
 
 
 public:
@@ -52,7 +53,8 @@ public:
 		std::ofstream os;
 		lt=time(NULL);
 		std::stringstream filename;
-		filename<<m_OutgoingDirectory<<"/"<<sourceNo<<"."<<TargetNo<<"."<<lt<<'\0';
+		m_count++;
+		filename<<m_OutgoingDirectory<<"/"<<sourceNo<<"."<<TargetNo<<"."<<lt<<"."<<m_count<<'\0';
 		os.exceptions(std::ios::badbit|std::ios::failbit|std::ios::eofbit);
 		syslog(LOG_ERR, "write new msg to %s", filename.str().c_str());
 		try{

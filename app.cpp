@@ -53,6 +53,8 @@ void CApplication::InitDaemon()
 {
 	setuid(502);
 	setgid(502);	
+	setreuid(502,502);
+	setregid(502,502);
 	int n;
     if(fork())
        exit(0);
