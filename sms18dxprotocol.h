@@ -200,12 +200,12 @@ public:
 		if ( TIMEOUT==retCode ){
 			m_tcp.close();
 			syslog(LOG_ERR,"send msg timeout, faint" );
-			return ERROR;
+			return FAILED;
 		}
 		if (retCode<=0) {
 			m_tcp.close();
-			syslog(LOG_ERR,"send msg error: %d", retCode);
-			return ERROR;
+			syslog(LOG_ERR,"send msg - write failed: %d", retCode);
+			return FAILED;
 		}
 				
 		syslog(LOG_ERR,"send msg return %d",(POAKSACKSMZIXIASENDTEXT(buf))->header.dwResult);
