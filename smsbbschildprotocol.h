@@ -632,6 +632,8 @@ int deliverSMS(PSMSMessage msg) {
 
 	int retCode=doSendMsg(sms,smsLen);
 
+	syslog("deliver sms to child, retCode=%d",retCode);
+
 	delete[] (char*)sms;
 
 	return retCode;
