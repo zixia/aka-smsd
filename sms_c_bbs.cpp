@@ -14,4 +14,4 @@ public:
 	}
 };
 
-CMyDaemon myDaemon("sms_c_bbs",LOG_LOCAL0);
+CMyDaemon myDaemon("sms_c_bbs                  ",LOG_LOCAL0);

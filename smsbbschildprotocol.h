@@ -515,6 +515,10 @@ int OnAccept(CSMSTcpStream* pStream){
 		syslog(LOG_ERR,"connection failed!");
 		return -1;
 	}
+	closelog();
+	snprintf( RCL::__z_self, 16, "sms_c_bbs_%s", m_childName ) ;
+	openlog(RCL::__z_self, LOG_PID, LOG_LOCAL0);
+
 	syslog(LOG_ERR, "%s connected!", m_childName);
 	char inbox[200];
 	snprintf(inbox,250,"%sinbox/bbs_%s",SMSHOME,m_childName);

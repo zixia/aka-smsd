@@ -20,6 +20,9 @@ namespace RCL {
 #define MAXFD 64
 #define MAKEDAEMONAPP 
 
+
+extern char* __z_self;
+
 class EDaemon:public std::runtime_error
 {
 	public:

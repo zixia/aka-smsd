@@ -105,12 +105,15 @@ CApplication* RCL_GetApp()
 }
 
 
+char* RCL::__z_self;
+
 int main(int argc,char** argv,char** env)
 {
 	RCL::CApplication* pApp = RCL::RCL_GetApp();
 	
 	pApp->m_nArgc = argc;
 	pApp->m_strArgv = argv;
+	RCL::__z_self = argv[0];
 	pApp->m_pEnv = env;
 
 	if ( pApp->IsDaemon() )
