@@ -199,7 +199,7 @@ void generateValidateNum(char* validateNo, int validNumLen){
 	int codeLen=strlen(CODES);
 	srand(time(NULL));
 	for (int i=0;i<validNumLen;i++){
-		validateNo[i]=CODES[1+(int) (((double)codeLen)*rand()/(RAND_MAX+1.0))];
+		validateNo[i]=CODES[0+(int) (((double)codeLen)*rand()/(RAND_MAX+1.0))];
 	}
 	validateNo[validNumLen]=0;
 }
@@ -257,7 +257,7 @@ int doSendRegisterSMS(const char* targetMobileNo){
 
 	char msg[101];
 	snprintf(msg, 100, "ÄúµÄ×¢²áÂëÊÇ£º%s", validateNo);
-	DWORD smsLen=sizeof(SMSMessage)+sizeof(msg);
+	DWORD smsLen=sizeof(SMSMessage)+strlen(msg);
 	PSMSMessage sms=(PSMSMessage)new char[smsLen];
 	memset(sms,0,smsLen);
 	sms->length=smsLen;
@@ -266,8 +266,8 @@ int doSendRegisterSMS(const char* targetMobileNo){
 
 	strncpy(sms->TargetNumber , targetMobileNo , MOBILENUMBERLENGTH);
 	strncpy(sms->FeeTargetNumber , targetMobileNo , MOBILENUMBERLENGTH);
-	sms->SMSBodyLength=sizeof(msg);
-	memcpy(sms->SMSBody, msg , sizeof(msg));
+	sms->SMSBodyLength=strlen(msg);
+	memcpy(sms->SMSBody, msg , strlen(msg));
 	retCode=sendSMS(sms);
 	delete[] (char*)sms;
 	return retCode;
