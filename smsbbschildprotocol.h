@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <sstream>
+#include <vector>
+#include <algorithm>
 #ifdef  CCXX_NAMESPACES
 using namespace std;
 using namespace ost;
@@ -37,6 +39,15 @@ namespace SMS {
 
 #define SEND_NO_CHECK	1
 #define SEND_CHECK 0
+
+struct bindRequest{
+DWORD sn;
+std::string userID;
+std::string mobileNumber;
+byte isBind;
+};
+
+
 
 const char CODES[]="0123456789";
 
@@ -76,6 +87,7 @@ class CSMSBBSChildProtocol: public CSMSProtocol{
 	CSMSLogger m_SMSLogger;
 	int m_defaultMoneyLimit;
 	CSMSFeeCodeGetter* m_pSMSFeeCodeGetter;
+	std::vector<struct bindRequest*> m_requestList;
 private:
 
 DWORD getSerial(){ //产生序列号
@@ -346,11 +358,116 @@ int doUnregister(const char* mobileNo,const char* srcID){
 /* doUnregister()
  *   ))) */
 
+int doRegisterSMS(const char* mobileNo,const char* srcID){
+	try {
+		Query query=m_conn.query();
+		query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"') ";
+		Result res=query.store();
+		syslog(LOG_ERR,"%s %s %s",m_childCode,mobileNo,srcID);
+
+		if (res.size()!=0) {
+			return NOSEVEREERROR;
+		} else {
+			std::stringstream sql;
+			sql<< "insert into SMSRegister_TB(childCode, MobilePhoneNumber, ValidatationNumber, srcID, moneyLimit) values( '" 
+				<<m_childCode<<"' , '"<<mobileNo<<"' , '', '"<<srcID<<"',"<<m_defaultMoneyLimit<<" )";
+			query.exec(sql.str());
+		}
+		return SUCCESS;
+	} catch ( BadQuery er) {
+		syslog(LOG_ERR,"doRegisterSMS -- mysql query err : %s", er.error.c_str());
+		return FAILED;
+	}
+}
+
+int doUnregisterSMS(const char* mobileNo,const char* srcID){
+	try {
+		Query query=m_conn.query();
+		query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"') ";
+		Result res=query.store();
+		if (res.size()!=0) {
+			std::stringstream sql;
+			sql << "delete from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"') ";
+			query.exec(sql.str());
+			return SUCCESS;
+		} 
+		return NOSEVEREERROR;
+	} catch ( BadQuery er) {
+		syslog(LOG_ERR,"doUnregisterSMS -- mysql query err : %s", er.error.c_str());
+		return FAILED;
+	}
+}
+
 /* {{{ doReplyRegisterRequest()
  * 绑定请求回应
  */
 int doReplyRegisterRequest(const char* mobileNo, byte isSucceed, DWORD smsSerialNo) {
 	//todo: 错误处理与恢复
+	vector<struct bindRequest*>::iterator i;
+	struct bindRequest* p;
+
+
+	//block 上行短信；保护m_requestList;
+        sigset_t sigmask,oldmask;
+        sigemptyset(&sigmask);
+        sigaddset(&sigmask,SIGUSR1);
+        sigaddset(&sigmask,SIGUSR2);
+        sigprocmask(SIG_BLOCK,&sigmask,&oldmask); 
+	
+	for (i=m_requestList.begin();i!=m_requestList.end();i++) {
+		p=*i;
+		if (p->sn==smsSerialNo)
+			break;
+	}
+	if (i==m_requestList.end()) 
+		return SUCCESS;
+	m_requestList.erase(i);
+	sigprocmask(SIG_SETMASK,&oldmask,NULL);
+	int retCode;
+	char msg[101];
+	switch(isSucceed) {
+	case 0:
+		if (p->isBind==SMS_BBS_USR_REQUIRE_BIND)  {
+			retCode=doRegisterSMS(p->mobileNumber.c_str(),p->userID.c_str());
+			switch (retCode) {
+			case ERROR:
+				return SUCCESS;
+			case SUCCESS:
+				snprintf(msg, 100, "您的手机号与id:%s绑定成功!", p->userID.c_str());
+				break;
+			default:
+				snprintf(msg, 100, "您的手机号与id:%s已处于绑定状态，请不要重复绑定.", p->userID.c_str());
+				break;
+			}
+		} else {
+			retCode=doUnregisterSMS(p->mobileNumber.c_str(),p->userID.c_str());
+			switch (retCode) {
+			case ERROR:
+				return SUCCESS;
+			case SUCCESS:
+				snprintf(msg, 100, "您的手机号与id:%s已成功解除绑定.", p->userID.c_str());
+				break;
+			default:
+				snprintf(msg, 100, "您的手机号与id:%s并没有绑定.", p->userID.c_str());
+				break;
+			}
+		}
+		break;
+	case -1:
+		snprintf(msg, 100, "您输入的id: %s 不存在!", p->userID.c_str());
+	case -2:
+		snprintf(msg, 100, "您使用的手机与您在bbs上设定的手机号不一致!", p->userID.c_str());
+	}
+	PSMSMessage sms;
+	DWORD smsLen;
+		
+	if (generateSMS(0,p->mobileNumber.c_str(), p->mobileNumber.c_str(),msg,strlen(msg),6, &sms,&smsLen)==NOENOUGHMEMORY) {
+		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
+		exit(0);
+	}
+	sendSMS(sms,p->userID.c_str(),SEND_NO_CHECK);
+	free(sms);
+	delete(p);
 	return SUCCESS;
 }
 /* doReplyRegisterRequest()
@@ -651,55 +768,19 @@ int deliverSMS(PSMSMessage msg) {
 /* deliverSMS()
  * ))) */
 
-int doRegisterSMS(const char* mobileNo,const char* srcID){
-	try {
-		Query query=m_conn.query();
-		query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"') ";
-		Result res=query.store();
-		syslog(LOG_ERR,"%s %s %s",m_childCode,mobileNo,srcID);
-
-		if (res.size()!=0) {
-//			return NOSEVEREERROR;
-			return SUCCESS;
-		} else {
-			std::stringstream sql;
-			sql<< "insert into SMSRegister_TB(childCode, MobilePhoneNumber, ValidatationNumber, srcID, moneyLimit) values( '" 
-				<<m_childCode<<"' , '"<<mobileNo<<"' , '', '"<<srcID<<"',"<<m_defaultMoneyLimit<<" )";
-			query.exec(sql.str());
-		}
-		return SUCCESS;
-	} catch ( BadQuery er) {
-		syslog(LOG_ERR,"doRegisterSMS -- mysql query err : %s", er.error.c_str());
-		return FAILED;
-	}
-}
-
-int doUnregisterSMS(const char* mobileNo,const char* srcID){
-	try {
-		Query query=m_conn.query();
-		query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"') ";
-		Result res=query.store();
-		if (res.size()!=0) {
-			std::stringstream sql;
-			sql << "delete from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"') ";
-			query.exec(sql.str());
-			return SUCCESS;
-		} 
-		// return NOSEVEREERROR;
-		return SUCCESS;
-	} catch ( BadQuery er) {
-		syslog(LOG_ERR,"doUnregisterSMS -- mysql query err : %s", er.error.c_str());
-		return FAILED;
-	}
-}
-
 int doSendRegisterMsg(const char* mobileNumber, const char * usrID, byte isBind) {
 	SMS_BBS_BINDREQUESTPACKET sms;
 	DWORD smsLen=sizeof(SMS_BBS_BINDREQUESTPACKET);
+	struct bindRequest* pRequest=new struct bindRequest;
 	
 	memset(&sms,0,smsLen);
 	sms.header.Type=SMS_BBS_CMD_REQUEST;
-	sms_longToByte( (sms.header.SerialNo), getSerial());
+	pRequest->sn=getSerial();
+	sms_longToByte( (sms.header.SerialNo), pRequest->sn);
+	pRequest->userID=usrID;
+	pRequest->mobileNumber=mobileNumber;
+	pRequest->isBind=isBind;
+	m_requestList.push_back(pRequest) ;
 	sms_longToByte( (sms.header.msgLength),smsLen-sizeof(SMS_BBS_HEADER) );
 
 	strncpy(sms.MobileNo, mobileNumber, MOBILENUMBERLENGTH);
@@ -715,10 +796,12 @@ int doSendRegisterMsg(const char* mobileNumber, const char * usrID, byte isBind)
 }
 
 int doRegisterCommand(const char* mobileNumber, const char * usrID) {
+/*
 	int retCode=doRegisterSMS(mobileNumber,usrID);
 	if (retCode==ERROR) { 
 		return retCode;
 	}
+
 	PSMSMessage sms;
 	DWORD smsLen;
 	char msg[101];
@@ -737,13 +820,16 @@ int doRegisterCommand(const char* mobileNumber, const char * usrID) {
 	if (retCode!=SUCCESS){
 		return ERROR;
 	}
+*/
 	return doSendRegisterMsg(mobileNumber,usrID, SMS_BBS_USR_REQUIRE_UNBIND);
 }
 int doUnRegisterCommand(const char* mobileNumber, const char * usrID) {
+/*
 	int retCode=doUnregisterSMS(mobileNumber,usrID);
 	if (retCode==ERROR) { 
 		return retCode;
 	}
+
 	PSMSMessage sms;
 	DWORD smsLen;
 	char msg[101];
@@ -762,6 +848,7 @@ int doUnRegisterCommand(const char* mobileNumber, const char * usrID) {
 	if (retCode!=SUCCESS){
 		return ERROR;
 	}
+*/
 	return doSendRegisterMsg(mobileNumber,usrID, SMS_BBS_USR_REQUIRE_BIND);
 }
 
