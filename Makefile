@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-g -I/usr/include/cc++2 -I/usr/include/mysql -DDEBUG -Wno-deprecated
+CXXFLAGS=-g -I/usr/include/cc++2 -I/usr/include/sqlplus -I/usr/include/mysql -DDEBUG -Wno-deprecated
 HEADERS=18dx.h  deliver.h smschildprotocol.h sms.h app.h  sms18dxprotocol.h \
 	smsdaemon.h smsprotocol.h  testmsg.h childprotocol.h  smschildprivilegechecker.h \
 	smsdiskstorage.h smsstorage.h smsbbschildprotocol.h smsbbsprotocoldefine.h smsbbschildprivilegechecker.h \
