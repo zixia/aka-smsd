@@ -659,7 +659,8 @@ int doRegisterSMS(const char* mobileNo,const char* srcID){
 		syslog(LOG_ERR,"%s %s %s",m_childCode,mobileNo,srcID);
 
 		if (res.size()!=0) {
-			return NOSEVEREERROR;
+//			return NOSEVEREERROR;
+			return SUCCESS;
 		} else {
 			std::stringstream sql;
 			sql<< "insert into SMSRegister_TB(childCode, MobilePhoneNumber, ValidatationNumber, srcID, moneyLimit) values( '" 
@@ -684,7 +685,8 @@ int doUnregisterSMS(const char* mobileNo,const char* srcID){
 			query.exec(sql.str());
 			return SUCCESS;
 		} 
-		return NOSEVEREERROR;
+		// return NOSEVEREERROR;
+		return SUCCESS;
 	} catch ( BadQuery er) {
 		syslog(LOG_ERR,"doUnregisterSMS -- mysql query err : %s", er.error.c_str());
 		return FAILED;
