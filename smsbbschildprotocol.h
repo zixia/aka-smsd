@@ -468,10 +468,12 @@ redo0:
 	}
 	msgType=(PSMS_BBS_HEADER(buf))->Type;
 
-#ifdef DEBUG
-	DWORD smsSerialNo, msgLen;
+
+	DWORD smsSerialNo, msgLen , pid;
 	msgLen=sms_byteToLong((PSMS_BBS_HEADER(buf))->msgLength);
 	smsSerialNo=sms_byteToLong((PSMS_BBS_HEADER(buf))->SerialNo);
+	pid=sms_byteToLong((PSMS_BBS_HEADER(buf))->pid);
+#ifdef DEBUG
 	syslog(LOG_ERR,"login msg head length %d",msgLen);
 	syslog(LOG_ERR,"login msg sn %d",smsSerialNo);
 #endif
@@ -491,9 +493,11 @@ redo02:
 	}
 	
 	if (!m_pChildPrivilegeChecker->canUserConnect( (PSMS_BBS_LOGINPACKET(buf))->user,(PSMS_BBS_LOGINPACKET(buf))->password)  ){
+		doReply(SMS_BBS_CMD_ERR,smsSerialNo,pid);
 		syslog(LOG_ERR,"connection user & password wrong!");
 		return -1;
 	}
+	doReply(SMS_BBS_CMD_OK,smsSerialNo,pid);
 
 	m_pStream=pStream;
 
@@ -736,7 +740,7 @@ public:
 			syslog(LOG_ERR," connect DB error: %s",er.error.c_str());
 			exit(-1);
 		}
-		m_pChildPrivilegeChecker=new CSMSBBSChildPrivilegeChecker(childCode, password,addr);
+		m_pChildPrivilegeChecker=new CSMSBBSChildPrivilegeChecker(childCode, password,addr,m_conn);
 		strncpy(m_childCode,childCode,SMS_CHILDCODE_LEN);
 		m_listenPort=port;
 	}
