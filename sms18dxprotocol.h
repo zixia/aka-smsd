@@ -159,7 +159,7 @@ public:
 		tcp.open(addr);
 		if (!tcp){
 			syslog(LOG_ERR,"can't connect to %s" ,addr);
-			return ERROR;
+			return FAILED;
 		}
 		sigset_t sigmask, oldmask;
 
@@ -196,20 +196,27 @@ public:
 
 
 		tcp.close();
+		DWORD result=(POAKSACKSMZIXIASENDTEXT(buf))->header.dwResult;
+		delete[] buf;
+		delete[] buffer;
 
-		if ((POAKSACKSMZIXIASENDTEXT(buf))->header.dwResult!=OAKSBIT_SUCCESS) {
-			delete[] buf;
-			delete[] buffer;
-			return ERROR;
+		if (result!=OAKSBIT_SUCCESS) {
+			switch (result) {
+			case OAKSERR_SM_INVALIDID:
+			case OAKSERR_SM_INVALIDSENDNO:
+			case OAKSERR_SM_INVALIDRECVNO:
+			case OAKSERR_SM_MSGTOOLENGTH:
+			case OAKSERR_SM_INVALIDMOBILENO:
+			case OAKSERR_SM_INVALIDSEND:
+			case OAKSERR_SM_INVALIDMSGID:
+				return ERROR;
+			default:
+				return FAILED;
+			}
 		}else {
 			m_pSMSLogger->logIt(msg->SenderNumber, msg->TargetNumber,msg->FeeTargetNumber,msg->FeeType,msg->childCode,"58181888" ,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength);
 		}
 		sigprocmask(SIG_SETMASK, &oldmask, NULL);
-
-		delete[] buf;
-
-		delete[] buffer;
-
 		return SUCCESS;
 
 	}
