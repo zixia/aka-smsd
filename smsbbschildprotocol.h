@@ -396,6 +396,12 @@ int dispatchMessage( char* msg, DWORD len) {
 
 	int retCode=0;
 
+#ifdef DEBUG
+	syslog(LOG_ERR,"dispatching message...");
+	syslog(LOG_ERR," msg type %d",msgType);
+	syslog(LOG_ERR," msg sn %d",smsSerialNo);
+#endif
+
 	switch (msgType) {
 		case SMS_BBS_CMD_LOGIN:
 			syslog(LOG_ERR," bbs send login msg error! have logined! serial No is %d", smsSerialNo);
