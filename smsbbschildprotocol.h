@@ -31,6 +31,7 @@ using namespace ost;
 #include "smsbbsprotocoldefine.h"
 #include "smslogger.h"
 #include "smstcpstream.h"
+#include "smsdiskstorage.h"
 
 namespace SMS {
 
@@ -508,15 +509,15 @@ int OnAccept(CSMSTcpStream* pStream){
 	syslog(LOG_ERR," %s login %s", (PSMS_BBS_LOGINPACKET(buf))->user,(PSMS_BBS_LOGINPACKET(buf))->password);
 	m_pStream=pStream;
 	InetHostAddress addr=pStream->getPeer();
-	in_addr address=addr->getAddress();
+	in_addr address=addr.getAddress();
 	if (m_pChildPrivilegeChecker->loginUser(address.s_addr,(PSMS_BBS_LOGINPACKET(buf))->user,(PSMS_BBS_LOGINPACKET(buf))->password,m_childCode,m_childName,&m_defaultMoneyLimit)==FALSE){
 		doReply(SMS_BBS_CMD_ERR,(PSMS_BBS_HEADER(buf))->SerialNo,(PSMS_BBS_HEADER(buf))->pid);
 		syslog(LOG_ERR,"connection user & password wrong!");
 		return -1;
 	}
-	syslog(LOG_ERR, "%s connected!", m_ChildName);
+	syslog(LOG_ERR, "%s connected!", m_childName);
 	char inbox[200];
-	snprintf(inbox,250,"%sinbox/bbs_%s",SMSHOME,m_ChildName);
+	snprintf(inbox,250,"%sinbox/bbs_%s",SMSHOME,m_childName);
 	m_pSMSStorage= new CSMSDiskStorage(this,SMSHOME "outbox/deliver", inbox);
 	m_pSMSStorage->init();
 	m_pSMSStorage->OnNotify();
@@ -946,13 +947,12 @@ public:
 		m_pStream=NULL;
 		m_serial=0;
 		m_pChildPrivilegeChecker=new CSMSBBSChildPrivilegeChecker(&m_conn);
-		strncpy(m_childCode,childCode,SMS_MAXCHILDCODE_LEN);
-		m_childCode[SMS_MAXCHILDCODE_LEN]=0;
-		m_childName[SMS_MAXCHILDNAME_LEN]=0;
+		m_childCode[0]=0;
+		m_childName[0]=0;
 		m_listenPort=listenPort;
 		m_defaultMoneyLimit=defaultMoneyLimit;
 		m_pSMSFeeCodeGetter=new CSMSMysqlFeeCodeGetter(&m_conn);
-		m_pStorage=NULL;
+		m_pSMSStorage=NULL;
 		
 	}
 /* ¹¹Ôìº¯Êý */

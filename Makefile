@@ -15,6 +15,8 @@ sms_deliver_p2c:  app.o sms_deliver_p2c.o
 	$(CXX) -o $@ $^ $(LIBS)
 sms_p_18dx: sms_p_18dx.o app.o smsdiskstorage.o smsdaemon.o smsstorage.o
 	$(CXX) -o $@ $^ $(LIBS)
+sms_c_bbs:sms_c_bbs.o app.o smsdiskstorage.o smsstorage.o smsdaemon.o
+	$(CXX) -o $@ $^ $(LIBS)
 
 %.o: %.cpp ${HEADERS}
 	$(CXX) $(CXXFLAGS)  -c $< -o $@

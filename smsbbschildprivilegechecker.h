@@ -73,7 +73,7 @@ public:
 					return TRUE;
 				}
 			} else {
-				syslog(LOG_ERR,"%s %s not registerd", srcID, srcMobileNo);
+				syslog(LOG_ERR,"%s:%s is not a valid user", childCode, password);
 			}
 		} catch ( BadQuery er) {
 			syslog(LOG_ERR," mysql query err : %s", er.error.c_str());
