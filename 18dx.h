@@ -62,7 +62,20 @@
 	#define     OAKSERR_SM_INVALIDSEND                      525            //移动和联通的手机号码不能互相发送
 	#define     OAKSERR_SM_INVALIDMSGID                     526            //服务代码错误
 	#define     OAKSERR_SM_DISABLEMSGID                     532            //这项服务暂停
-	 
+
+	 #define OAKSID_SM_SVRMOINFO             (0x100 + 88)
+
+typedef struct{
+        OAKSREQHEADER h;
+        int  nReserve;                                          //保留字
+        char szMobileNo[BUFLEN_MOBILENO];  //手机号码
+        char szSPCode[20];                                 //spcode 5818后面的数字 如 1801
+        int  nLenMsg;                                      //内容长度
+}*POAKSREQTRANSFERMOINFO,OAKSREQTRANSFERMOINFO;            //包体后面跟着内容
+
 const char host_18dx[]="61.48.28.121";
 const char port_18dx[]="6002";
+
+const char* testport="5818";
+
 

@@ -14,7 +14,7 @@
 
 namespace SMS {
 
-#include "testmsg.h"
+#include "18dx.h"
 
 const int queueLen=10;
 
@@ -22,21 +22,23 @@ class CSMSTestProtocol: public CSMSProtocol{
 private:
 
 int isMsgValid(char* buffer, unsigned int len, SMSMessage** msg, unsigned int * msgLen){
-	TestMsg* testMsg=(TestMsg*)buffer;
-	if (len!=testMsg->length) 
+	POAKSREQTRANSFERMOINFO testMsg=(POAKSREQTRANSFERMOINFO)buffer;
+	if (OAKSID_SM_SVRMOINFO!=testMsg->h.dwType) 
 		return -1;
+	/*
 	if ((len-sizeof(testMsg->length)-sizeof(testMsg->SenderNumber)-sizeof(testMsg->TargetNumber)-sizeof(testMsg->SMSBodyLength))!=testMsg->SMSBodyLength) {
 		return -1;
 	}
-	*msgLen=sizeof(SMSMessage)+testMsg->SMSBodyLength;
+	*/
+	*msgLen=sizeof(SMSMessage)+testMsg->nLenMsg;
 	*msg=(SMSMessage*) new char[*msgLen];
 
 	memset(*msg,0,*msgLen);
 	(*msg)->length=*msgLen;
-	strncpy((*msg)->SenderNumber , testMsg->SenderNumber , MOBILENUMBERLENGTH);
-	strncpy((*msg)->TargetNumber , testMsg->TargetNumber , MOBILENUMBERLENGTH);
-	(*msg)->SMSBodyLength=testMsg->SMSBodyLength;
-	memcpy((*msg)->SMSBody, testMsg->SMSBody, testMsg->SMSBodyLength);
+	strncpy((*msg)->SenderNumber , testMsg->szMobileNo , MOBILENUMBERLENGTH);
+	strncpy((*msg)->TargetNumber , testMsg->szSPCode , MOBILENUMBERLENGTH);
+	(*msg)->SMSBodyLength=testMsg->nLenMsg;
+	memcpy((*msg)->SMSBody, testMsg+sizeof(OAKSREQTRANSFERMOINFO), testMsg->nLenMsg);
 	return 0;
 }
 
