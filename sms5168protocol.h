@@ -169,7 +169,7 @@ public:
 					break;
 				}
 				time(&now);
-				if (now-m_lastsendtime) {
+				if ( (now-m_lastsendtime)> WAITTIME) {
 					syslog(LOG_ERR,"try to keep connection!");
 					if (retCode=apiActive()!=0) {
 						syslog(LOG_ERR,"apiActive failed!: %d",retCode);
@@ -184,6 +184,7 @@ public:
 					break;
 				}
 			}		
+			apiStop();
 			syslog(LOG_ERR," connection lost!");	
 
 		}
