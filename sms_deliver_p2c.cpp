@@ -1,4 +1,3 @@
-
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
@@ -8,6 +7,7 @@
 #include <unistd.h>
 
 
+#include <sqlplus.hh>
 #include <syslog.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -28,6 +28,9 @@ using namespace std;
 namespace SMS{
 
 #define SIGDSNOTIFY (SIGRTMIN+1)
+
+	
+static Connection* pConn=NULL;
 
 CDeliver _myDaemon(SMSHOME "inbox/deliver","sms_deliver_p2c",LOG_LOCAL0);
 
@@ -60,23 +63,27 @@ int CDeliver::set_notifier(){
 std::string CDeliver::getDest(const std::string& filename){
 	char *childCode=strstr(filename.c_str(),".")+1;
 	syslog(LOG_ERR,"childCode %s",childCode);
-	if (!strncmp(childCode,"12",2)) {
-		return  SMSHOME "inbox/bbs_9sharp";
+	if (pConn==NULL) {
+		pConn=new Connection();
+		try {
+			pConn->connect(DB_NAME, DB_HOST, DB_USER, DB_PASSWORD);
+		} catch (BadQuery er) {
+			syslog(LOG_ERR," connect DB error: %s",er.error.c_str());
+			return SMSHOME "inbox/default";
+		}
 	}
-	if  (!strncmp(childCode,"13",2)) {
-		return  SMSHOME "inbox/bbs_zixia";
-	}
-	if  (!strncmp(childCode,"16",2)) {
-		return  SMSHOME "inbox/bbs_smth";
-	}
-	if  (!strncmp(childCode,"20",2)) {
-		return  SMSHOME "inbox/bbs_test";
-	}
-	if  (!strncmp(childCode,"601",3)) {
-		return  SMSHOME "inbox/bbs_hightman";
-	}
-	if  (!strncmp(childCode,"602",3)) {
-		return  SMSHOME "inbox/bbs_wangmm";
+	try{
+		Query query=pConn->query();
+		query<< "select * from SMSChildUser_TB where strcmp(childID,left('"<<childCode<<"',length(childID)))=0";
+		Result res=query.store();
+		if (res.size()!=0) {
+			Row row=*(res.begin());
+			return (std::string(SMSHOME "inbox/bbs_")+string(row["childName"]));
+		} else {
+			syslog(LOG_ERR,"child: %s not found", childCode);
+		}
+	} catch ( BadQuery er) {
+		syslog(LOG_ERR," mysql query err : %s", er.error.c_str());
 	}
 	return SMSHOME "inbox/default";
 }
