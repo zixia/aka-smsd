@@ -119,11 +119,12 @@ int isMsgValid(char* buf, unsigned long int len, SMSMessage** msg, unsigned int 
 	(*msg)->sendTime=time(NULL);
 	strncpy((*msg)->childCode,"11",SMS_MAXCHILDCODE_LEN);
 	(*msg)->childCode[SMS_MAXCHILDCODE_LEN]=0;
+/*
 	strncpy((*msg)->parentID,"5618",SMS_PARENTID_LEN);
 	(*msg)->parentID[SMS_PARENTID_LEN]=0;
 	strncpy((*msg)->serviceCode,"-BZHLZC",SMS_FEECODE_LEN);
 	(*msg)->serviceCode[SMS_FEECODE_LEN]=0;
-
+*/
 	(*msg)->FeeType=6;
 
 	if (!m_pChildPrivilegeChecker->isMsgValid(*msg)){

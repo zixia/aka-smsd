@@ -1,6 +1,3 @@
-
-	typedef unsigned long int DWORD ;
-
 	#define OAKSID_REQ                                                   0x00000000     // 请求消息类型标志
 	#define OAKSID_ACK                                                   0x80000000     // 应答消息类型标志
 	#define BUFLEN_MOBILENO                                               (15+1)       //手机号码长度 
