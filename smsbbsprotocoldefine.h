@@ -35,7 +35,7 @@ typedef struct _SMS_BBS_HEADER{	//
 
 #define SMS_BBS_USER_LEN	19	
 #define SMS_BBS_PASS_LEN	49
-#define SMS_BBS_VALID_LEN	10	//认证码长度
+#define SMS_BBS_VALID_LEN	6	//认证码长度
 #define SMS_BBS_TYPE_LEN	1	//短信类型长度
 
 

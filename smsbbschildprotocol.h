@@ -34,7 +34,7 @@ namespace SMS {
 
 
 
-const char CODES[]="0123456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+const char CODES[]="0123456789";
 
 /* {{{ class  CBBSChildProtocolTCPSocket
  * 程序的Server Socket实现
