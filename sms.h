@@ -17,8 +17,9 @@ namespace SMS{
 
 #define MOBILENUMBERLENGTH 16  //ºÅÂë³¤¶È
 #define FEETYPE_DEFAULT 1;
-#define SMSTYPE_TEXT	1;
 
+#define SMSTYPE_TEXT	1;
+#define SMSTYPE_BIN	 0
 
 class CSMSProtocol;
 class CSMSStorage;
