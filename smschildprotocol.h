@@ -23,9 +23,6 @@ const int queueLen=10;
 class CSMSChildProtocol: public CSMSProtocol{
 	int m_pid;
 	int m_state;
-	char * m_msg;
-	unsigned long int m_msgLen;
-	unsigned long int m_msgBufLen;
 	int m_sock;
 	enum { ready,headLenghtUnkown, headIncomplete, bodyIncomplete };
 	unsigned long int m_serial;
@@ -50,12 +47,10 @@ int doSendErrorMsg(int msgType, byte SerialNo[4], byte ErrorCode){
 	write(m_sock,msg,len);
 	return 0;
 }
-int isMsgValid(SMSMessage** msg, unsigned int * msgLen){
-	PSMSChildProtocolSendMessage testMsg=(PSMSChildProtocolSendMessage)m_msg;
-	if (testMsg->feeTypeID!=FEETYPE_1) { //类型错误
-		doSendErrorMsg(MSGTYPE_SMR, testMsg->head.SMSSerialNo, MSGERR_FEETYPE);
-		return -1;
-	}
+
+int isMsgValid(char* buf, unsigned long int len, SMSMessage** msg, unsigned int * msgLen){
+	PSMSChildProtocolSendMessage testMsg=(PSMSChildProtocolSendMessage)buf;
+
 	*msgLen=sizeof(SMSMessage)+sms_byteToLong(testMsg->smsBodyLength);
 	*msg=(SMSMessage*) new char[*msgLen];
 
@@ -68,129 +63,97 @@ int isMsgValid(SMSMessage** msg, unsigned int * msgLen){
 	return 0;
 }
 
-int doMessage(CSMSStorage* pSMSStorage){
-	if ((PSMSChildProtocolCommon(m_msg))->head.msgTypeID==MSGTYPE_SM ) {
+int doMessage(CSMSStorage* pSMSStorage, char* msg, unsigned long int len){
+	if ((PSMSChildProtocolCommon(msg))->head.msgTypeID==MSGTYPE_SM ) {
 		SMSMessage * formatedMsg=NULL;
 		unsigned int msgLen=0;
 		int ret;
-		if (!(ret=isMsgValid(&formatedMsg,&msgLen))){
+		if (!(ret=isMsgValid(msg,len, &formatedMsg,&msgLen))){
 			pSMSStorage->writeSMStoStorage(formatedMsg->SenderNumber,formatedMsg->TargetNumber,(char *)formatedMsg,msgLen);
-			doSendErrorMsg(MSGTYPE_SMR, (PSMSChildProtocolCommon(m_msg))->head.SMSSerialNo, MSG_OK);
-			doSendErrorMsg(MSGTYPE_SMS, (PSMSChildProtocolCommon(m_msg))->head.SMSSerialNo, MSG_OK);
+			doSendErrorMsg(MSGTYPE_SMR, (PSMSChildProtocolCommon(msg))->head.SMSSerialNo, MSG_OK);
+			doSendErrorMsg(MSGTYPE_SMS, (PSMSChildProtocolCommon(msg))->head.SMSSerialNo, MSG_OK);
 			delete formatedMsg;
 		} else {
 			return -1;
 		}
 	}
-	if ((PSMSChildProtocolCommon(m_msg))->head.msgTypeID==MSGTYPE_CDR ) { //监测信息返回
+	if ((PSMSChildProtocolCommon(msg))->head.msgTypeID==MSGTYPE_CDR ) { //监测信息返回
 		//todo : 重设时钟
 	}
 	return 0;
 }
 
-int processMessage(const char*  buf,int* bufLen) {
-	char * tmpBuf=NULL;
-	if ( (buf==NULL) || (bufLen<=0) ) {
-		return -1;
-	}
-	if (m_state==ready) {
-		m_state=headLenghtUnkown;
-		m_msg=(char *)malloc(*bufLen);
-		if (m_msg==NULL) {
-			syslog(LOG_ERR, "can't alloc memory");
-			return -1;
-		}
-		memcpy(m_msg, buf,*bufLen);
-		m_msgLen=*bufLen;
-		m_msgBufLen=*bufLen;
-	} else if ( (m_msgLen+*bufLen) <=m_msgBufLen) {
-		memcpy(m_msg+m_msgLen,buf,*bufLen);
-		m_msgLen+=*bufLen;
-	} else {
-		tmpBuf=(char *)malloc(m_msgLen+*bufLen);
-		if (m_msg==NULL) {
-			syslog(LOG_ERR, "can't alloc memory");
-			return -1;
-		}
-		m_msgBufLen=m_msgLen+*bufLen;
-		memcpy(tmpBuf, m_msg, m_msgLen);
-		memcpy(tmpBuf+m_msgLen,buf,*bufLen);
-		m_msgLen=m_msgBufLen;
-	}
-	*bufLen=0;
-	if ( ( (PSMSChildProtocolCommon(m_msg))->head.msgTypeID!=MSGTYPE_SM)  &&
-		( (PSMSChildProtocolCommon(m_msg))->head.msgTypeID!=MSGTYPE_CDR) ) {
-		doSendErrorMsg(MSGTYPE_SMR, (PSMSChildProtocolCommon(m_msg))->head.SMSSerialNo, MSGERR_MSGTYPE);
-		return -1;
-	}
-	if (m_state==headLenghtUnkown) {
-		if (m_msgLen>=sizeof(byte)*9) {
-			m_state=headIncomplete;
-		}
-	}
-	if (m_state==headIncomplete) {
-		if (m_msgLen>=(sms_byteToLong((PSMSChildProtocolCommon(m_msg))->head.msgLength) + sizeof(SMSChildProtocolHead)) ) {
-			if ( (PSMSChildProtocolCommon(m_msg))->head.msgTypeID==MSGTYPE_SM) {
-				m_state=bodyIncomplete;
-			} else {
-				*bufLen=m_msgLen-(sms_byteToLong((PSMSChildProtocolCommon(m_msg))->head.msgLength) + sizeof(SMSChildProtocolHead));
-				m_msgLen=(sms_byteToLong((PSMSChildProtocolCommon(m_msg))->head.msgLength) + sizeof(SMSChildProtocolHead));
-				m_state=ready;
-				return 1;
-			}
-		}
-	}		
-	if (m_state==bodyIncomplete) {
-		if (m_msgLen>=(sms_byteToLong((PSMSChildProtocolSendMessage(m_msg))->smsBodyLength) + sizeof(SMSChildProtocolSendMessage)) ) {
-				*bufLen=m_msgLen-(sms_byteToLong((PSMSChildProtocolSendMessage(m_msg))->smsBodyLength) + sizeof(SMSChildProtocolSendMessage));
-				m_msgLen=(sms_byteToLong((PSMSChildProtocolSendMessage(m_msg))->smsBodyLength) + sizeof(SMSChildProtocolSendMessage));
-				m_state=ready;
-				return 1;
-		}
-	}
-	return 0;
-}
 
 int OnAccept(int s,CSMSStorage* pSMSStorage){
 	char buf[1000];
 	int errCount=0;
 	int i,ret,l;
-	int len=sizeof(buf);
+	int len=0;
 	m_sock=s;
+	byte msgType=0;
+	unsigned long int smsSerialNo, msgLen;
 
-	while (i=read(s,buf,len)){
-		if (i<0) {
-			syslog(LOG_ERR, "read error");
-			errCount++;
-			/*
-			if (errCount>10) {
-				break;
-			}
-			*/
+	for (;;){
+		len=0;
+		l=sizeof(SMSChildProtocolHead);
+redo1:
+		i=read(s,buf,l);
+		if ((i<0) && (errno=EINTR)) {
+			goto redo1;
 		}
-		l=i;
-		while (l) {
-			ret=processMessage(buf+i-l,&l);
-			if (ret<0) {
-				goto quit;
-			}
-			if (ret==1) {
-				doMessage(pSMSStorage);
-			}
+
+		len+=i;
+		if (i<l) {
+			syslog(LOG_ERR, "read msg head error %d ", i);
+			return -1;
 		}
+		msgType=(PSMSChildProtocolCommon(buf))->head.msgTypeID;
+		msgLen=sms_byteToLong((PSMSChildProtocolCommon(buf))->head.msgLength);
+		smsSerialNo=sms_byteToLong((PSMSChildProtocolCommon(buf))->head.SMSSerialNo);
+		syslog(LOG_ERR,"msg head length %d",msgLen);
+		syslog(LOG_ERR,"msg sn %d",smsSerialNo);
+		if ( (msgType!=MSGTYPE_SM)  &&	( msgType!=MSGTYPE_CDR) ) {
+			doSendErrorMsg(MSGTYPE_SMR, (PSMSChildProtocolCommon(buf))->head.SMSSerialNo, MSGERR_MSGTYPE);
+			syslog(LOG_ERR, "msg head type error");
+			return -1;
+		}
+redo2:
+		i=read(s,buf+len,msgLen);
+		if ((i<0) && (errno=EINTR)) {
+			goto redo2;
+		}
+
+		len+=i;
+		if (i<msgLen) {
+			syslog(LOG_ERR, "read msg head body error");
+			return -1;
+		}
+		if (msgType==MSGTYPE_SM) {
+			l=sms_byteToLong((PSMSChildProtocolSendMessage(buf))->smsBodyLength);
+			syslog(LOG_ERR, "msg body length %d", l);
+redo3:
+			i=read(s,buf+len,l);
+			if ((i<0) && (errno=EINTR)) {
+				goto redo3;
+			}
+
+			len+=i;
+			if (i<l) {
+				syslog(LOG_ERR, "read msg head error ");
+				return -1;
+			}
+		} 
+		doMessage(pSMSStorage,buf,len);
 	}
-quit:
+
+
 	m_sock=-1;
-	close(s);
 	return 0;
 }
 public:
 	CSMSChildProtocol() {
 		m_pid=0;
 		m_state=ready;
-		m_msg=NULL;
-		m_msgLen=0;
-		m_msgBufLen=0;
 		m_sock=-1;
 		m_serial=0;
 	}
@@ -285,6 +248,7 @@ public:
 		PSMSChildProtocolReceivedMessage sms;
 		unsigned long int smsLen=sizeof(SMSChildProtocolReceivedMessage)+msg->SMSBodyLength;
 		
+		syslog(LOG_ERR,"write msg ....");
 		if (m_sock==-1) {
 			syslog(LOG_ERR,"no valid socket");
 			return -1;

@@ -15,20 +15,30 @@ int CSMSStorage::OnNotify(){
 		unsigned int dataLen=0;
 		do{
 			dataLen=bufLen;
+			syslog(LOG_ERR, "shit1!");
 			readGettedSMS(buf,&dataLen);
+			syslog(LOG_ERR, "shit2!");
 			if (dataLen>bufLen)
 			{
 				delete[] buf;
 				buf=new char[dataLen];
+				if (buf==NULL){
+					syslog(LOG_ERR, "alloc memory for sms send error!");
+					return -1;
+				}
 				bufLen=dataLen;
+				syslog(LOG_ERR, "shit3!");
 				readGettedSMS(buf,&dataLen);
+				syslog(LOG_ERR, "shit4!");
 				if (dataLen>bufLen)
 				{
 					syslog(LOG_ERR,"read SMS length error!");
 					throw runtime_error("read SMS length error!");
 				}
 			}
+			syslog(LOG_ERR, "shit5!");
 			m_pSMSPProtocol->Send((SMSMessage *)buf);  //todo
+			syslog(LOG_ERR, "shit6!");
 		}
 		while (getNextSMSFromStorage()==0);
 		delete[] buf;

@@ -70,7 +70,7 @@ public:
 	};
 	
 	int getNextSMSFromStorage() {
-		assert(m_pDIR!=NULL);
+
 		dirent* pDirInfo;
 		struct stat statInfo;
 		for (;;) {
@@ -94,6 +94,9 @@ public:
 			delete[] m_pDataBuf;
 			m_bufSize=statInfo.st_size;
 			m_pDataBuf=new char[m_bufSize];
+			if (m_pDataBuf==NULL){
+				syslog(LOG_ERR,"memory alloc in getNextSMSFromStorage failed: %s", pDirInfo->d_name);
+			}
 		}
 		m_dataSize=statInfo.st_size;
 		std::ifstream ifs;
@@ -118,7 +121,6 @@ public:
 	};
 
 	int getFirstSMSFromStorage() {
-		assert(m_pDIR==NULL);
 		m_pDIR=opendir(m_IncomingDirectory.c_str());
 		if (m_pDIR==NULL)
 		{
@@ -133,13 +135,11 @@ public:
 	}
 
 	int readGettedSMS(char* buf, unsigned int* buf_size) {
-		assert(buf_size);
 		if (*buf_size < m_dataSize)
 		{
 			*buf_size=m_dataSize;
 			return 0;
 		}
-		assert(buf!=NULL);
 		memcpy(buf,m_pDataBuf,m_dataSize);
 		*buf_size=m_dataSize;
 		return 0;
