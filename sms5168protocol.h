@@ -29,7 +29,7 @@ using namespace ost;
 #define GWUSER	""
 #define GWPASSWD	""
 
-#define WAITTIME	100000 //10Ãë
+#define WAITTIME	100000 //100Ãë
 
 namespace SMS {
 
@@ -142,6 +142,8 @@ public:
 				apiStop();
 				sleep(10);
 			}
+			syslog(LOG_ERR,"5168 logined!");
+			
 			time(&m_lastrcvtime);
 			time(&m_lastsendtime);
 			pSMSStorage->OnNotify();
@@ -166,6 +168,7 @@ public:
 				}
 				time(&now);
 				if (now-m_lastsendtime) {
+					syslog(LOG_ERR,"try to keep log!");
 					if (apiActive()!=0) {
 						m_connected=0;
 						break;
@@ -176,7 +179,8 @@ public:
 					m_connected=0;
 					break;
 				}
-			}			
+			}		
+			syslog(LOG_ERR," connection lost!");	
 
 		}
 		return 0;
