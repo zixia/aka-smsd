@@ -33,7 +33,7 @@ int CSMSStorage::OnNotify(){
 			if (dataLen>bufLen)
 			{
 				buf=(char*)realloc(buf, dataLen);
-			syslog(LOG_ERR,"buf point: %p dataLen: %d", buf, dataLen);
+				syslog(LOG_ERR,"buf point: %p dataLen: %d", buf, dataLen);
 				if (buf==NULL){
 					syslog(LOG_ERR, "alloc memory for sms send error!");
 					return -1;
@@ -50,7 +50,12 @@ int CSMSStorage::OnNotify(){
 			}
 			syslog(LOG_ERR, "shit5!");
 			syslog(LOG_ERR,"buf point: %p", buf);
-			retCode=m_pSMSPProtocol->Send((SMSMessage *)buf);
+			if ((buf!=NULL) && (dataLen!=0)) {
+				retCode=m_pSMSPProtocol->Send((SMSMessage *)buf);
+			} else {
+				retCode=FAILED;
+				syslog(LOG_ERR,"buf point is null!");
+			}
 			if (retCode!=SUCCESS) {
 				if (retCode==ERROR) {
 					backupError();

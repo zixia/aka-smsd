@@ -85,7 +85,10 @@ public:
 			}
 			syslog(LOG_ERR,"check file:%s",pDirInfo->d_name);
 			std::string path=m_IncomingDirectory+"/"+pDirInfo->d_name;
-			stat(path.c_str(),&statInfo);
+			if (stat(path.c_str(),&statInfo)!=0) {
+				syslog(LOG_ERR,"stat file %s error!", path.c_str());
+				continue;
+			}
 			if (S_ISREG(statInfo.st_mode))
 			{
 				break;
