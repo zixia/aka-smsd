@@ -64,6 +64,7 @@ int OnAccept(CSMSTcpStream* pStream,CSMSStorage* pSMSStorage){
 	int i,size;
 	int len=0;
 
+
 	size=sizeof(OAKSREQTRANSFERMOINFO);
 	i=pStream->read(&head,size);
 	if (i<size) {
@@ -78,6 +79,8 @@ int OnAccept(CSMSTcpStream* pStream,CSMSStorage* pSMSStorage){
 
 	PSMSMessage formatedMsg;
 	unsigned int msgLen;
+
+	syslog(LOG_ERR,"start convert 18dx sms..");
 	
 	if (!isMsgValid(&head,buf,head.nLenMsg, &formatedMsg,&msgLen)){
 		pSMSStorage->writeSMStoStorage(formatedMsg->SenderNumber,formatedMsg->TargetNumber,(char *)formatedMsg,msgLen);
@@ -99,18 +102,21 @@ public:
 	/* {{{ Run(CSMSStorage* pSMSStorage) */
 	int Run(CSMSStorage* pSMSStorage){
 		m_pSMSLogger=new CSMSLogger;
+		pSMSStorage->init();
 		pSMSStorage->OnNotify();
 		InetAddress addr;
 		CSMSTcpStream tcp;
-        try   {
+        try {
 		m_pServiceSocket=new TCPSocket(addr,atoi(testport));
 
 			while(m_pServiceSocket->isPendingConnection()){
 				tcp.open(*m_pServiceSocket);
+				if (!tcp) {
+					continue;
+				}
 				switch(fork()){
 					case 0:
 						delete m_pServiceSocket;
-						pSMSStorage->init();
 						OnAccept(&tcp,pSMSStorage);
 						tcp.close();
 						exit(0);
