@@ -1,6 +1,8 @@
 #ifndef SMS_09AE022D_EC13_4b0f_9A93_06A65268A4DB
 #define SMS_51AD2DAD_B486_4391_A641_84C4719FF7DE
 
+#include <errno.h>
+
 namespace SMS {
 class CSMSTcpStream:public tcpstream{
 public:
