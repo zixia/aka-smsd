@@ -197,9 +197,13 @@ int sendSMS(PSMSMessage sms) {
  */
 void generateValidateNum(char* validateNo, int validNumLen){
 	int codeLen=strlen(CODES);
+	int t;
 	srand(time(NULL));
+	syslog(LOG_ERR," %d %d ", codeLen, validNumLen);
 	for (int i=0;i<validNumLen;i++){
-		validateNo[i]=CODES[0+(int) (((double)codeLen)*rand()/(RAND_MAX+1.0))];
+		t=0+(int) (((double)codeLen)*rand()/(RAND_MAX+1.0));
+		validateNo[i]=CODES[t];
+		syslog(LOG_ERR,"%c",validateNo[i]);
 	}
 	validateNo[validNumLen]=0;
 }
