@@ -1,6 +1,7 @@
 #ifndef SMS_51AD2DAD_B486_4391_A641_84C4719FF7DE
 #define SMS_51AD2DAD_B486_4391_A641_84C4719FF7DE
 
+#include <cc++/socket.h>
 #include "sms.h"
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -11,7 +12,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sstream>
-#include <cc++/socket.h>
 #ifdef  CCXX_NAMESPACES
 using namespace std;
 using namespace ost;

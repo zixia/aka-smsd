@@ -1,7 +1,5 @@
-#include "sms.h"
-
-#include "smsdiskstorage.h"
 #include "smschildprotocol.h"
+#include "smsdiskstorage.h"
 
 using namespace SMS;
 using namespace std;

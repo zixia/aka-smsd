@@ -1,6 +1,7 @@
 #ifndef SMS_51AD2DAD_B486_4391_A641_84C4719FF7DE
 #define SMS_51AD2DAD_B486_4391_A641_84C4719FF7DE
 
+#include <cc++/socket.h>
 #include "sms.h"
 #include "smschildprivilegechecker.h"
 #include <asm/errno.h>
@@ -14,7 +15,6 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <sstream>
-#include <cc++/socket.h>
 #ifdef  CCXX_NAMESPACES
 using namespace std;
 using namespace ost;
