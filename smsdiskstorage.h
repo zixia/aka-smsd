@@ -47,6 +47,7 @@ public:
 		std::stringstream filename;
 		filename<<m_OutgoingDirectory<<"/"<<sourceNo<<"."<<TargetNo<<"."<<lt<<'\0';
 		os.exceptions(std::ios::badbit|std::ios::failbit|std::ios::eofbit);
+		syslog(LOG_ERR, "write new msg to %s", filename.str().c_str());
 		try{
 			os.open(filename.str().c_str());
 			os.write(buf,buf_size);

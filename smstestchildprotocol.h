@@ -23,9 +23,9 @@ private:
 
 int isMsgValid(char* buffer, unsigned int len, SMSMessage** msg, unsigned int * msgLen){
 	POAKSREQTRANSFERMOINFO testMsg=(POAKSREQTRANSFERMOINFO)buffer;
+	/*
 	if (OAKSID_SM_SVRMOINFO!=testMsg->h.dwType) 
 		return -1;
-	/*
 	if ((len-sizeof(testMsg->length)-sizeof(testMsg->SenderNumber)-sizeof(testMsg->TargetNumber)-sizeof(testMsg->SMSBodyLength))!=testMsg->SMSBodyLength) {
 		return -1;
 	}
@@ -57,6 +57,7 @@ int OnAccept(int s,CSMSStorage* pSMSStorage){
 	SMSMessage * formatedMsg=NULL;
 	unsigned int msgLen=0;
 	if (!isMsgValid(msg,len,&formatedMsg,&msgLen)){
+		syslog(LOG_ERR, "write new msg");
 		pSMSStorage->writeSMStoStorage(formatedMsg->SenderNumber,formatedMsg->TargetNumber,(char *)formatedMsg,msgLen);
 		delete formatedMsg;
 	} else {
@@ -109,6 +110,8 @@ public:
 			syslog(LOG_ERR, "get socket error");
 			exit(-1);
 		}
+		int on=1;
+		setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
 		
 		if (bind(s,(struct sockaddr *)&sin, sizeof(sin))<0){
