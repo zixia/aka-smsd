@@ -736,7 +736,7 @@ public:
 			syslog(LOG_ERR," connect DB error: %s",er.error.c_str());
 			exit(-1);
 		}
-		m_pChildPrivilegeChecker=new CSMSBBSChildPrivilegeChecker(childCode, password,addr,&m_conn);
+		m_pChildPrivilegeChecker=new CSMSBBSChildPrivilegeChecker(childCode, password,addr);
 		strncpy(m_childCode,childCode,SMS_CHILDCODE_LEN);
 		m_listenPort=port;
 	}
@@ -766,6 +766,14 @@ public:
 				switch(m_pid=fork()){
 					case 0:
 						delete pServiceSocket;
+						m_conn.close();
+						try {
+							m_conn.connect(DB_NAME, DB_HOST, DB_USER, DB_PASSWORD);
+						} catch (BadQuery er) {
+							syslog(LOG_ERR," connect DB error: %s",er.error.c_str());
+							exit(-1);
+						}
+						m_conn.close();
 						pSMSStorage->init();
 						OnAccept(&tcp);
 						tcp.close();
@@ -823,6 +831,7 @@ int Send(PSMSMessage msg){
 
 
 	~CSMSBBSChildProtocol() {
+		m_conn.close();
 	}
 };
 
