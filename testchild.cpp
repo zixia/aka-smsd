@@ -1,6 +1,8 @@
 #include "smschildprotocol.h"
 #include "smsdiskstorage.h"
 
+#include "sms.h"
+
 using namespace SMS;
 using namespace std;
 
@@ -10,7 +12,7 @@ public:
 
 	CMyDaemon(char* applicationName,int logFacility): CSMSDaemon(applicationName,logFacility){
 		m_pSMSProtocol=new CSMSChildProtocol;
-		m_pSMSStorage = new CSMSDiskStorage(m_pSMSProtocol,"/home/roy/gateway/in","/home/roy/gateway/go");
+		m_pSMSStorage = new CSMSDiskStorage(m_pSMSProtocol,SMSHOME "outbox/deliver", SMSHOME "inbox/default");
 	}
 };
 
