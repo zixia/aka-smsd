@@ -7,7 +7,7 @@ HEADERS=18dx.h  deliver.h smschildprotocol.h sms.h app.h  sms18dxprotocol.h \
 	sms5168protocol.h md5.h
 LIBS= -lccgnu2 -lpthread -ldl -lsqlplus
 
-all: sms_p_18dx sms_p_5168 sms_deliver_c2p sms_c_aka sms_deliver_p2c sms_c_bbs
+all: sms_p_18dx sms_p_5168 sms_deliver_c2p sms_c_aka sms_deliver_p2c sms_c_bbs sms_money_cleaner
 sms_deliver_c2p: app.o sms_deliver_c2p.o
 	$(CXX) -o $@ $^ $(LIBS)
 sms_c_aka:sms_c_aka.o app.o smsdiskstorage.o smsdaemon.o smsstorage.o 
@@ -19,6 +19,8 @@ sms_p_18dx: sms_p_18dx.o app.o smsdiskstorage.o smsdaemon.o smsstorage.o
 sms_p_5168: sms_p_5168.o app.o smsdiskstorage.o smsdaemon.o smsstorage.o
 	$(CXX) -o $@ $^ $(LIBS) -lgwapi
 sms_c_bbs:sms_c_bbs.o app.o smsdiskstorage.o smsstorage.o smsdaemon.o
+	$(CXX) -o $@ $^ $(LIBS)
+sms_money_cleaner: sms_money_cleaner.o
 	$(CXX) -o $@ $^ $(LIBS)
 
 %.o: %.cpp ${HEADERS}
