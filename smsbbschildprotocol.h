@@ -553,7 +553,7 @@ int OnAccept(CSMSTcpStream* pStream){
 #endif
 
 		i=pStream->read(buf+len,msgLen);
-		if (i<l) {
+		if (i<msgLen) {
 			syslog(LOG_ERR," read msg header error %d!", errno);
 			return -1;
 		}
