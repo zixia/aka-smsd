@@ -782,7 +782,7 @@ int doSetMoneyLimitCommand(const char* mobileNumber, const char * usrID, int lim
 	PSMSMessage sms;
 	DWORD smsLen;
 	char msg[101];
-	snprintf(msg, 100, "您已成功设置bbs每日短信发送限额为 %d.%02d ", limit/100, limit%100);
+	snprintf(msg, 100, "您已成功设置bbs每日短信发送限额为 %d.%02d 元", limit/100, limit%100);
 	if (generateSMS(0,mobileNumber, mobileNumber,msg,strlen(msg),6, &sms,&smsLen)==NOENOUGHMEMORY) {
 		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
 		exit(0);
@@ -876,7 +876,7 @@ int doGetTodayTotal(const char* mobileNumber, const char * usrID, int* pTotal){
 
 int doGetTodayTotalCommand(const char* mobileNumber, const char * usrID) {
 	int total;
-	int retCode=doGetMoneyLimit(mobileNumber,usrID,&total);
+	int retCode=doGetTodayTotal(mobileNumber,usrID,&total);
 	if (retCode!=SUCCESS) {
 		return retCode;
 	}
