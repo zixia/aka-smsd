@@ -21,6 +21,8 @@ testbbssmsd: testbbssmsd.o app.o smsdiskstorage.o smschilddaemon.o smsstorage.o
 	$(CXX) -o $@ $^ $(LIBS)
 zixianetbbssmsd: zixianetbbssmsd.o app.o smsdiskstorage.o smschilddaemon.o smsstorage.o
 	$(CXX) -o $@ $^ $(LIBS)
+roytestbbssmsd: roytestbbssmsd.o app.o smsdiskstorage.o smschilddaemon.o smsstorage.o
+       $(CXX) -o $@ $^ $(LIBS)
 
 %.o: %.cpp ${HEADERS}
 	$(CXX) $(CXXFLAGS)  -c $< -o $@
