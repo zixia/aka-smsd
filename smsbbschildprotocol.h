@@ -224,10 +224,10 @@ void generateValidateNum(char* validateNo, int validNumLen){
  *  
  * 获取注册码
  */
-int getValidateNum(const char* mobileNo, char* validateNo, int validNumLen){
+int getValidateNum(const char* mobileNo, const char* srcID, char* validateNo, int validNumLen){
 	try {
 		Query query=m_conn.query();
-		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' ";
+		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and srcID='"<<srcID<<"'";
 		Result res=query.store();
 		if (res.size()!=0) {
 			Row row=*(res.begin());
@@ -236,16 +236,13 @@ int getValidateNum(const char* mobileNo, char* validateNo, int validNumLen){
 				validateNo[validNumLen]=0;
 				return SUCCESS;
 			} else {
-				generateValidateNum(validateNo,validNumLen);
-				std::stringstream sql;
-				sql<< "update  MobileRegisterNumber_TB set ValidatationNumber='"<<validateNo<<"' where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' "; 
-				query.exec(sql.str());
+				return SMS_BBS_CMD_REGISTERED;
 			}
 		} else {
 			generateValidateNum(validateNo,validNumLen);
 			std::stringstream sql;
-			sql<< "insert into MobileRegisterNumber_TB(childCode, MobilePhoneNumber, ValidatationNumber, RegisterCount) values( '" 
-				<<m_childCode<<"' , '"<<mobileNo<<"' , '" <<validateNo <<"', 0 )";
+			sql<< "insert into MobileRegisterNumber_TB(childCode, MobilePhoneNumber, ValidatationNumber,srcID) values( '" 
+				<<m_childCode<<"' , '"<<mobileNo<<"' , '" <<validateNo <<"', '"<<srcID<<"' )";
 			query.exec(sql.str());
 		}
 		return SUCCESS;
@@ -261,9 +258,9 @@ int getValidateNum(const char* mobileNo, char* validateNo, int validNumLen){
  * 发送注册短信
  *
  */
-int doSendRegisterSMS(const char* targetMobileNo){
+int doSendRegisterSMS(const char* targetMobileNo, const char* srcID){
 	char validateNo[SMS_BBS_VALID_LEN+1];
-	int retCode=getValidateNum(targetMobileNo,validateNo,SMS_BBS_VALID_LEN);
+	int retCode=getValidateNum(targetMobileNo,srcID, validateNo,SMS_BBS_VALID_LEN);
 	if (retCode!=SUCCESS) {
 		return retCode;
 	}
@@ -298,23 +295,22 @@ int doSendRegisterSMS(const char* targetMobileNo){
 /* {{{ doRegisterValidation()
  * 使用注册码进行手机绑定认证
  */
-int doRegisterValidation(const char* mobileNo, const char* validateNo){
+int doRegisterValidation(const char* mobileNo, const char* srcID, const char* validateNo){
 	try {
 		Query query=m_conn.query();
-		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' ";
+		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and srcID='"<<srcID<<"' ";
 		Result res=query.store();
 		if (res.size()!=0) {
 			Row row=*(res.begin());
 			if (strlen(row["ValidatationNumber"])!=0) {
-				if (strcmp(validateNo,row["ValidatationNumber"])){
-					return SMS_BBS_CMD_ERR;
-				}
-				int count=atoi(row["RegisterCount"])+1;
-				std::stringstream sql;
-				sql<< "update  MobileRegisterNumber_TB set ValidatationNumber='', RegisterCount="<<count<<" where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' "; 
-				query.exec(sql.str());
-				return SMS_BBS_CMD_OK;
-			} 
+					if (strcmp(validateNo,row["ValidatationNumber"])){
+							return SMS_BBS_CMD_ERR;
+					}
+					std::stringstream sql;
+					sql<< "update  MobileRegisterNumber_TB set ValidatationNumber='' where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and srcID='"<<srcID<<"' ";
+					query.exec(sql.str());
+					return SMS_BBS_CMD_OK;
+			}
 		} 
 		return SMS_BBS_CMD_NO_VALIDCODE;
 	} catch ( BadQuery er) {
@@ -328,25 +324,16 @@ int doRegisterValidation(const char* mobileNo, const char* validateNo){
 /* {{{ doUnregister()
  * 取消手机绑定
  */
-int doUnregister(const char* mobileNo){
+int doUnregister(const char* mobileNo,const char* srcID){
 	try {
 		Query query=m_conn.query();
-		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' ";
+		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and srcID='"<<srcID<<"' ";
 		Result res=query.store();
 		if (res.size()!=0) {
-			Row row=*(res.begin());
-			int count=atoi(row["RegisterCount"]);
-			if (count!=0) {
-				count--;
-				std::stringstream sql;
-				if (count || (strlen(row["ValidatationNumber"])!=0) ) {
-					sql<< "update  MobileRegisterNumber_TB set ValidatationNumber='', RegisterCount="<<count<<" where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' "; 
-				} else {
-					sql << "delete from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' ";
-				}
-				query.exec(sql.str());
-				return SMS_BBS_CMD_OK;
-			} 
+			std::stringstream sql;
+			sql << "delete from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and srcID='"<<srcID<<"' ";
+			query.exec(sql.str());
+			return SMS_BBS_CMD_OK;
 		} 
 		return SMS_BBS_CMD_NO_VALIDCODE;
 	} catch ( BadQuery er) {
@@ -361,7 +348,7 @@ int doUnregister(const char* mobileNo){
  * 绑定请求回应
  */
 int doReplyRegisterRequest(const char* mobileNo, byte isSucceed, DWORD smsSerialNo) {
-	//todo: 错误恢复和处理
+	//todo: 错误处理与恢复
 	return SUCCESS;
 }
 /* doReplyRegisterRequest()
@@ -372,7 +359,7 @@ int doReplyRegisterRequest(const char* mobileNo, byte isSucceed, DWORD smsSerial
  *
  */
 int doSend(PSMS_BBS_BBSSENDSMS msg){
-	if (!m_pChildPrivilegeChecker->canSendSMS(msg->SrcMobileNo,msg->DstMobileNo)){
+	if (!m_pChildPrivilegeChecker->canSendSMS(msg->SrcMobileNo,msg->srcUserID)){
 		return SMS_BBS_CMD_SMS_VALIDATE_FAILED;
 	}
 	PSMSMessage sms;
@@ -445,13 +432,13 @@ int dispatchMessage( char* msg, DWORD len) {
 			retCode=QUIT;
 			break;
 		case SMS_BBS_CMD_REG:
-			doReply(doSendRegisterSMS((PSMS_BBS_REGISTERMOBILEPACKET(msg))->MobileNo),(PSMS_BBS_HEADER(msg))->SerialNo,(PSMS_BBS_HEADER(msg))->pid);
+			doReply(doSendRegisterSMS((PSMS_BBS_REGISTERMOBILEPACKET(msg))->MobileNo,(PSMS_BBS_REGISTERMOBILEPACKET(msg))->cUserID),(PSMS_BBS_HEADER(msg))->SerialNo,(PSMS_BBS_HEADER(msg))->pid);
 			break;
 		case SMS_BBS_CMD_CHECK:
-			doReply(doRegisterValidation((PSMS_BBS_REGISTERVALIDATIONPACKET(msg))->MobileNo,(PSMS_BBS_REGISTERVALIDATIONPACKET(msg))->ValidateNo),(PSMS_BBS_HEADER(msg))->SerialNo,(PSMS_BBS_HEADER(msg))->pid);
+			doReply(doRegisterValidation((PSMS_BBS_REGISTERVALIDATIONPACKET(msg))->MobileNo,(PSMS_BBS_REGISTERVALIDATIONPACKET(msg))->cUserID, (PSMS_BBS_REGISTERVALIDATIONPACKET(msg))->ValidateNo),(PSMS_BBS_HEADER(msg))->SerialNo,(PSMS_BBS_HEADER(msg))->pid);
 			break;
 		case SMS_BBS_CMD_UNREG:
-			doReply(doUnregister((PSMS_BBS_UNREGISTERMOBILEPACKET(msg))->MobileNo),(PSMS_BBS_HEADER(msg))->SerialNo,(PSMS_BBS_HEADER(msg))->pid);
+			doReply(doUnregister((PSMS_BBS_UNREGISTERMOBILEPACKET(msg))->MobileNo,(PSMS_BBS_UNREGISTERMOBILEPACKET(msg))->cUserID),(PSMS_BBS_HEADER(msg))->SerialNo,(PSMS_BBS_HEADER(msg))->pid);
 			break;
 		case SMS_BBS_CMD_REQUEST:
 			syslog(LOG_ERR," bbs send REQUEST msg! error! serial No is %d",smsSerialNo);
@@ -661,20 +648,20 @@ int deliverSMS(PSMSMessage msg) {
 /* deliverSMS()
  * ))) */
 
-int doRegisterSMS(const char* mobileNo){
+int doRegisterSMS(const char* mobileNo,const char* srcID){
 	try {
 		Query query=m_conn.query();
-		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' ";
+		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and srcID='"<<srcID<<"' ";
 		Result res=query.store();
 		std::stringstream sql;
 
 		if (res.size()!=0) {
-			Row row=*(res.begin());
-			int count=atoi(row["RegisterCount"])+1;
-			sql<< "update  MobileRegisterNumber_TB set ValidatationNumber='', RegisterCount="<<count<<" where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' "; 
+			return ERROR;
 		} else {
-			sql<< "insert into MobileRegisterNumber_TB(childCode, MobilePhoneNumber, ValidatationNumber, RegisterCount) values( '" 
-				<<m_childCode<<"' , '"<<mobileNo<<"' , '', 1 )";
+			std::stringstream sql;
+			sql<< "insert into MobileRegisterNumber_TB(childCode, MobilePhoneNumber, ValidatationNumber, srcID) values( '" 
+				<<m_childCode<<"' , '"<<mobileNo<<"' , '', '"<<srcID<<"' )";
+			query.exec(sql.str());
 		}
 		query.exec(sql.str());
 		return SUCCESS;
@@ -684,25 +671,16 @@ int doRegisterSMS(const char* mobileNo){
 	}
 }
 
-int doUnregisterSMS(const char* mobileNo){
+int doUnregisterSMS(const char* mobileNo,const char* srcID){
 	try {
 		Query query=m_conn.query();
-		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' ";
+		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and srcID='"<<srcID<<"' ";
 		Result res=query.store();
 		if (res.size()!=0) {
-			Row row=*(res.begin());
-			int count=atoi(row["RegisterCount"]);
-			if (count!=0) {
-				count--;
-				std::stringstream sql;
-				if (count || (strlen(row["ValidatationNumber"])!=0) ) {
-					sql<< "update  MobileRegisterNumber_TB set ValidatationNumber='', RegisterCount="<<count<<" where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' "; 
-				} else {
-					sql << "delete from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' ";
-				}
-				query.exec(sql.str());
-				return SUCCESS;
-			} 
+			std::stringstream sql;
+			sql << "delete from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and srcID='"<<srcID<<"' ";
+			query.exec(sql.str());
+			return SUCCESS;
 		} 
 		return ERROR;
 	} catch ( BadQuery er) {
@@ -716,18 +694,22 @@ int doUnregisterSMS(const char* mobileNo){
  */
 int processRegisterSMS(PSMSMessage msg) {
 	byte isRegister=0; //0 注册 , 1 注销
-
+	char srcID[SMS_BBS_ID_LEN+1];
 	int retCode;
-	if (msg->SMSBodyLength<2) {
+	if ( (msg->SMSBodyLength<3) || (msg->SMSBodyLength>SMS_BBS_ID_LEN+3)){
 		syslog(LOG_ERR,"received error registe sms!");
 		return ERROR;
 	}
 
-	if  ((msg->SMSBody[0]=='R') && (msg->SMSBody[1]=='G')) {
-		retCode=doRegisterSMS(msg->SenderNumber);
-	}else if  ((msg->SMSBody[0]=='U') && (msg->SMSBody[1]=='R')) {
+	if  ((msg->SMSBody[0]=='R') && (msg->SMSBody[1]=='G')&& (msg->SMSBody[2]==':')) {
+		strncpy(srcID, msg->SMSBody+3, msg->SMSBodyLength-3);
+		srcID[msg->SMSBodyLength-3]=0;
+		retCode=doRegisterSMS(msg->SenderNumber, srcID);
+	}else if  ((msg->SMSBody[0]=='U') && (msg->SMSBody[1]=='R') && (msg->SMSBody[2]==':') ) {
 		isRegister=1;
-		retCode=doUnregisterSMS(msg->SenderNumber);
+		strncpy(srcID, msg->SMSBody+3, msg->SMSBodyLength-3);
+		srcID[msg->SMSBodyLength-3]=0;
+		retCode=doUnregisterSMS(msg->SenderNumber,srcID);
 	}else {
 		syslog(LOG_ERR,"received error content register sms!");
 		return ERROR;
@@ -754,6 +736,7 @@ int processRegisterSMS(PSMSMessage msg) {
 	sms_longToByte( (sms->header.msgLength),smsLen-sizeof(SMS_BBS_HEADER) );
 
 	strncpy(sms->MobileNo, msg->SenderNumber , MOBILENUMBERLENGTH);
+	strncpy(sms->cUserID, srcID, SMS_BBS_ID_LEN);
 
 	sms->Bind=isRegister;
 	retCode=doSendMsg(sms,smsLen);

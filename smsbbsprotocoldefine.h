@@ -21,6 +21,7 @@ typedef struct _SMS_BBS_HEADER{	//
 #define SMS_BBS_CMD_LENGTH_ERR	106			//消息包长度错误
 #define SMS_BBS_CMD_NO_VALIDCODE	107		//无认证码供验证
 #define SMS_BBS_CMD_NO_SUCHMOBILE	108	//取消认证码时发现此手机未认证
+#define SMS_BBS_CMD_REGISTERED		109 //手机号码和id已绑定
 
 
 #define SMS_BBS_CMD_LOGOUT 2
@@ -72,7 +73,7 @@ typedef struct _SMS_BBS_UNREGISTERMOBILEPACKET { //BBS请求网关取消手机绑定
 
 typedef struct _SMS_BBS_BINDREQUESTPACKET { //网关要求BBS绑定手机号码
 		SMS_BBS_HEADER header;
-	    byte UserID[4];
+	    char cUserID[SMS_BBS_ID_LEN+1];
         char MobileNo[MOBILENUMBERLENGTH+1];
 	    byte Bind;
 }SMS_BBS_BINDREQUESTPACKET, *PSMS_BBS_BINDREQUESTPACKET;
@@ -80,7 +81,6 @@ typedef struct _SMS_BBS_BINDREQUESTPACKET { //网关要求BBS绑定手机号码
 typedef struct _SMS_BBS_BINDREQUESTREPLYPACKET { //Type=7
 		SMS_BBS_HEADER header;
 	    char MobileNo[MOBILENUMBERLENGTH+1];
-		char cUserID[SMS_BBS_ID_LEN+1];
         byte isSucceed;
 }SMS_BBS_BINDREQUESTREPLYPACKET, *PSMS_BBS_BINDREQUESTREPLYPACKET;
 
@@ -88,7 +88,7 @@ typedef struct _SMS_BBS_BBSSENDSMS { //Type=8
 		SMS_BBS_HEADER header;
 	    byte UserID[4];
 	    char SrcMobileNo[MOBILENUMBERLENGTH+1];
-		char cUserID[SMS_BBS_ID_LEN+1];
+		char srcUserID[SMS_BBS_ID_LEN+1];
 		char DstMobileNo[MOBILENUMBERLENGTH+1];
 		byte MsgTxtLen[4];
 		char MsgTxt[0];

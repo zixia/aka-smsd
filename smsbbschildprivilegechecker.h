@@ -8,10 +8,6 @@
 #include <string.h>
 #include <string>
 
-#define USER "bbsbad"
-#define PASSWORD "bbsbadheihei"
-
-
 namespace SMS{
 
 class CSMSBBSChildPrivilegeChecker{
@@ -28,10 +24,10 @@ public:
 		}
 		return TRUE;
 	}
-	int canSendSMS(const char* srcMobileNo, const char* targetMobileNo){
+	int canSendSMS(const char* srcMobileNo, const char* srcID){
 		try{
 			Query query=m_pConn->query();
-			query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<srcMobileNo<<"' and RegisterCount>0 ";
+			query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<srcMobileNo<<"' and srcID='"<<srcID<<"'";
 			Result res=query.store();
 			if (res.size()!=0) {
 				return TRUE;
