@@ -221,6 +221,7 @@ int getValidateNum(const char* mobileNo, char* validateNo, int validNumLen){
 			Row row=*(res.begin());
 			if (strlen(row["ValidatationNumber"])!=0) {
 				strncpy(validateNo,row["ValidatationNumber"],validNumLen);
+				validateNo[validNumLen]=0;
 				return SUCCESS;
 			} else {
 				generateValidateNum(validateNo,validNumLen);
