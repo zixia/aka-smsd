@@ -77,16 +77,20 @@ public:
 	}
 
 	ssize_t read(void* buf, ssize_t bufLen){
-		size_t readed;
-		size_t i;
+		int readed;
+		int i;
 		readed=0;
 		while (i=tcpstream::readData(((char*)buf)+readed,bufLen-readed)) {
 			if (i<0){
-				if (errno==EINTR) 
+				if (errno==EINTR) { 
+					syslog(LOG_ERR,"here~~~~~");
 					continue;
-				return i;
-			}
-			readed+=i;
+				} else  {
+					break;
+				}
+			} else 
+				readed+=i;
+			syslog(LOG_ERR, "readed: %d",readed);
 		}
 		return readed;
 	}
@@ -471,6 +475,7 @@ int dispatchMessage( char* msg, DWORD len) {
 			break;
 		default:
 			syslog(LOG_ERR," bbs send msg type : %d serial No is %d",msgType, smsSerialNo);
+			return QUIT;
 			break;
 	}
 	return retCode;
@@ -491,7 +496,7 @@ int OnAccept(myTcpStream* pStream){
 
 	l=sizeof(SMS_BBS_HEADER);
 	i=pStream->read(buf+len,l);
-	if (i<0) {
+	if (i<l) {
 		syslog(LOG_ERR," read login msg header error %d!", errno);
 		return -1;
 	}
@@ -511,7 +516,7 @@ int OnAccept(myTcpStream* pStream){
 		return -1;
 	}
 	i=pStream->read(buf+len,msgLen);
-	if (i<0) {
+	if (i<l) {
 		syslog(LOG_ERR," read login msg header body error %d!", errno);
 		return -1;
 	}
@@ -527,13 +532,11 @@ int OnAccept(myTcpStream* pStream){
 	}
 	doReply(SMS_BBS_CMD_OK,(PSMS_BBS_HEADER(buf))->SerialNo,(PSMS_BBS_HEADER(buf))->pid);
 
-
-
 	for (;;){
 		len=0;
 		l=sizeof(SMS_BBS_HEADER);
 		i=pStream->read(buf,l);
-		if (i<0) {
+		if (i<l) {
 			syslog(LOG_ERR," read msg header error %d!", errno);
 			return -1;
 		}
@@ -541,14 +544,23 @@ int OnAccept(myTcpStream* pStream){
 		len+=i;
 #ifdef DEBUG
 		msgType=(PSMS_BBS_HEADER(buf))->Type;
+#endif
 		msgLen=sms_byteToLong((PSMS_BBS_HEADER(buf))->msgLength);
+#ifdef DEBUG
 		smsSerialNo=sms_byteToLong((PSMS_BBS_HEADER(buf))->SerialNo);
+		{
+			char sbuf[5000];
+			for (i=0;i<l;i++){
+				sprintf(sbuf+i*3, "%02X ",buf[i]);
+			}
+			syslog(LOG_ERR,"msg header: %s",sbuf);
+		}
 		syslog(LOG_ERR,"msg head length %d",msgLen);
 		syslog(LOG_ERR,"msg sn %d",smsSerialNo);
 #endif
 
 		i=pStream->read(buf+len,msgLen);
-		if (i<0) {
+		if (i<l) {
 			syslog(LOG_ERR," read msg header error %d!", errno);
 			return -1;
 		}
@@ -835,7 +847,9 @@ public:
  * 接收并处理上游过来的短信
  */
 int Send(PSMSMessage msg){
-	int smsType=getSMSType(msg->TargetNumber);
+	int smsType;
+	syslog(LOG_ERR, "sending msg...%p", msg);
+	smsType=getSMSType(msg->TargetNumber);
 	syslog(LOG_ERR,"sms type: %d",smsType);
 	switch (smsType) {
 		case SMS_BBS_TYPE_COMMON:

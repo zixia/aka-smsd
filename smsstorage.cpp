@@ -19,10 +19,12 @@ int CSMSStorage::OnNotify(){
 			syslog(LOG_ERR, "shit1!");
 			readGettedSMS(buf,&dataLen);
 			syslog(LOG_ERR, "shit2!");
+			syslog(LOG_ERR,"buf point: %p dataLen: %d", buf, dataLen);
 			if (dataLen>bufLen)
 			{
 				delete[] buf;
 				buf=new char[dataLen];
+			syslog(LOG_ERR,"buf point: %p dataLen: %d", buf, dataLen);
 				if (buf==NULL){
 					syslog(LOG_ERR, "alloc memory for sms send error!");
 					return -1;
@@ -38,6 +40,7 @@ int CSMSStorage::OnNotify(){
 				}
 			}
 			syslog(LOG_ERR, "shit5!");
+			syslog(LOG_ERR,"buf point: %p", buf);
 			retCode=m_pSMSPProtocol->Send((SMSMessage *)buf);
 			if (retCode!=SUCCESS) {
 				if (retCode==ERROR) {
