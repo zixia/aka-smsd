@@ -103,7 +103,7 @@ public:
 	int Run(CSMSStorage* pSMSStorage){
 		m_pSMSLogger=new CSMSLogger;
 		pSMSStorage->init();
-		pSMSStorage->OnNotify();
+//		pSMSStorage->OnNotify();
 		InetAddress addr;
 		CSMSTcpStream tcp;
         try {
@@ -192,10 +192,10 @@ public:
 
 		tcp.write(ps,lenPack);
 		char* buf=new char[sizeof(OAKSACKSMZIXIASENDTEXT)];
-		retCode = tcp.read(buf,sizeof(OAKSACKSMZIXIASENDTEXT),60000);
+		retCode = tcp.read(buf,sizeof(OAKSACKSMZIXIASENDTEXT),6000);
 		if ( TIMEOUT==retCode ){
 			syslog(LOG_ERR,"send msg timeout, faint" );
-			return FAILED;
+			return ERROR;
 		}
 		syslog(LOG_ERR,"send msg return %d",(POAKSACKSMZIXIASENDTEXT(buf))->header.dwResult);
 
