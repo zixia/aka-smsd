@@ -38,12 +38,16 @@ class CSMSLogger{
 		}
 
 		int logIt(const char* sourceNo, const char* targetNo, const char* feeTargetNo, int feeTypeID, const char * childID, const char* parentID, const time_t &  sendTime,
-				const time_t& deliverTime, const time_t& arriveTime, const char* content, const SMS_CONTENT_TYPE& contentType=SMS_CONTENT_TYPE_TXT) {
+				const time_t& deliverTime, const time_t& arriveTime, const char* content, DWORD contentLen, const SMS_CONTENT_TYPE& contentType=SMS_CONTENT_TYPE_TXT) {
 			try{
 				std::stringstream sql;
 				char strDeliverTime[25];
 				char strSendTime[25];
 				char strArriveTime[25];
+                                char *pContent=new char[contentLen+1];
+                                memcpy(pContent,content,contentLen);
+                                pContent[contentLen]=0;
+                                std::replace(pContent,pContent+contentLen,'\'','\"');
 				
 				convertDate(sendTime,strSendTime);
 				convertDate(deliverTime,strDeliverTime);
@@ -52,7 +56,7 @@ class CSMSLogger{
 
 				sql<<"insert into SMSLog_TB(sourceNo, targetNo,feeTargetNo,feeType,childID, parentID, sentTime, deliveTime, content ) values ('"
 					<<sourceNo<<"','"<<targetNo<<"','"<<feeTargetNo<<"',"<<feeTypeID<<",'"<<childID<<"','"<<parentID<<"','"
-					<<strSendTime<<"','"<<strDeliverTime<<"','"<<content<<"')";
+					<<strSendTime<<"','"<<strDeliverTime<<"','"<<pContent<<"')";
 				m_pConn->exec(sql.str());
 
 				} catch ( BadQuery er) {
