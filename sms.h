@@ -10,7 +10,7 @@
 #include <string>
 #include <exception>
 #include <stdexcept>
-
+#include <time.h>
 
 
 namespace SMS{
@@ -36,8 +36,15 @@ namespace SMS{
 #define NOENOUGHMEMORY -401
 #define QUIT -501
 
+#define DB_NAME "AKA"
+#define DB_HOST "localhost"
+#define DB_USER "aka"
+#define DB_PASSWORD "aA3$;G(~cjKK"
+
 
 #define SMS_CHILDCODE_LEN	2 //子用户代码长度
+
+#define SMS_PARENTID_LEN 8
 
 #ifndef byte
 	typedef unsigned char byte;
@@ -53,11 +60,15 @@ class CSMSDaemon;
 
 typedef struct _SMSMessage{
 	DWORD length;
-	char SenderNumber[MOBILENUMBERLENGTH];
-	char TargetNumber[MOBILENUMBERLENGTH];
+	char SenderNumber[MOBILENUMBERLENGTH+1];
+	char TargetNumber[MOBILENUMBERLENGTH+1];
 	int FeeType;
-	char FeeTargetNumber[MOBILENUMBERLENGTH];
+	char FeeTargetNumber[MOBILENUMBERLENGTH+1];
+	char childCode[SMS_CHILDCODE_LEN+1];
+	char parentID[SMS_PARENTID_LEN+1];
 	int SMSType;
+	time_t sendTime;
+	time_t arriveTime;
 	DWORD SMSBodyLength;
 	char SMSBody[0];
 }SMSMessage, *PSMSMessage;

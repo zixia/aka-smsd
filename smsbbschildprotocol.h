@@ -28,13 +28,11 @@ using namespace ost;
 #endif
 
 #include "smsbbsprotocoldefine.h"
+#include "smslogger.h"
 
 namespace SMS {
 
-#define DB_NAME "AKA"
-#define DB_HOST "localhost"
-#define DB_USER "aka"
-#define DB_PASSWORD "aA3$;G(~cjKK"
+
 
 const char CODES[]="0123456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 
@@ -98,6 +96,7 @@ class CSMSBBSChildProtocol: public CSMSProtocol{
 	char m_childCode[SMS_CHILDCODE_LEN+1];
 	Connection m_conn;
 	int m_listenPort;
+	CSMSLogger m_SMSLogger;
 private:
 
 DWORD getSerial(){ //产生序列号
@@ -173,6 +172,10 @@ int convertSMS(PSMS_BBS_BBSSENDSMS msg,  SMSMessage** sms, DWORD *smsLen){
 	strncpy((*sms)->FeeTargetNumber , msg->SrcMobileNo , MOBILENUMBERLENGTH);
 	(*sms)->SMSBodyLength=sms_byteToLong(msg->MsgTxtLen);
 	memcpy((*sms)->SMSBody, msg->MsgTxt, (*sms)->SMSBodyLength);
+
+	(*sms)->sendTime=time(NULL);
+	strncpy((*sms)->childCode,m_childCode,SMS_CHILDCODE_LEN);
+	(*sms)->childCode[SMS_CHILDCODE_LEN]=0;
 
 	return SUCCESS;
 }
@@ -276,6 +279,11 @@ int doSendRegisterSMS(const char* targetMobileNo){
 	strncpy(sms->FeeTargetNumber , targetMobileNo , MOBILENUMBERLENGTH);
 	sms->SMSBodyLength=strlen(msg);
 	memcpy(sms->SMSBody, msg , strlen(msg));
+
+	sms->sendTime=time(NULL);
+	strncpy(sms->childCode,m_childCode,SMS_CHILDCODE_LEN);
+	sms->childCode[SMS_CHILDCODE_LEN]=0;
+
 	retCode=sendSMS(sms);
 	delete[] (char*)sms;
 	return retCode;
@@ -576,7 +584,7 @@ redo2:
  * 获取短消息类别
  */
 int getSMSType(const char * targetMobileNo) { 
-	int prefixLen=4+SMS_CHILDCODE_LEN ;
+	int prefixLen=SMS_CHILDCODE_LEN ;
 	char type[2];
 	if ( strlen(targetMobileNo)<=prefixLen){
 		return SMS_BBS_TYPE_NONE;
@@ -592,7 +600,7 @@ int getSMSType(const char * targetMobileNo) {
  * 获取短消息目标ID
  */
 DWORD getTargetID(const char * targetMobileNo) {
-	int prefixLen=4+SMS_CHILDCODE_LEN+SMS_BBS_TYPE_LEN;
+	int prefixLen=SMS_CHILDCODE_LEN+SMS_BBS_TYPE_LEN;
 	if (strlen(targetMobileNo)<=prefixLen){
 		return 0L;
 	}
@@ -636,6 +644,10 @@ int deliverSMS(PSMSMessage msg) {
 	int retCode=doSendMsg(sms,smsLen);
 
 	syslog(LOG_ERR,"deliver sms to child, retCode=%d",retCode);
+
+	if (retCode==SUCCESS) {
+		m_SMSLogger.logIt(msg->SenderNumber, msg->TargetNumber,"",0,m_childCode,msg->parentID,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody);
+	}
 
 	delete[] (char*)sms;
 
@@ -756,13 +768,14 @@ public:
  *  port: 监听端口
  * 
  */
-	CSMSBBSChildProtocol(const char* childCode,const char* password,const char* addr, int port): m_conn(use_exceptions){
+	CSMSBBSChildProtocol(const char* childCode,const char* password,const char* addr, int port): m_conn(use_exceptions),m_SMSLogger(&m_conn){
 		m_pid=0;
 		m_state=ready;
 		m_pStream=NULL;
 		m_serial=0;
 		m_pChildPrivilegeChecker=new CSMSBBSChildPrivilegeChecker(childCode, password,addr,&m_conn);
 		strncpy(m_childCode,childCode,SMS_CHILDCODE_LEN);
+		m_childCode[SMS_CHILDCODE_LEN]=0;
 		m_listenPort=port;
 	}
 /* 构造函数 */

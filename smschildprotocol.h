@@ -22,6 +22,8 @@ using namespace ost;
 
 #include "childprotocol.h"
 
+#include "smslogger.h"
+
 namespace SMS {
 
 
@@ -31,6 +33,7 @@ const int queueLen=10;
 class CChildProtocolTCPSocket : public TCPSocket
 {
 	CSMSChildPrivilegeChecker* m_privilegeChecker;
+
 protected:
         bool onAccept(const InetHostAddress &ia, tpport_t port);
 
@@ -61,6 +64,7 @@ bool CChildProtocolTCPSocket::onAccept(const InetHostAddress &ia, tpport_t port)
 };
 
 class CSMSChildProtocol: public CSMSProtocol{
+	CSMSLogger m_SMSLogger;
 	int m_pid;
 	int m_state;
 	myTcpStream *m_pStream;
@@ -104,6 +108,11 @@ int isMsgValid(char* buf, unsigned long int len, SMSMessage** msg, unsigned int 
 	strncpy((*msg)->FeeTargetNumber , testMsg->feeTargetNo , MOBILENUMBERLENGTH);
 	(*msg)->SMSBodyLength=sms_byteToLong(testMsg->smsBodyLength);
 	memcpy((*msg)->SMSBody, testMsg->smsBody, (*msg)->SMSBodyLength);
+
+	(*msg)->sendTime=time(NULL);
+	strncpy((*msg)->childCode,"11",SMS_CHILDCODE_LEN);
+	(*msg)->childCode[SMS_CHILDCODE_LEN]=0;
+
 	if (!m_pChildPrivilegeChecker->isMsgValid(*msg)){
 		syslog(LOG_ERR,"message validation failed!");
 		return -1;
@@ -332,6 +341,9 @@ public:
 		m_pStream->write((const char*)sms,smsLen);
 
 		free(sms);
+
+		m_SMSLogger.logIt(msg->SenderNumber, msg->TargetNumber,"",0,"11",msg->parentID,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody);
+
 
 		return 0;
 

@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "sms.h"
+#include "smslogger.h"
 #ifdef  CCXX_NAMESPACES
 using namespace std;
 using namespace ost;
@@ -21,7 +22,9 @@ namespace SMS {
 
 #include "18dx.h"
 
+
 class myTcpStream:public tcpstream{
+
 public:
 	ssize_t write(const void* buf, ssize_t bufLen){
 		return tcpstream::writeData(buf,bufLen);
@@ -34,6 +37,7 @@ public:
 };
 
 class CSMS18DXProtocol: public CSMSProtocol{
+	CSMSLogger m_SMSLogger;
 public:
 	CSMS18DXProtocol() {
 	}
@@ -84,11 +88,15 @@ public:
 		char* buf=new char[sizeof(OAKSACKSMZIXIASENDTEXT)];
 		tcp.read(buf,sizeof(OAKSACKSMZIXIASENDTEXT));
 		syslog(LOG_ERR,"send msg return %d",(POAKSACKSMZIXIASENDTEXT(buf))->header.dwResult);
-		if ((POAKSACKSMZIXIASENDTEXT(buf))->header.dwResult!=OAKSBIT_SUCCESS) {
-			return ERROR;
-		}
+
 
 		tcp.close();
+
+		if ((POAKSACKSMZIXIASENDTEXT(buf))->header.dwResult!=OAKSBIT_SUCCESS) {
+			return ERROR;
+		}else {
+			m_SMSLogger.logIt(msg->SenderNumber, msg->TargetNumber,msg->FeeTargetNumber,msg->FeeType,msg->childCode,"58181888" ,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody);
+		}
 
 		delete[] buf;
 

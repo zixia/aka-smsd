@@ -12,6 +12,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sstream>
+#include "smslogger.h"
+
 #ifdef  CCXX_NAMESPACES
 using namespace std;
 using namespace ost;
@@ -68,9 +70,14 @@ int isMsgValid(char* buffer, unsigned int len, SMSMessage** msg, unsigned int * 
 	memset(*msg,0,*msgLen);
 	(*msg)->length=*msgLen;
 	strncpy((*msg)->SenderNumber , testMsg->szMobileNo , MOBILENUMBERLENGTH);
-	strncpy((*msg)->TargetNumber , testMsg->szSPCode , MOBILENUMBERLENGTH);
+	strncpy((*msg)->TargetNumber , testMsg->szSPCode+4 , MOBILENUMBERLENGTH);
 	(*msg)->SMSBodyLength=testMsg->nLenMsg;
 	memcpy((*msg)->SMSBody, testMsg+1, testMsg->nLenMsg);
+
+	(*msg)->sendTime=time(NULL);
+	strncpy((*msg)->parentID,"58181888",SMS_PARENTID_LEN);
+	(*msg)->parentID[SMS_PARENTID_LEN]=0;
+
 	return 0;
 }
 
