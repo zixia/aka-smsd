@@ -57,7 +57,7 @@ CBBSChildProtocolTCPSocket::CBBSChildProtocolTCPSocket(InetAddress &ia, tpport_t
 bool CBBSChildProtocolTCPSocket::onAccept(const InetHostAddress &ia, tpport_t port){
 		std::stringstream st;
 		st<<ia;
-		return (m_privilegeChecker->isConnectPermitted(st.str().c_str(),port)==TRUE)?true:false;
+		return m_privilegeChecker->isConnectPermitted(st.str().c_str(),port);
 };
 /* class CBBSChildProtocolTCPSocket
  * }}} */
