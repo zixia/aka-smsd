@@ -224,7 +224,7 @@ int getValidateNum(const char* mobileNo, char* validateNo, int validNumLen){
 		}
 		return SUCCESS;
 	} catch ( BadQuery er) {
-		syslog(LOG_ERR," mysql query err : %s", er.error.c_str());
+		syslog(LOG_ERR," getValidateNum -- mysql query err : %s", er.error.c_str());
 		return SMS_BBS_CMD_DB_ERROR;
 	}
 }
@@ -285,7 +285,7 @@ int doRegisterValidation(const char* mobileNo, const char* validateNo){
 		} 
 		return SMS_BBS_CMD_NO_VALIDCODE;
 	} catch ( BadQuery er) {
-		syslog(LOG_ERR," mysql query err : %s", er.error.c_str());
+		syslog(LOG_ERR,"doRegisterValidation --  mysql query err : %s", er.error.c_str());
 		return SMS_BBS_CMD_DB_ERROR;
 	}
 }
@@ -317,7 +317,7 @@ int doUnregister(const char* mobileNo){
 		} 
 		return SMS_BBS_CMD_NO_VALIDCODE;
 	} catch ( BadQuery er) {
-		syslog(LOG_ERR," mysql query err : %s", er.error.c_str());
+		syslog(LOG_ERR,"doUnregister -- mysql query err : %s", er.error.c_str());
 		return SMS_BBS_CMD_DB_ERROR;
 	}
 }
@@ -626,7 +626,7 @@ int doRegisterSMS(const char* mobileNo){
 		query.exec(sql.str());
 		return SUCCESS;
 	} catch ( BadQuery er) {
-		syslog(LOG_ERR," mysql query err : %s", er.error.c_str());
+		syslog(LOG_ERR,"doRegisterSMS -- mysql query err : %s", er.error.c_str());
 		return FAILED;
 	}
 }
@@ -653,7 +653,7 @@ int doUnregisterSMS(const char* mobileNo){
 		} 
 		return ERROR;
 	} catch ( BadQuery er) {
-		syslog(LOG_ERR," mysql query err : %s", er.error.c_str());
+		syslog(LOG_ERR,"doUnregisterSMS -- mysql query err : %s", er.error.c_str());
 		return FAILED;
 	}
 }
