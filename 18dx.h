@@ -4,7 +4,8 @@
 	#define OAKSID_REQ                                                   0x00000000     // 请求消息类型标志
 	#define OAKSID_ACK                                                   0x80000000     // 应答消息类型标志
 	#define BUFLEN_MOBILENO                                               (15+1)       //手机号码长度 
-
+	#define MOBILE_ID_LEN							19
+	
 	//其中,
 	//发送包头定义为
 	typedef  struct _tagOAKSREQHeader{
@@ -29,7 +30,7 @@
 		 int  nFeeID;                                     //收费id, 定义见后面
 		 int  nSendDate;                                  //发送日期，=0表示马上发送，其它定期发送，格式YYMMDDHHMI(其中YY、MM、DD均可为0，为0时表示每年、月、日)
 		 int  lenText;                                    //消息数据长度，紧跟在消息体后面
-		 int  nMobileID;				//消息发送方识别号码 
+		 char szMobileID[MOBILE_ID_LEN+1];				//消息发送方识别号码 
 	}OAKSREQSMZIXIASENDTEXT,*POAKSREQSMZIXIASENDTEXT; 
 
 

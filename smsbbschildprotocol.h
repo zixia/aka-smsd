@@ -167,7 +167,7 @@ int convertSMS(PSMS_BBS_BBSSENDSMS msg,  SMSMessage** sms, DWORD *smsLen){
 
 	memset(*sms,0,*smsLen);
 	(*sms)->length=*smsLen;
-	snprintf((*sms)->SenderNumber , MOBILENUMBERLENGTH , "%s%d%d" , m_childCode , SMS_BBS_TYPE_COMMON, sms_byteToLong(msg->UserID) );
+	snprintf((*sms)->SenderNumber , MOBILENUMBERLENGTH , "%s%d" , m_childCode, sms_byteToLong(msg->UserID) );
 	strncpy((*sms)->TargetNumber , msg->DstMobileNo , MOBILENUMBERLENGTH);
 	strncpy((*sms)->FeeTargetNumber , msg->SrcMobileNo , MOBILENUMBERLENGTH);
 	(*sms)->SMSBodyLength=sms_byteToLong(msg->MsgTxtLen);
@@ -227,7 +227,7 @@ void generateValidateNum(char* validateNo, int validNumLen){
 int getValidateNum(const char* mobileNo, const char* srcID, char* validateNo, int validNumLen){
 	try {
 		Query query=m_conn.query();
-		query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and srcID='"<<srcID<<"'";
+		query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"')";
 		Result res=query.store();
 		if (res.size()!=0) {
 			Row row=*(res.begin());
@@ -235,13 +235,11 @@ int getValidateNum(const char* mobileNo, const char* srcID, char* validateNo, in
 				strncpy(validateNo,row["ValidatationNumber"],validNumLen);
 				validateNo[validNumLen]=0;
 				return SUCCESS;
-			} else {
-				return SMS_BBS_CMD_REGISTERED;
-			}
-		} else {
-			generateValidateNum(validateNo,validNumLen);
-			std::stringstream sql;
-			sql<< "insert into SMSRegister_TB(childCode, MobilePhoneNumber, ValidatationNumber,srcID) values( '" 
+			} 
+		}
+		generateValidateNum(validateNo,validNumLen);
+		std::stringstream sql;
+		sql<< "replace into SMSRegister_TB(childCode, MobilePhoneNumber, ValidatationNumber,srcID) values( '" 
 				<<m_childCode<<"' , '"<<mobileNo<<"' , '" <<validateNo <<"', '"<<srcID<<"' )";
 			query.exec(sql.str());
 		}
@@ -272,7 +270,7 @@ int doSendRegisterSMS(const char* targetMobileNo, const char* srcID){
 	memset(sms,0,smsLen);
 	sms->length=smsLen;
 
-	snprintf(sms->SenderNumber , MOBILENUMBERLENGTH , "%s%d" , m_childCode , SMS_BBS_TYPE_REGISTER);
+	snprintf(sms->SenderNumber , MOBILENUMBERLENGTH , "%s" , m_childCode );
 
 	strncpy(sms->TargetNumber , targetMobileNo , MOBILENUMBERLENGTH);
 	strncpy(sms->FeeTargetNumber , targetMobileNo , MOBILENUMBERLENGTH);
@@ -298,7 +296,7 @@ int doSendRegisterSMS(const char* targetMobileNo, const char* srcID){
 int doRegisterValidation(const char* mobileNo, const char* srcID, const char* validateNo){
 	try {
 		Query query=m_conn.query();
-		query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and srcID='"<<srcID<<"' ";
+		query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"') ";
 		Result res=query.store();
 		if (res.size()!=0) {
 			Row row=*(res.begin());
@@ -307,7 +305,7 @@ int doRegisterValidation(const char* mobileNo, const char* srcID, const char* va
 							return SMS_BBS_CMD_ERR;
 					}
 					std::stringstream sql;
-					sql<< "update  SMSRegister_TB set ValidatationNumber='' where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and srcID='"<<srcID<<"' ";
+					sql<< "update  SMSRegister_TB set ValidatationNumber='' where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"') ";
 					query.exec(sql.str());
 					return SMS_BBS_CMD_OK;
 			}
@@ -327,11 +325,11 @@ int doRegisterValidation(const char* mobileNo, const char* srcID, const char* va
 int doUnregister(const char* mobileNo,const char* srcID){
 	try {
 		Query query=m_conn.query();
-		query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and srcID='"<<srcID<<"' ";
+		query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"') ";
 		Result res=query.store();
 		if (res.size()!=0) {
 			std::stringstream sql;
-			sql << "delete from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and srcID='"<<srcID<<"' ";
+			sql << "delete from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"') ";
 			query.exec(sql.str());
 			return SMS_BBS_CMD_OK;
 		} 
@@ -576,13 +574,13 @@ redo2:
  */
 int getSMSType(const char * targetMobileNo) { 
 	int prefixLen=SMS_CHILDCODE_LEN ;
-	char type[2];
-	if ( strlen(targetMobileNo)<=prefixLen){
+	if ( strlen(targetMobileNo)<prefixLen){
 		return SMS_BBS_TYPE_NONE;
 	}
-	type[0]=targetMobileNo[prefixLen];
-	type[1]=0;
-	return atoi(type);
+	if ( strlen(targetMobileNo)==prefixLen){
+                return SMS_BBS_TYPE_REGISTER;
+	}
+	return SMS_BBS_TYPE_COMMON;
 }
 /* getSMSType()
  * }}} */
@@ -591,7 +589,7 @@ int getSMSType(const char * targetMobileNo) {
  * 获取短消息目标ID
  */
 DWORD getTargetID(const char * targetMobileNo) {
-	int prefixLen=SMS_CHILDCODE_LEN+SMS_BBS_TYPE_LEN;
+	int prefixLen=SMS_CHILDCODE_LEN;
 	if (strlen(targetMobileNo)<=prefixLen){
 		return 0L;
 	}
@@ -651,7 +649,7 @@ int deliverSMS(PSMSMessage msg) {
 int doRegisterSMS(const char* mobileNo,const char* srcID){
 	try {
 		Query query=m_conn.query();
-		query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and srcID='"<<srcID<<"' ";
+		query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"') ";
 		Result res=query.store();
 		syslog(LOG_ERR,"%s %s %s",m_childCode,mobileNo,srcID);
 
@@ -673,11 +671,11 @@ int doRegisterSMS(const char* mobileNo,const char* srcID){
 int doUnregisterSMS(const char* mobileNo,const char* srcID){
 	try {
 		Query query=m_conn.query();
-		query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and srcID='"<<srcID<<"' ";
+		query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"') ";
 		Result res=query.store();
 		if (res.size()!=0) {
 			std::stringstream sql;
-			sql << "delete from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and srcID='"<<srcID<<"' ";
+			sql << "delete from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"') ";
 			query.exec(sql.str());
 			return SUCCESS;
 		} 

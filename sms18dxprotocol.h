@@ -79,9 +79,10 @@ public:
 
 		ps->nFeeID=msg->FeeType;
 
-		ps->nMobileID=atoi(msg->SenderNumber);
+		strncpy(ps->szMobileID, msg->SenderNumber, MOBILE_ID_LEN);
+		ps->szMobileID[MOBILE_ID_LEN]=0;
 
-		syslog(LOG_ERR, "send no %d to 18dx ",ps->nMobileID);
+		syslog(LOG_ERR, "send no %s to 18dx ",ps->szMobileID);
 
 		ps->lenText=msg->SMSBodyLength;
 		memcpy(ps+1,msg->SMSBody,msg->SMSBodyLength);
