@@ -215,7 +215,7 @@ void generateValidateNum(char* validateNo, int validNumLen){
 int getValidateNum(const char* mobileNo, char* validateNo, int validNumLen){
 	try {
 		Query query=m_conn.query();
-		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and targetMobileNo='"<<mobileNo<<"' ";
+		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' ";
 		Result res=query.store();
 		if (res.size()!=0) {
 			Row row=*(res.begin());
@@ -225,7 +225,7 @@ int getValidateNum(const char* mobileNo, char* validateNo, int validNumLen){
 			} else {
 				generateValidateNum(validateNo,validNumLen);
 				std::stringstream sql;
-				sql<< "update  MobileRegisterNumber_TB set ValidatationNumber='"<<validateNo<<"' where childCode='"<<m_childCode<<"' and targetMobileNo='"<<mobileNo<<"' "; 
+				sql<< "update  MobileRegisterNumber_TB set ValidatationNumber='"<<validateNo<<"' where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' "; 
 				query.exec(sql.str());
 			}
 		} else {
@@ -281,7 +281,7 @@ int doSendRegisterSMS(const char* targetMobileNo){
 int doRegisterValidation(const char* mobileNo, const char* validateNo){
 	try {
 		Query query=m_conn.query();
-		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and targetMobileNo='"<<mobileNo<<"' ";
+		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' ";
 		Result res=query.store();
 		if (res.size()!=0) {
 			Row row=*(res.begin());
@@ -291,7 +291,7 @@ int doRegisterValidation(const char* mobileNo, const char* validateNo){
 				}
 				int count=atoi(row["RegisterCount"])+1;
 				std::stringstream sql;
-				sql<< "update  MobileRegisterNumber_TB set ValidatationNumber='', RegisterCount="<<count<<" where childCode='"<<m_childCode<<"' and targetMobileNo='"<<mobileNo<<"' "; 
+				sql<< "update  MobileRegisterNumber_TB set ValidatationNumber='', RegisterCount="<<count<<" where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' "; 
 				query.exec(sql.str());
 				return SMS_BBS_CMD_OK;
 			} 
@@ -311,7 +311,7 @@ int doRegisterValidation(const char* mobileNo, const char* validateNo){
 int doUnregister(const char* mobileNo){
 	try {
 		Query query=m_conn.query();
-		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and targetMobileNo='"<<mobileNo<<"' ";
+		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' ";
 		Result res=query.store();
 		if (res.size()!=0) {
 			Row row=*(res.begin());
@@ -320,9 +320,9 @@ int doUnregister(const char* mobileNo){
 				count--;
 				std::stringstream sql;
 				if (count || (strlen(row["ValidatationNumber"])!=0) ) {
-					sql<< "update  MobileRegisterNumber_TB set ValidatationNumber='', RegisterCount="<<count<<" where childCode='"<<m_childCode<<"' and targetMobileNo='"<<mobileNo<<"' "; 
+					sql<< "update  MobileRegisterNumber_TB set ValidatationNumber='', RegisterCount="<<count<<" where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' "; 
 				} else {
-					sql << "delete from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and targetMobileNo='"<<mobileNo<<"' ";
+					sql << "delete from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' ";
 				}
 				query.exec(sql.str());
 				return SMS_BBS_CMD_OK;
@@ -638,14 +638,14 @@ int deliverSMS(PSMSMessage msg) {
 int doRegisterSMS(const char* mobileNo){
 	try {
 		Query query=m_conn.query();
-		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and targetMobileNo='"<<mobileNo<<"' ";
+		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' ";
 		Result res=query.store();
 		std::stringstream sql;
 
 		if (res.size()!=0) {
 			Row row=*(res.begin());
 			int count=atoi(row["RegisterCount"])+1;
-			sql<< "update  MobileRegisterNumber_TB set ValidatationNumber='', RegisterCount="<<count<<" where childCode='"<<m_childCode<<"' and targetMobileNo='"<<mobileNo<<"' "; 
+			sql<< "update  MobileRegisterNumber_TB set ValidatationNumber='', RegisterCount="<<count<<" where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' "; 
 		} else {
 			sql<< "insert into MobileRegisterNumber_TB(childCode, MobilePhoneNumber, ValidatationNumber, RegisterCount) values( '" 
 				<<m_childCode<<"' , '"<<mobileNo<<"' , '', 1 )";
@@ -661,7 +661,7 @@ int doRegisterSMS(const char* mobileNo){
 int doUnregisterSMS(const char* mobileNo){
 	try {
 		Query query=m_conn.query();
-		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and targetMobileNo='"<<mobileNo<<"' ";
+		query<< "select * from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' ";
 		Result res=query.store();
 		if (res.size()!=0) {
 			Row row=*(res.begin());
@@ -670,9 +670,9 @@ int doUnregisterSMS(const char* mobileNo){
 				count--;
 				std::stringstream sql;
 				if (count || (strlen(row["ValidatationNumber"])!=0) ) {
-					sql<< "update  MobileRegisterNumber_TB set ValidatationNumber='', RegisterCount="<<count<<" where childCode='"<<m_childCode<<"' and targetMobileNo='"<<mobileNo<<"' "; 
+					sql<< "update  MobileRegisterNumber_TB set ValidatationNumber='', RegisterCount="<<count<<" where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' "; 
 				} else {
-					sql << "delete from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and targetMobileNo='"<<mobileNo<<"' ";
+					sql << "delete from MobileRegisterNumber_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' ";
 				}
 				query.exec(sql.str());
 				return SUCCESS;
