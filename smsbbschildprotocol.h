@@ -688,10 +688,10 @@ int OnAccept(CSMSTcpStream* pStream){
 	syslog(LOG_ERR, "%s connected!", m_childName);
 	char inbox[200];
 	snprintf(inbox,250,"%sinbox/bbs_%s",SMSHOME,m_childName);
+	doReply(SMS_BBS_CMD_OK,(PSMS_BBS_HEADER(buf))->SerialNo,(PSMS_BBS_HEADER(buf))->pid);
 	m_pSMSStorage= new CSMSDiskStorage(this,SMSHOME "outbox/deliver", inbox);
 	m_pSMSStorage->init();
 	m_pSMSStorage->OnNotify();
-	doReply(SMS_BBS_CMD_OK,(PSMS_BBS_HEADER(buf))->SerialNo,(PSMS_BBS_HEADER(buf))->pid);
 
 	for (;;){
 		len=0;
