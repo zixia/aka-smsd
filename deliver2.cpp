@@ -111,7 +111,7 @@ int CDeliver::OnNotify(){
 					syslog(LOG_ERR,"can't unlink %s ",oldpath.c_str());
 					throw std::runtime_error("unlink failed!");
 				}
-				syslog(LOG_ERR,"deliver msg: %s", pDirInfo->d_name);
+				syslog(LOG_ERR,"deliver msg: %s to %s", oldpath.c_str(),newpath.c_str());
 			}
 		}
 	} catch(std::exception e ) {

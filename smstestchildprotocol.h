@@ -38,23 +38,23 @@ int isMsgValid(char* buffer, unsigned int len, SMSMessage** msg, unsigned int * 
 	strncpy((*msg)->SenderNumber , testMsg->szMobileNo , MOBILENUMBERLENGTH);
 	strncpy((*msg)->TargetNumber , testMsg->szSPCode , MOBILENUMBERLENGTH);
 	(*msg)->SMSBodyLength=testMsg->nLenMsg;
-	memcpy((*msg)->SMSBody, testMsg+sizeof(OAKSREQTRANSFERMOINFO), testMsg->nLenMsg);
+	memcpy((*msg)->SMSBody, testMsg+1, testMsg->nLenMsg);
 	return 0;
 }
 
 int OnAccept(int s,CSMSStorage* pSMSStorage){
 	char* msg=new char[10000];
 	unsigned int len=0,i,l;
-	i=read(s,msg,sizeof(OAKSREQTRANSFERMOINFO))){
+	i=read(s,msg,sizeof(OAKSREQTRANSFERMOINFO));
 	if (i<0) {
 			syslog(LOG_ERR, "read error");
 			exit(-1);
 	}
-	if (i!=OAKSREQTRANSFERMOINFO) {
+	if (i!=sizeof(OAKSREQTRANSFERMOINFO)) {
 			syslog(LOG_ERR, "read head error");
 	}
 	len+=i;
-	l=(POAKSREQTRANSFERMOINFO)msg->nLenMsg;
+	l=((POAKSREQTRANSFERMOINFO)(msg))->nLenMsg;
 	while (i=read(s,msg+len,l)) {
 		if (i<0) {
 			syslog(LOG_ERR, "read body error");

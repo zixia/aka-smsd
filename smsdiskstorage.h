@@ -51,6 +51,13 @@ public:
 		try{
 			os.open(filename.str().c_str());
 			os.write(buf,buf_size);
+			/*	
+			os<<"from:"<<((SMSMessage*)(buf))->SenderNumber<<std::endl;
+			os<<"to:"<<((SMSMessage*)(buf))->TargetNumber<<std::endl;
+			os<<"BodyLength:"<<((SMSMessage*)(buf))->SMSBodyLength<<std::endl;
+			os<<"Body:";
+			os.write(((SMSMessage*)(buf))->SMSBody, ((SMSMessage*)(buf))->SMSBodyLength);
+			*/
 			os.close();
 		} catch (std::exception e){
 			std::string errorMsg="write ";
