@@ -111,6 +111,7 @@ int doSendMsg(void* msg, DWORD len){
 	if (m_pStream==NULL){
 		return ERROR;
 	}
+	syslog(LOG_ERR," send msg to child ,length=%d",len);
 	//todo: 中断恢复与处理
 	int i=0;
 	int sended=0;
