@@ -413,7 +413,7 @@ int doReplyRegisterRequest(const char* mobileNo, byte isSucceed, DWORD smsSerial
         sigaddset(&sigmask,SIGUSR1);
         sigaddset(&sigmask,SIGUSR2);
         sigprocmask(SIG_BLOCK,&sigmask,&oldmask); 
-	
+
 	for (i=m_requestList.begin();i!=m_requestList.end();i++) {
 		p=*i;
 		if (p->sn==smsSerialNo)
@@ -453,10 +453,14 @@ int doReplyRegisterRequest(const char* mobileNo, byte isSucceed, DWORD smsSerial
 			}
 		}
 		break;
-	case -1:
+	case 1:
 		snprintf(msg, 100, "您输入的id: %s 不存在!", p->userID.c_str());
-	case -2:
+		break;
+	case 2:
 		snprintf(msg, 100, "您使用的手机与您在bbs上设定的手机号不一致!", p->userID.c_str());
+		break;
+	default:
+		return SUCCESS;
 	}
 	PSMSMessage sms;
 	DWORD smsLen;
@@ -653,7 +657,7 @@ int OnAccept(CSMSTcpStream* pStream){
 		i=pStream->read(buf,l);
 		if (i<l) {
 			syslog(LOG_ERR," read msg header error %d!", errno);
-			return -1;
+			return 0;
 		}
 
 		len+=i;
@@ -677,7 +681,7 @@ int OnAccept(CSMSTcpStream* pStream){
 		i=pStream->read(buf+len,msgLen);
 		if (i<msgLen) {
 			syslog(LOG_ERR," read msg header error %d!", errno);
-			return -1;
+			return 0;
 		}
 
 		len+=i;
