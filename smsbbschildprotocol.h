@@ -112,7 +112,17 @@ int doSendMsg(void* msg, DWORD len){
 		return ERROR;
 	}
 	//todo: 中断恢复与处理
-	m_pStream->write(msg,len);
+	int i=0;
+	int sended=0;
+	while (i=m_pStream->write(msg+sended,len-sende)) {
+		if ( i<0) {
+			if  (errno==EINTR) {
+				continue;
+			} 
+			return FAILED;
+		}
+		sended+=i;
+	}
 	return SUCCESS;
 }
  /* doSendMsg()
