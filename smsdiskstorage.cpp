@@ -15,7 +15,6 @@ CSMSDiskStorage* __smsDiskStorage;
 
 void __smsDiskStorage_notify_handler(int sig, siginfo_t *si, void *data)
 {
-     assert(__smsDiskStorage);
 	 __smsDiskStorage->OnNotify();
 }
 

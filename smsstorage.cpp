@@ -57,6 +57,7 @@ int CSMSStorage::OnNotify(){
 			syslog(LOG_ERR, "Send SMS error: %s", e.what());
 	}
 	clearStorage();
+	set_notifier();
 	return 0;
 }
 

@@ -40,7 +40,6 @@ class CSMSLogger{
 		int logIt(const char* sourceNo, const char* targetNo, const char* feeTargetNo, int feeTypeID, const char * childID, const char* parentID, const time_t &  sendTime,
 				const time_t& deliverTime, const time_t& arriveTime, const char* content, const SMS_CONTENT_TYPE& contentType=SMS_CONTENT_TYPE_TXT) {
 			try{
-				Query query=m_pConn->query();
 				std::stringstream sql;
 				char strDeliverTime[25];
 				char strSendTime[25];
@@ -54,8 +53,8 @@ class CSMSLogger{
 				sql<<"insert into SMSLog_TB(sourceNo, targetNo,feeTargetNo,feeType,childID, parentID, sentTime, deliveTime, content ) values ('"
 					<<sourceNo<<"','"<<targetNo<<"','"<<feeTargetNo<<"',"<<feeTypeID<<",'"<<childID<<"','"<<parentID<<"','"
 					<<strSendTime<<"','"<<strDeliverTime<<"','"<<content<<"')";
+				m_pConn->exec(sql.str());
 
-				query.exec(sql.str());
 				} catch ( BadQuery er) {
 					syslog(LOG_ERR,"log sms error -- mysql query err : %s", er.error.c_str());
 					return FAILED;

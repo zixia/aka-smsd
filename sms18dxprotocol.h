@@ -93,6 +93,8 @@ public:
 		tcp.close();
 
 		if ((POAKSACKSMZIXIASENDTEXT(buf))->header.dwResult!=OAKSBIT_SUCCESS) {
+			delete[] buf;
+			delete[] buffer;
 			return ERROR;
 		}else {
 			m_SMSLogger.logIt(msg->SenderNumber, msg->TargetNumber,msg->FeeTargetNumber,msg->FeeType,msg->childCode,"58181888" ,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody);
