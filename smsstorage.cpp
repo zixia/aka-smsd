@@ -22,8 +22,7 @@ int CSMSStorage::OnNotify(){
 			syslog(LOG_ERR,"buf point: %p dataLen: %d", buf, dataLen);
 			if (dataLen>bufLen)
 			{
-				delete[] buf;
-				buf=new char[dataLen];
+				buf=(char*)realloc(buf, dataLen);
 			syslog(LOG_ERR,"buf point: %p dataLen: %d", buf, dataLen);
 				if (buf==NULL){
 					syslog(LOG_ERR, "alloc memory for sms send error!");
@@ -55,7 +54,7 @@ int CSMSStorage::OnNotify(){
 			syslog(LOG_ERR, "shit6!");
 		}
 		while (getNextSMSFromStorage()==0);
-		delete[] buf;
+		free(buf);
 	} catch(exception e ) {
 			syslog(LOG_ERR, "Send SMS error: %s", e.what());
 	}

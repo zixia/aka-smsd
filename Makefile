@@ -3,7 +3,7 @@ CXXFLAGS=-g -I/usr/include/cc++2 -I/usr/include/mysql -DDEBUG -Wno-deprecated
 HEADERS=18dx.h  deliver.h smschildprotocol.h sms.h sms18dxrcvprotocol.h app.h  sms18dxprotocol.h \
 	smsdaemon.h smsprotocol.h  testmsg.h childprotocol.h  smschildprivilegechecker.h \
 	smsdiskstorage.h smsstorage.h smsbbschildprotocol.h smsbbsprotocoldefine.h smsbbschildprivilegechecker.h \
-	smslogger.h
+	smslogger.h smstcpstream.h
 LIBS= -lccgnu2 -lpthread -ldl -lsqlplus
 
 all: sms_p_18dx_sender sms_deliver_c2p sms_c_aka sms_deliver_p2c sms_p_18dx_receiver sms_c_bbs_9sharp sms_c_bbs_zixia sms_c_bbs_smth  sms_c_bbs_test sms_c_bbs_hightman

@@ -1,4 +1,4 @@
-/*
+/* smsbbschildprotocol
  * 
  *
  *
@@ -29,6 +29,7 @@ using namespace ost;
 
 #include "smsbbsprotocoldefine.h"
 #include "smslogger.h"
+#include "smstcpstream.h"
 
 namespace SMS {
 
@@ -67,43 +68,10 @@ bool CBBSChildProtocolTCPSocket::onAccept(const InetHostAddress &ia, tpport_t po
 /* class CBBSChildProtocolTCPSocket
  * }}} */
 
-/* {{{ class myTcpStream 
- * 程序的tcpstream实现
- */
-class myTcpStream:public tcpstream{
-public:
-	ssize_t write(void* buf, ssize_t bufLen){
-		return tcpstream::writeData(buf,bufLen);
-	}
-
-	ssize_t read(void* buf, ssize_t bufLen){
-		int readed;
-		int i;
-		readed=0;
-		while (i=tcpstream::readData(((char*)buf)+readed,bufLen-readed)) {
-			if (i<0){
-				if (errno==EINTR) { 
-					syslog(LOG_ERR,"here~~~~~");
-					continue;
-				} else  {
-					break;
-				}
-			} else 
-				readed+=i;
-			syslog(LOG_ERR, "readed: %d",readed);
-		}
-		return readed;
-	}
-
-};
-/* class myTcpStream
-* }}} */
-
-
 class CSMSBBSChildProtocol: public CSMSProtocol{
 	int m_pid;
 	int m_state;
-	myTcpStream *m_pStream;
+	CSMSTcpStream *m_pStream;
 	enum { ready,headLenghtUnkown, headIncomplete, bodyIncomplete };
 	DWORD m_serial;
 	CSMSBBSChildPrivilegeChecker *m_pChildPrivilegeChecker;
@@ -122,33 +90,18 @@ DWORD getSerial(){ //产生序列号
  * 向下游发送消息
  */
 int doSendMsg(void* msg, DWORD len){
-	sigset_t sigmask,oldmask;
-	int i=0;
-	int sended=0;
+	int rc=0;
 	if (m_pStream==NULL){
 		return ERROR;
 	}
 	syslog(LOG_ERR," send msg to child ,length=%d",len);
 	//todo: 中断恢复与处理
-	sigemptyset(&sigmask);
-	sigaddset(&sigmask,SIGUSR1);
-	sigprocmask(SIG_BLOCK,&sigmask,&oldmask);
 
-	while (i=m_pStream->write(((char*)msg)+sended,len-sended)) {
-
-		if ( i<0) {
-			if  (errno==EINTR) {
-				continue;
-			} 
-			sigprocmask(SIG_SETMASK,&oldmask,NULL);
+	rc=m_pStream->write((char*)msg,len);
+	if ( rc<len) {
 			syslog(LOG_ERR, "do send msg error: %d" , errno);
 			return FAILED;
-		}
-		sended+=i;
-		if (sended>=len) 
-			break;
 	}
-	sigprocmask(SIG_SETMASK,&oldmask,NULL);
 	return SUCCESS;
 }
  /* doSendMsg()
@@ -169,38 +122,54 @@ int doReply(int msgType, const byte SerialNo[4], const byte pid[4]){
 	memcpy(((PSMS_BBS_HEADER)(msg))->pid, pid, 4);
 	sms_longToByte(((PSMS_BBS_HEADER)(msg))->msgLength,0);
 	int retCode=doSendMsg(msg,len);
-	delete[] msg;
+	free( msg);
 	return retCode;
 }
 /* doRely() 
  *}}} */
 
+/* {{{ generateSMS()
+ * 生成内部格式SMS
+ */
+int generateSMS(DWORD userCode, const char* targetNumber, const char* feeTargetNumber, const char* msgContent, DWORD msgLen , byte feeType , SMSMessage** sms, DWORD *smsLen){  
+	*smsLen=sizeof(SMSMessage)+msgLen;
+	*sms=(PSMSMessage) malloc(*smsLen);
+	if (*sms==NULL) {
+		return NOENOUGHMEMORY;
+	}
+	memset(*sms,0,*smsLen);
+	(*sms)->length=*smsLen;
+
+	if (userCode) 
+		snprintf((*sms)->SenderNumber , MOBILENUMBERLENGTH , "%s%d" , m_childCode, userCode);
+	else 
+		snprintf((*sms)->SenderNumber , MOBILENUMBERLENGTH , "%s" , m_childCode);
+
+	strncpy((*sms)->TargetNumber , targetNumber , MOBILENUMBERLENGTH);
+	(*sms)->TargetNumber[MOBILENUMBERLENGTH]=0;
+	strncpy((*sms)->FeeTargetNumber , feeTargetNumber , MOBILENUMBERLENGTH);
+	(*sms)->FeeTargetNumber[MOBILENUMBERLENGTH]=0;
+	(*sms)->SMSBodyLength=msgLen;
+	memcpy((*sms)->SMSBody, msgContent, msgLen);
+
+	(*sms)->sendTime=time(NULL);
+
+	strncpy((*sms)->childCode,m_childCode,SMS_MAXCHILDCODE_LEN);
+	(*sms)->childCode[SMS_MAXCHILDCODE_LEN]=0;
+
+	(*sms)->FeeType=feeType;
+
+	return SUCCESS;
+}
+
+/* generateSMS()
+ * }}} */
+
 /* {{{ convertSMS()
  * 转化SMS为内部格式
  */
 int convertSMS(PSMS_BBS_BBSSENDSMS msg,  SMSMessage** sms, DWORD *smsLen){  
-
-	*smsLen=sizeof(SMSMessage)+sms_byteToLong(msg->MsgTxtLen);
-	*sms=(PSMSMessage) new char[*smsLen];
-	if (*sms==NULL) {
-		return NOENOUGHMEMORY;
-	}
-
-	memset(*sms,0,*smsLen);
-	(*sms)->length=*smsLen;
-	snprintf((*sms)->SenderNumber , MOBILENUMBERLENGTH , "%s%d" , m_childCode, sms_byteToLong(msg->UserID) );
-	strncpy((*sms)->TargetNumber , msg->DstMobileNo , MOBILENUMBERLENGTH);
-	strncpy((*sms)->FeeTargetNumber , msg->SrcMobileNo , MOBILENUMBERLENGTH);
-	(*sms)->SMSBodyLength=sms_byteToLong(msg->MsgTxtLen);
-	memcpy((*sms)->SMSBody, msg->MsgTxt, (*sms)->SMSBodyLength);
-
-	(*sms)->sendTime=time(NULL);
-	strncpy((*sms)->childCode,m_childCode,SMS_MAXCHILDCODE_LEN);
-	(*sms)->childCode[SMS_MAXCHILDCODE_LEN]=0;
-
-	(*sms)->FeeType=6;
-
-	return SUCCESS;
+	return generateSMS(sms_byteToLong(msg->UserID),msg->DstMobileNo, msg->SrcMobileNo,msg->MsgTxt,sms_byteToLong(msg->MsgTxtLen),6, sms,smsLen);
 }
 
 /* convertSMS()
@@ -283,28 +252,17 @@ int doSendRegisterSMS(const char* targetMobileNo, const char* srcID){
 		return retCode;
 	}
 
+
+	PSMSMessage sms;
+	DWORD smsLen;
 	char msg[101];
 	snprintf(msg, 100, "您的注册码是：%s", validateNo);
-	DWORD smsLen=sizeof(SMSMessage)+strlen(msg);
-	PSMSMessage sms=(PSMSMessage)new char[smsLen];
-	memset(sms,0,smsLen);
-	sms->length=smsLen;
-
-	snprintf(sms->SenderNumber , MOBILENUMBERLENGTH , "%s" , m_childCode );
-
-	strncpy(sms->TargetNumber , targetMobileNo , MOBILENUMBERLENGTH);
-	strncpy(sms->FeeTargetNumber , targetMobileNo , MOBILENUMBERLENGTH);
-	sms->SMSBodyLength=strlen(msg);
-	memcpy(sms->SMSBody, msg , strlen(msg));
-
-	sms->sendTime=time(NULL);
-	strncpy(sms->childCode,m_childCode,SMS_MAXCHILDCODE_LEN);
-	sms->childCode[SMS_MAXCHILDCODE_LEN]=0;
-
-	sms->FeeType=6;
-
+	if (generateSMS(0,targetMobileNo, targetMobileNo,msg,strlen(msg),6, &sms,&smsLen)==NOENOUGHMEMORY) {
+		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
+		exit(0);
+	}
 	retCode=sendSMS(sms);
-	delete[] (char*)sms;
+	free(sms);
 	return retCode;
 }
 /* doSendRegisterSMS()
@@ -387,7 +345,7 @@ int doSend(PSMS_BBS_BBSSENDSMS msg){
 		exit(0);
 	}
 	int retCode=sendSMS(sms);
-	delete[] (char*)sms;
+	free(sms);
 	return retCode;
 }
 /* doSend()
@@ -487,7 +445,7 @@ int dispatchMessage( char* msg, DWORD len) {
  *
  * 从客户端读取消息
  */
-int OnAccept(myTcpStream* pStream){
+int OnAccept(CSMSTcpStream* pStream){
 	char buf[1000];
 	int errCount=0;
 	int i,ret,l;
@@ -621,7 +579,7 @@ int deliverSMS(PSMSMessage msg) {
 	
 	syslog(LOG_ERR,"delivering msg ....");
 	
-	sms=(PSMS_BBS_GWSENDSMS)new char[smsLen];
+	sms=(PSMS_BBS_GWSENDSMS)malloc(smsLen);
 
 	if (sms==NULL) {
 		syslog(LOG_ERR,"Fatal Error: can't alloc enough memory for sms convertion!");
@@ -648,7 +606,7 @@ int deliverSMS(PSMSMessage msg) {
 		m_SMSLogger.logIt(msg->SenderNumber, msg->TargetNumber,"",0,m_childCode,msg->parentID,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength);
 	}
 
-	delete[] (char*)sms;
+	free(sms);
 
 	return retCode;
 
@@ -730,7 +688,7 @@ int processRegisterSMS(PSMSMessage msg) {
 
 	DWORD smsLen=sizeof(SMS_BBS_BINDREQUESTPACKET);
 	
-	sms=(PSMS_BBS_BINDREQUESTPACKET)new char[smsLen];
+	sms=(PSMS_BBS_BINDREQUESTPACKET)malloc(smsLen);
 
 	if (sms==NULL) {
 		syslog(LOG_ERR,"Fatal Error: can't alloc enough memory for message generation!");
@@ -748,7 +706,7 @@ int processRegisterSMS(PSMSMessage msg) {
 	sms->Bind=isRegister;
 	retCode=doSendMsg(sms,smsLen);
 
-	delete[] (char*)sms;
+	free(sms);
 
 	return retCode;
 
@@ -781,7 +739,7 @@ public:
  */
 	int Run(CSMSStorage* pSMSStorage){
 		InetAddress addr;
-		myTcpStream tcp;
+		CSMSTcpStream tcp;
 		m_pSMSStorage=pSMSStorage;
 
         try   {
