@@ -13,6 +13,10 @@ typedef enum _SMS_CONTENT_TYPE{
 SMS_CONTENT_TYPE_TXT, SMS_CONTENT_TYPE_BIN
 } SMS_CONTENT_TYPE;
 
+typedef enum _SMS_TRANSFER_DIRECTION{
+SMS_TRANSFER_UP,SMS_TRANSFER_DOWN 
+} SMS_TRANSFER_DIRECTION;
+
 class CSMSLogger{
 	Connection *m_pConn;
 	int isOutterConn;
@@ -38,13 +42,14 @@ class CSMSLogger{
 		}
 
 		int logIt(const char* sourceNo, const char* targetNo, const char* feeTargetNo, int feeTypeID, const char * childID, const char* parentID, const time_t &  sendTime,
-				const time_t& deliverTime, const time_t& arriveTime, const char* content, DWORD contentLen, const SMS_CONTENT_TYPE& contentType=SMS_CONTENT_TYPE_TXT) {
+				const time_t& deliverTime, const time_t& arriveTime, const char* content, DWORD contentLen, const SMS_TRANSFER_DIRECTION transferDirection= SMS_TRANSFER_DOWN, const SMS_CONTENT_TYPE& contentType=SMS_CONTENT_TYPE_TXT) {
 			try{
 				std::stringstream sql;
 				char strDeliverTime[25];
 				char strSendTime[25];
 				char strArriveTime[25];
                                 char *pContent=new char[contentLen+1];
+				char *sTransferDirection;
                                 memcpy(pContent,content,contentLen);
                                 pContent[contentLen]=0;
                                 std::replace(pContent,pContent+contentLen,'\'','\"');
@@ -52,11 +57,15 @@ class CSMSLogger{
 				convertDate(sendTime,strSendTime);
 				convertDate(deliverTime,strDeliverTime);
 				//convertDate(arriveTime,strArriveTime);
+				if (transferDirection==SMS_TRANSFER_UP) {
+					sTransferDirection="UP";
+				} else {
+					sTransferDirection="DOWN";
+				}
 
-
-				sql<<"insert into SMSLog_TB(sourceNo, targetNo,feeTargetNo,feeType,childID, parentID, sentTime, deliveTime, content ) values ('"
+				sql<<"insert into SMSLog_TB(sourceNo, targetNo,feeTargetNo,feeType,childID, parentID, sentTime, deliveTime, content ,deliverDirection) values ('"
 					<<sourceNo<<"','"<<targetNo<<"','"<<feeTargetNo<<"',"<<feeTypeID<<",'"<<childID<<"','"<<parentID<<"','"
-					<<strSendTime<<"','"<<strDeliverTime<<"','"<<pContent<<"')";
+					<<strSendTime<<"','"<<strDeliverTime<<"','"<<pContent<<"','"<<sTransferDirection<<"')";
 				m_pConn->exec(sql.str());
 
 				} catch ( BadQuery er) {

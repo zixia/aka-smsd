@@ -516,13 +516,15 @@ int OnAccept(CSMSTcpStream* pStream){
 	len+=i;
 	syslog(LOG_ERR," %s login %s", (PSMS_BBS_LOGINPACKET(buf))->user,(PSMS_BBS_LOGINPACKET(buf))->password);
 
-	m_pStream=pStream;
 	
 	if (!m_pChildPrivilegeChecker->canUserConnect( (PSMS_BBS_LOGINPACKET(buf))->user,(PSMS_BBS_LOGINPACKET(buf))->password)  ){
 		doReply(SMS_BBS_CMD_ERR,(PSMS_BBS_HEADER(buf))->SerialNo,(PSMS_BBS_HEADER(buf))->pid);
 		syslog(LOG_ERR,"connection user & password wrong!");
 		return -1;
 	}
+	m_pStream=pStream;
+	m_pSMSStorage->init();
+	m_pSMSStorage->OnNotify();
 	doReply(SMS_BBS_CMD_OK,(PSMS_BBS_HEADER(buf))->SerialNo,(PSMS_BBS_HEADER(buf))->pid);
 
 	for (;;){
@@ -637,9 +639,6 @@ int deliverSMS(PSMSMessage msg) {
 
 	syslog(LOG_ERR,"deliver sms to child, retCode=%d",retCode);
 
-	if (retCode==SUCCESS) {
-		m_SMSLogger.logIt(msg->SenderNumber, msg->TargetNumber,"",0,m_childCode,msg->parentID,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength);
-	}
 
 	free(sms);
 
@@ -848,7 +847,7 @@ int doGetMoneyLimitCommand(const char* mobileNumber, const char * usrID) {
 	PSMSMessage sms;
 	DWORD smsLen;
 	char msg[101];
-	snprintf(msg, 100, "您当前的bbs日短信发送限额为 %d.%02d元", limit/100, limit %100);
+	snprintf(msg, 100, "您当前的bbs日短信发送限额为 %d.%02d 元", limit/100, limit %100);
 	if (generateSMS(0,mobileNumber, mobileNumber,msg,strlen(msg),6, &sms,&smsLen)==NOENOUGHMEMORY) {
 		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
 		exit(0);
@@ -993,7 +992,6 @@ public:
 							syslog(LOG_ERR," connect DB error: %s",er.error.c_str());
 							exit(-1);
 						}
-						pSMSStorage->init();
 						OnAccept(&tcp);
 						tcp.close();
 						m_conn.close();
@@ -1044,14 +1042,19 @@ int Send(PSMSMessage msg){
 		case SMS_BBS_TYPE_COMMAND:
 			retCode=processCommandSMS(msg);
 			if (retCode!=PARSE_ERROR) {
-				return retCode;
+				break;
 			}
 		case SMS_BBS_TYPE_COMMON:
-			return deliverSMS(msg);
+			retCode=deliverSMS(msg);
+			break;
 		default:
 			syslog(LOG_ERR," received unknown sms, targetNumber is : %s ", msg->TargetNumber);
-			return ERROR;
+			retCode=ERROR;
 	}
+	if (retCode==SUCCESS) {
+		m_SMSLogger.logIt(msg->SenderNumber, msg->TargetNumber,"",0,m_childCode,msg->parentID,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength,SMS_TRANSFER_UP);
+	}
+	return retCode;
 
 }
 /* Send()

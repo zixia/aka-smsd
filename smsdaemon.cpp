@@ -8,10 +8,6 @@ int CSMSDaemon::Run(){
 
 		//防止子类未正确初始化
 		assert(m_pSMSProtocol);
-		assert(m_pSMSStorage);
-
-		m_pSMSStorage->init(); //必须在此处初始化
-
 
 		m_pSMSProtocol->Run(m_pSMSStorage);
 

@@ -198,6 +198,8 @@ redo02:
 	}
 
 	m_pStream=pStream;
+	pSMSStorage->init();
+	pSMSStorage->OnNotify();
 
 	for (;;){
 		len=0;
@@ -283,7 +285,6 @@ public:
 				switch(m_pid=fork()){
 					case 0:
 						delete m_pServiceSocket;
-						pSMSStorage->init();
 						OnAccept(&tcp,pSMSStorage);
 						tcp.close();
 						exit(0);
