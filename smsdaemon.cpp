@@ -1,4 +1,5 @@
 #include "sms.h"
+#include "smsdaemon.h"
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -11,37 +12,6 @@ int CSMSDaemon::Run(){
 
 		m_pSMSProtocol->Run(m_pSMSStorage);
 
-/*
-		pid_t child=NULL;
-
-		m_pSMSPProtocol->Listen();
-
-		for (; ; )
-		{
-			try{
-				m_pSMSPProtocol->Accept();
-				if (child)
-				{
-					kill(child);
-				}
-				child=fork();
-				switch (child){
-				case 0 : // child 
-					ProcessChild();
-					return 0;
-					break;
-				case -1: // error 
-					throw runtime_error("can't fork child process");
-					break;
-				default:
-					m_pSMSPProtocol->Close();
-				}
-			} catch (exception e) {
-				syslog(LOG_ERR, "Accept connection error: %s", e.what());
-			}
-		}
-*/
-	
 		return 1;
 }
 
@@ -55,6 +25,21 @@ int CSMSDaemon::OnSignalTerm(){
 	syslog(LOG_ERR,"Terminated by SIGTERM(kill)");
 	exit(0);
 	return 0;
+}
+
+int CSMSDaemon::OnSignalAlarm(){
+	siglongjmp(m_jmpBuf,1);
+}
+
+
+int CSMSDaemon::setAlarm(int seconds){
+      int retCode=sigsetjmp(m_jmpBuf,1);
+      if (retCode==0) {
+	      alarm(seconds);
+      } else {
+	      alarm(0);
+      }
+      return retCode;
 }
 
 CSMSDaemon::~CSMSDaemon(){

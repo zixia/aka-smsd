@@ -2,6 +2,7 @@
 #define SMS_H_APP_4C9557A02420417f850745DF202C81A5
 
 #include "app.h"
+#include <setjmp.h>
 
 namespace SMS{
 
@@ -22,6 +23,7 @@ class CSMSDaemon: public RCL::CApplication{
 protected:
 	CSMSProtocol	*m_pSMSProtocol;
 	CSMSStorage *m_pSMSStorage;
+	jmp_buf m_jmpBuf;
 
 	
 public:
@@ -34,31 +36,15 @@ public:
 		return 1;
 	}
 
-/*
-	int ProcessChild(){
-
-		m_pSMSStorage->Init(this); //初始化，设置中断处理函数
-
-		SMSMessage* pSMS;
-
-		while (m_SMSPProtocol->Receive(pSMS))
-		{
-			try{
-			// to do: 判断信息权限 
-			m_pSMSStorage->writeSMStoStorage(pSMS->SenderNumber,pSMS->TargetNumber,reinterrupt_cast<char*>(pSMS),pSMS->length); /// 保存信息到存储区，接口需细化
-			} catch ( exception e){
-				syslog(LOG_ERR,"storage error: " , e.what());
-			}
-			delete pSMS;
-		}
-		return 0;
-	}
-*/
 	int Run();
 
 	int OnSignalChild();
 
 	int OnSignalTerm();
+
+	int OnSignalAlarm();
+
+	int setAlarm(int seconds);
 
 	virtual ~CSMSDaemon();
 	

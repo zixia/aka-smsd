@@ -11,6 +11,7 @@ void __do_usr1(int t)
 void __doalarm(int t)
 {
 	RCL_GetApp()->OnSignalAlarm();
+	signal(SIGALRM, __doalarm);
 }
 
 void __dohup(int t)

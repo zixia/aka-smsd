@@ -10,7 +10,7 @@ LIBS= -lccgnu2 -lpthread -ldl -lsqlplus
 all: sms_p_18dx sms_p_5168 sms_deliver_c2p sms_c_aka sms_deliver_p2c sms_c_bbs
 sms_deliver_c2p: app.o sms_deliver_c2p.o
 	$(CXX) -o $@ $^ $(LIBS)
-sms_c_aka:sms_c_aka.o app.o smsdiskstorage.o smschilddaemon.o smsstorage.o
+sms_c_aka:sms_c_aka.o app.o smsdiskstorage.o smsdaemon.o smsstorage.o 
 	$(CXX) -o $@ $^ $(LIBS)
 sms_deliver_p2c:  app.o sms_deliver_p2c.o
 	$(CXX) -o $@ $^ $(LIBS)
