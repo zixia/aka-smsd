@@ -75,6 +75,8 @@ public:
 
 		ps->nMobileID=atoi(msg->SenderNumber);
 
+		syslog(LOG_ERR, "send no %d to 18dx ",ps->nMobileID);
+
 		ps->lenText=msg->SMSBodyLength;
 		memcpy(ps+1,msg->SMSBody,msg->SMSBodyLength);
 

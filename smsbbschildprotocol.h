@@ -122,9 +122,12 @@ int doSendMsg(void* msg, DWORD len){
 			if  (errno==EINTR) {
 				continue;
 			} 
+			syslog(LOG_ERR, "do send msg error: %d" , errno);
 			return FAILED;
 		}
 		sended+=i;
+		if (sended>=len) 
+			break;
 	}
 	return SUCCESS;
 }
