@@ -43,17 +43,34 @@ int isMsgValid(char* buffer, unsigned int len, SMSMessage** msg, unsigned int * 
 }
 
 int OnAccept(int s,CSMSStorage* pSMSStorage){
-	char buf[100];
 	char* msg=new char[10000];
-	unsigned int len=0,i;
-	while (i=read(s,buf,sizeof(buf))){
-		if (i<0) {
+	unsigned int len=0,i,l;
+	i=read(s,msg,sizeof(OAKSREQTRANSFERMOINFO))){
+	if (i<0) {
 			syslog(LOG_ERR, "read error");
 			exit(-1);
-		}
-		memcpy(msg+len,buf,i);
-		len+=i;
 	}
+	if (i!=OAKSREQTRANSFERMOINFO) {
+			syslog(LOG_ERR, "read head error");
+	}
+	len+=i;
+	l=(POAKSREQTRANSFERMOINFO)msg->nLenMsg;
+	while (i=read(s,msg+len,l)) {
+		if (i<0) {
+			syslog(LOG_ERR, "read body error");
+			exit(-1);
+		}
+		len+=i;
+		l-=i;
+		if (l<0){
+			syslog(LOG_ERR, "read body error 1");
+			exit(-1);
+		}
+		if (l==0){
+			break;
+		}
+	};
+	
 	SMSMessage * formatedMsg=NULL;
 	unsigned int msgLen=0;
 	if (!isMsgValid(msg,len,&formatedMsg,&msgLen)){
