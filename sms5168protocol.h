@@ -29,7 +29,7 @@ using namespace ost;
 #define GWUSER	"10001019"
 #define GWPASSWD	"1234"
 
-#define WAITTIME	10000 //10秒
+#define WAITTIME	100000 //100秒
 
 namespace SMS {
 
@@ -73,14 +73,14 @@ int convertMsgFormat(struct CDeliver* pSMS,  SMSMessage** msg, unsigned int * ms
 
 
 int process(struct CResp * pResp, CSMSStorage* pSMSStorage){
-	syslog(LOG_ERR," recieve gw msg type: %d",pResp->head.dwCmdID);
+	syslog(LOG_ERR," recieve gw msg type: 0x%X",pResp->head.dwCmdID);
 
 	switch (pResp->head.dwCmdID)  {
 	case SUBMITRESP:	//发送短信的网关回应
 		if (pResp->sr.result==0) {
 			syslog(LOG_ERR," msg %d 发送成功！",pResp->sr.msg_id1);
 		} else {
-			syslog(LOG_ERR," msg %d 发送失败: 0x%u！",pResp->sr.msg_id1,pResp->sr.result);
+			syslog(LOG_ERR," msg %d 发送失败: 0x%X！",pResp->sr.msg_id1,pResp->sr.result);
 		}
 		break;
 	case DELIVERY:		//收到网关deliver短信
@@ -133,7 +133,7 @@ public:
 							if (msg.lr.result & 0x10) {
 								syslog(LOG_ERR,"apiLogin failed: ip error!");
 							}
-							syslog(LOG_ERR,"apiLogin failed. result: 0x%u", msg.lr.result);
+							syslog(LOG_ERR,"apiLogin failed. result: 0x%X", msg.lr.result);
 						}
 					} else {
 						syslog(LOG_ERR,"login -- apiRecv failed: %d", retCode);
@@ -156,6 +156,7 @@ public:
 				3:  等候数据包失败
 				4:  网络断开
 				*/
+				syslog(LOG_ERR,"apiRecv return: %d",retCode);
 				if (retCode==0) {
 					time(&m_lastrcvtime);
 					process(&msg,pSMSStorage);
