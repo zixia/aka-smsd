@@ -235,7 +235,7 @@ msg_fmt:   信息类型 （0：ASCII串  3：短信写卡操作  4：二进制
 		syslog(LOG_ERR,"send msg to 5618....");
 				      
 		if (retCode==0) {
-			m_pSMSLogger->logIt(msg->SenderNumber, msg->TargetNumber,msg->FeeTargetNumber,msg->FeeType,msg->childCode,"58181888" ,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength);
+			m_pSMSLogger->logIt(msg->SenderNumber, msg->TargetNumber,msg->FeeTargetNumber,msg->FeeType,msg->childCode,"58181888" ,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength,msg->FeeMoney);
 		} else {
 			sigprocmask(SIG_SETMASK, &oldmask, NULL);
 			return FAILED;

@@ -126,6 +126,7 @@ int isMsgValid(char* buf, unsigned long int len, SMSMessage** msg, unsigned int 
 	(*msg)->serviceCode[SMS_FEECODE_LEN]=0;
 */
 	(*msg)->FeeType=6;
+	(*msg)->FeeMoney=10;
 
 	if (!m_pChildPrivilegeChecker->isMsgValid(*msg)){
 		syslog(LOG_ERR,"message validation failed!");
@@ -365,7 +366,7 @@ public:
 
 		free(sms);
 
-		m_pSMSLogger->logIt(msg->SenderNumber, msg->TargetNumber,"",0,"11",msg->parentID,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength);
+		m_pSMSLogger->logIt(msg->SenderNumber, msg->TargetNumber,"",0,"11",msg->parentID,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength,0,SMS_TRANSFER_UP);
 
 
 		return 0;

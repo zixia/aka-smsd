@@ -78,6 +78,7 @@ typedef struct _SMSMessage{
 	time_t sendTime;
 	time_t arriveTime;
 	char serviceCode[SMS_FEECODE_LEN+1];
+	int FeeMoney;
 	DWORD SMSBodyLength;
 	char SMSBody[0];
 }SMSMessage, *PSMSMessage;

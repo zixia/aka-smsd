@@ -168,6 +168,8 @@ int generateSMS(DWORD userCode, const char* targetNumber, const char* feeTargetN
 
 	(*sms)->FeeType=feeType;
 
+	(*sms)->FeeMoney=10;
+
 	return SUCCESS;
 }
 
@@ -1137,7 +1139,7 @@ int Send(PSMSMessage msg){
 			retCode=ERROR;
 	}
 	if (retCode==SUCCESS) {
-		m_SMSLogger.logIt(msg->SenderNumber, msg->TargetNumber,"",0,m_childCode,msg->parentID,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength,SMS_TRANSFER_UP);
+		m_SMSLogger.logIt(msg->SenderNumber, msg->TargetNumber,"",0,m_childCode,msg->parentID,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength,0,SMS_TRANSFER_UP);
 	}
 	return retCode;
 
