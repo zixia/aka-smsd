@@ -40,7 +40,7 @@ public:
 		int readed;
 		int i;
 		readed=0;
-		while (i=tcpstream::readData(((char*)buf)+readed,bufLen-readed,timeout)) {
+		while (i=tcpstream::readData(((char*)buf)+readed,bufLen-readed,0,timeout)) {
 			if (i<0){
 				if (getErrorNumber()==errTimeout)
 					return TIMEOUT;

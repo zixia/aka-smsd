@@ -84,7 +84,6 @@ int CApplication::InitSignal()
 	signal(SIGPIPE, __dopipeerr);
     signal(SIGTERM, __doterm);
     signal(SIGCHLD, __dochild);
-	signal(SIGALRM, __doalarm);
 	return 1;
 }
 

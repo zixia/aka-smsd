@@ -154,6 +154,7 @@ public:
 	int Send(SMSMessage* msg){
 		CSMSTcpStream tcp;
 		char addr[100];
+		int retCode;
 		snprintf(addr,sizeof(addr),"%s:%s",host_18dx,port_18dx);
 		syslog(LOG_ERR,"send message to %s",addr);
 		tcp.open(addr);
@@ -191,9 +192,12 @@ public:
 
 		tcp.write(ps,lenPack);
 		char* buf=new char[sizeof(OAKSACKSMZIXIASENDTEXT)];
-		tcp.read(buf,sizeof(OAKSACKSMZIXIASENDTEXT));
+		retCode = tcp.read(buf,sizeof(OAKSACKSMZIXIASENDTEXT),60000);
+		if ( TIMEOUT==retCode ){
+			syslog(LOG_ERR,"send msg timeout, faint" );
+			return FAILED;
+		}
 		syslog(LOG_ERR,"send msg return %d",(POAKSACKSMZIXIASENDTEXT(buf))->header.dwResult);
-
 
 		tcp.close();
 		DWORD result=(POAKSACKSMZIXIASENDTEXT(buf))->header.dwResult;

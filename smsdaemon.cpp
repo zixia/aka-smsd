@@ -27,21 +27,6 @@ int CSMSDaemon::OnSignalTerm(){
 	return 0;
 }
 
-int CSMSDaemon::OnSignalAlarm(){
-	siglongjmp(m_jmpBuf,1);
-}
-
-
-int CSMSDaemon::setAlarm(int seconds){
-      int retCode=sigsetjmp(m_jmpBuf,1);
-      if (retCode==0) {
-	      alarm(seconds);
-      } else {
-	      alarm(0);
-      }
-      return retCode;
-}
-
 CSMSDaemon::~CSMSDaemon(){
 		delete m_pSMSProtocol;
 		delete m_pSMSStorage;

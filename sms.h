@@ -35,6 +35,7 @@ namespace SMS{
 #define NOSEVEREERROR	1
 #define TIMEOUT	-100
 #define FAILED	-1
+#define DONTDELETE FAILED
 #define ERROR	-101
 #define CONNECTIONLOST -102
 #define RCVERR  -103

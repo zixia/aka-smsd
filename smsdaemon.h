@@ -42,10 +42,6 @@ public:
 
 	int OnSignalTerm();
 
-	int OnSignalAlarm();
-
-	int setAlarm(int seconds);
-
 	virtual ~CSMSDaemon();
 	
 };
