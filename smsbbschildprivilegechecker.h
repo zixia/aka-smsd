@@ -49,8 +49,10 @@ public:
 	int canSendSMS(const char* srcMobileNo, const char* srcID){
 		try{
 			Query query=m_pConn->query();
-			query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<srcMobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"') and ValidatationNumber=''";
-			Result res=query.store();
+//			query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<srcMobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"') and ValidatationNumber=''";
+			query<< "select * from SMSRegister_TB where childCode=%0q and MobilePhoneNumber=%1q and UPPER(srcID)=UPPER(%2q) and ValidatationNumber=''";
+			query.parse();
+			Result res=query.store(m_childCode,srcMobileNo,srcID);
 			if (res.size()!=0) {
 				return TRUE;
 			} else {
@@ -69,8 +71,10 @@ public:
 	int loginUser(unsigned long int address, const char* childCode, const char* password, char* targetChildCode, char* targetChildName, int* pMoneyLimit){
 		try{
 			Query query=m_pConn->query();
-			query<< "select * from SMSChildUser_TB where childID='"<<childCode<<"' and childPass='"<<password<<"'";
-			Result res=query.store();
+//			query<< "select * from SMSChildUser_TB where childID='"<<childCode<<"' and childPass='"<<password<<"'";
+			query<< "select * from SMSChildUser_TB where childID =%0q and childPass = %1q";
+			query.parse();
+			Result res=query.store(childCode,password);
 			if (res.size()!=0) {
 				Row row=*(res.begin());
 				if (addressInNet(address,row["loginNet"])==0) {
