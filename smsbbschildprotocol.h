@@ -458,6 +458,9 @@ int dispatchMessage( char* msg, DWORD len) {
 		case SMS_BBS_CMD_ERR:
 			OnCMDError(smsSerialNo);
 			break;
+		case SMS_BBS_CMD_LINK:
+			doReply(SMS_BBS_CMD_LINK, (PSMS_BBS_HEADER(msg))->SerialNo,(PSMS_BBS_HEADER(msg))->pid);
+			break;
 		default:
 			syslog(LOG_ERR," bbs send msg type : %d serial No is %d",msgType, smsSerialNo);
 			return QUIT;
