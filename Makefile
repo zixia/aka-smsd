@@ -6,7 +6,7 @@ HEADERS=18dx.h  deliver.h smschildprotocol.h sms.h sms18dxrcvprotocol.h app.h  s
 	smslogger.h
 LIBS= -lccgnu2 -lpthread -ldl -lsqlplus
 
-all: sms_p_18dx_sender sms_deliver_c2p sms_c_aka sms_deliver_p2c sms_p_18dx_receiver sms_c_bbs_9sharp sms_c_bbs_zixia sms_c_bbs_smth 
+all: sms_p_18dx_sender sms_deliver_c2p sms_c_aka sms_deliver_p2c sms_p_18dx_receiver sms_c_bbs_9sharp sms_c_bbs_zixia sms_c_bbs_smth  sms_c_bbs_test
 sms_deliver_c2p: app.o sms_deliver_c2p.o
 	$(CXX) -o $@ $^ $(LIBS)
 sms_c_aka:sms_c_aka.o app.o smsdiskstorage.o smschilddaemon.o smsstorage.o
@@ -23,10 +23,12 @@ sms_c_bbs_zixia: sms_c_bbs_zixia.o app.o smsdiskstorage.o smschilddaemon.o smsst
 	$(CXX) -o $@ $^ $(LIBS)
 sms_c_bbs_smth: sms_c_bbs_smth.o app.o smsdiskstorage.o smschilddaemon.o smsstorage.o
 	$(CXX) -o $@ $^ $(LIBS)
+sms_c_bbs_test: sms_c_bbs_test.o app.o smsdiskstorage.o smschilddaemon.o smsstorage.o
+	$(CXX) -o $@ $^ $(LIBS)
 
 %.o: %.cpp ${HEADERS}
 	$(CXX) $(CXXFLAGS)  -c $< -o $@
 .PHONY: clean
 clean:
-	rm -rf *.o sms_p_18dx_sender sms_deliver_c2p sms_c_aka sms_deliver_p2c sms_p_18dx_receiver sms_c_bbs_9sharp sms_c_bbs_zixia sms_c_bbs_smth 
+	rm -rf *.o sms_p_18dx_sender sms_deliver_c2p sms_c_aka sms_deliver_p2c sms_p_18dx_receiver sms_c_bbs_9sharp sms_c_bbs_zixia sms_c_bbs_smth sms_c_bbs_test
 

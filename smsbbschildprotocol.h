@@ -77,7 +77,18 @@ public:
 	}
 
 	ssize_t read(void* buf, ssize_t bufLen){
-		return tcpstream::readData(buf,bufLen);
+		size_t readed;
+		size_t i;
+		readed=0;
+		while (i=tcpstream::readData(((char*)buf)+readed,bufLen-readed)) {
+			if (i<0){
+				if (errno==EINTR) 
+					continue;
+				return i;
+			}
+			readed+=i;
+		}
+		return readed;
 	}
 
 };
@@ -478,16 +489,10 @@ int OnAccept(myTcpStream* pStream){
 	int len=0;
 	byte msgType=0;
 
-	syslog(LOG_ERR,"lalalal");
 	l=sizeof(SMS_BBS_HEADER);
-redo0:
-	i=pStream->read(buf,l);
-	syslog(LOG_ERR," why no log %d %d!",i,errno);
-	if ((i<0) && (errno=EINTR)) {
-		goto redo0;
-	}
-	if (i<l) {
-		syslog(LOG_ERR, "read login msg head error %d ", i);
+	i=pStream->read(buf+len,l);
+	if (i<0) {
+		syslog(LOG_ERR," read login msg header error %d!", errno);
 		return -1;
 	}
 	len+=i;
@@ -505,16 +510,12 @@ redo0:
 		syslog(LOG_ERR, "login msg head type error");
 		return -1;
 	}
-redo02:
 	i=pStream->read(buf+len,msgLen);
-	if ((i<0) && (errno=EINTR)) {
-		goto redo02;
-	}
-	len+=i;
-	if (i<msgLen) {
-		syslog(LOG_ERR, "read msg head body error");
+	if (i<0) {
+		syslog(LOG_ERR," read login msg header body error %d!", errno);
 		return -1;
 	}
+	len+=i;
 	syslog(LOG_ERR," %s login %s", (PSMS_BBS_LOGINPACKET(buf))->user,(PSMS_BBS_LOGINPACKET(buf))->password);
 
 	m_pStream=pStream;
@@ -531,17 +532,13 @@ redo02:
 	for (;;){
 		len=0;
 		l=sizeof(SMS_BBS_HEADER);
-redo1:
 		i=pStream->read(buf,l);
-		if ((i<0) && (errno=EINTR)) {
-			goto redo1;
+		if (i<0) {
+			syslog(LOG_ERR," read msg header error %d!", errno);
+			return -1;
 		}
 
 		len+=i;
-		if (i<l) {
-			syslog(LOG_ERR, "read msg head error %d ", i);
-			break;
-		}
 #ifdef DEBUG
 		msgType=(PSMS_BBS_HEADER(buf))->Type;
 		msgLen=sms_byteToLong((PSMS_BBS_HEADER(buf))->msgLength);
@@ -550,17 +547,13 @@ redo1:
 		syslog(LOG_ERR,"msg sn %d",smsSerialNo);
 #endif
 
-redo2:
 		i=pStream->read(buf+len,msgLen);
-		if ((i<0) && (errno=EINTR)) {
-			goto redo2;
+		if (i<0) {
+			syslog(LOG_ERR," read msg header error %d!", errno);
+			return -1;
 		}
 
 		len+=i;
-		if (i<msgLen) {
-			syslog(LOG_ERR, "read msg head body error");
-			break;
-		}
 		if (dispatchMessage(buf,len)==QUIT) {
 			return 0;
 		}
