@@ -44,7 +44,7 @@ typedef struct _SMS_BBS_HEADER{	//
 #define SMS_BBS_TYPE_NONE		-1
 //消息类型
 
-
+#define SMS_BBS_ID_LEN	13
 typedef struct _SMS_BBS_LOGINPACKET {	//BBS连接请求
 		SMS_BBS_HEADER header;
 	    char user[SMS_BBS_USER_LEN+1];
@@ -54,17 +54,20 @@ typedef struct _SMS_BBS_LOGINPACKET {	//BBS连接请求
 typedef struct _SMS_BBS_REGISTERMOBILEPACKET { //BBS请求网关发送手机绑定短信
 		SMS_BBS_HEADER header;
 	    char MobileNo[MOBILENUMBERLENGTH+1];
+	    char cUserID[SMS_BBS_ID_LEN+1];
 } SMS_BBS_REGISTERMOBILEPACKET,*PSMS_BBS_REGISTERMOBILEPACKET;
 
 typedef struct _SMS_BBS_REGISTERVALIDATIONPACKET { //BBS请求网关检查手机绑定码
 		SMS_BBS_HEADER header;
 	    char MobileNo[MOBILENUMBERLENGTH+1];
+		char cUserID[SMS_BBS_ID_LEN+1];
         char ValidateNo[SMS_BBS_VALID_LEN+1];
 } SMS_BBS_REGISTERVALIDATIONPACKET, *PSMS_BBS_REGISTERVALIDATIONPACKET;
 
 typedef struct _SMS_BBS_UNREGISTERMOBILEPACKET { //BBS请求网关取消手机绑定
 		SMS_BBS_HEADER header;
 	    char MobileNo[MOBILENUMBERLENGTH+1];
+		char cUserID[SMS_BBS_ID_LEN+1];
 }SMS_BBS_UNREGISTERMOBILEPACKET, *PSMS_BBS_UNREGISTERMOBILEPACKET;
 
 typedef struct _SMS_BBS_BINDREQUESTPACKET { //网关要求BBS绑定手机号码
@@ -77,6 +80,7 @@ typedef struct _SMS_BBS_BINDREQUESTPACKET { //网关要求BBS绑定手机号码
 typedef struct _SMS_BBS_BINDREQUESTREPLYPACKET { //Type=7
 		SMS_BBS_HEADER header;
 	    char MobileNo[MOBILENUMBERLENGTH+1];
+		char cUserID[SMS_BBS_ID_LEN+1];
         byte isSucceed;
 }SMS_BBS_BINDREQUESTREPLYPACKET, *PSMS_BBS_BINDREQUESTREPLYPACKET;
 
@@ -84,6 +88,7 @@ typedef struct _SMS_BBS_BBSSENDSMS { //Type=8
 		SMS_BBS_HEADER header;
 	    byte UserID[4];
 	    char SrcMobileNo[MOBILENUMBERLENGTH+1];
+		char cUserID[SMS_BBS_ID_LEN+1];
 		char DstMobileNo[MOBILENUMBERLENGTH+1];
 		byte MsgTxtLen[4];
 		char MsgTxt[0];
