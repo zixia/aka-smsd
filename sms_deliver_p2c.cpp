@@ -15,20 +15,21 @@
 
 #include <dirent.h>
 #include <string>
+#include <cstring>
 #include <stdexcept>
-
+#include "sms.h"
 #include "deliver.h"
 
 
 
-
+using namespace std;
 
 
 namespace SMS{
 
 #define SIGDSNOTIFY (SIGRTMIN+1)
 
-CDeliver _myDaemon(SMSHOME "outbox/deliver","deliver",LOG_LOCAL0);
+CDeliver _myDaemon(SMSHOME "inbox/deliver","sms_deliver_p2c",LOG_LOCAL0);
 
 void __smsDiskStorage_notify_handler(int sig, siginfo_t *si, void *data)
 {
@@ -57,7 +58,21 @@ int CDeliver::set_notifier(){
 }
 
 std::string CDeliver::getDest(const std::string& filename){
-	return SMSHOME "outbox/18dx";
+	char childCode[SMS_CHILDCODE_LEN+1];
+	char *p=strstr(filename.c_str(),".")+1;
+	strncpy(childCode,p,SMS_CHILDCODE_LEN);
+	childCode[SMS_CHILDCODE_LEN]=0;
+	syslog(LOG_ERR,"childCode %s",childCode);
+	if (!strcmp(childCode,"12")) {
+		return  SMSHOME "inbox/bbs_9sharp";
+	}
+	if  (!strcmp(childCode,"13")) {
+		return  SMSHOME "inbox/bbs_zixia";
+	}
+	if  (!strcmp(childCode,"16")) {
+		return  SMSHOME "inbox/bbs_smth";
+	}
+	return SMSHOME "inbox/default";
 }
 
 int CDeliver::Run(){
@@ -111,7 +126,7 @@ int CDeliver::OnNotify(){
 					syslog(LOG_ERR,"can't unlink %s ",oldpath.c_str());
 					throw std::runtime_error("unlink failed!");
 				}
-				syslog(LOG_ERR,"deliver msg: %s", pDirInfo->d_name);
+				syslog(LOG_ERR,"deliver msg: %s to %s", oldpath.c_str(),newpath.c_str());
 			}
 		}
 	} catch(std::exception e ) {
