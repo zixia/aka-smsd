@@ -51,7 +51,7 @@ class CSMSLogger{
 				//convertDate(arriveTime,strArriveTime);
 
 
-				sql<<"insert into AKASMSLog_TB(sourceNo, targetNo,feeTargetNo,feeType,childID, parentID, sentTime, deliveTime, content ) values ('"
+				sql<<"insert into SMSLog_TB(sourceNo, targetNo,feeTargetNo,feeType,childID, parentID, sentTime, deliveTime, content ) values ('"
 					<<sourceNo<<"','"<<targetNo<<"','"<<feeTargetNo<<"',"<<feeTypeID<<",'"<<childID<<"','"<<parentID<<"','"
 					<<strSendTime<<"','"<<strDeliverTime<<"','"<<content<<"')";
 

@@ -177,6 +177,8 @@ int convertSMS(PSMS_BBS_BBSSENDSMS msg,  SMSMessage** sms, DWORD *smsLen){
 	strncpy((*sms)->childCode,m_childCode,SMS_CHILDCODE_LEN);
 	(*sms)->childCode[SMS_CHILDCODE_LEN]=0;
 
+	(*sms)->FeeType=6;
+
 	return SUCCESS;
 }
 
@@ -283,6 +285,8 @@ int doSendRegisterSMS(const char* targetMobileNo){
 	sms->sendTime=time(NULL);
 	strncpy(sms->childCode,m_childCode,SMS_CHILDCODE_LEN);
 	sms->childCode[SMS_CHILDCODE_LEN]=0;
+
+	sms->FeeType=6;
 
 	retCode=sendSMS(sms);
 	delete[] (char*)sms;

@@ -113,6 +113,8 @@ int isMsgValid(char* buf, unsigned long int len, SMSMessage** msg, unsigned int 
 	strncpy((*msg)->childCode,"11",SMS_CHILDCODE_LEN);
 	(*msg)->childCode[SMS_CHILDCODE_LEN]=0;
 
+	(*msg)->FeeType=6;
+
 	if (!m_pChildPrivilegeChecker->isMsgValid(*msg)){
 		syslog(LOG_ERR,"message validation failed!");
 		return -1;

@@ -75,7 +75,7 @@ public:
 		strcpy(ps->szSrcMobileNo,msg->FeeTargetNumber);
 		strcpy(ps->szDstMobileNo,msg->TargetNumber); 
 
-		ps->nFeeID=2;
+		ps->nFeeID=msg->FeeType;
 
 		ps->nMobileID=atoi(msg->SenderNumber);
 
