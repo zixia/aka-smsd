@@ -1,8 +1,8 @@
 SHLIB_SUFFIX_NAME = so
-prefix = /usr/local
+prefix = /usr
 exec_prefix = $(prefix)
 libdir = ${exec_prefix}/lib
-prefix = /usr/local
+prefix = /usr
 phplibdir = /home/roy/akasmsd/libsms/modules
 PHP_COMPILE = $(LIBTOOL) --mode=compile $(COMPILE) -c $<
 CC = gcc
@@ -11,10 +11,10 @@ CPP = gcc -E
 CPPFLAGS = -DHAVE_CONFIG_H
 CXX =
 DEFS =
-EXTENSION_DIR = /usr/local/lib/php/extensions/no-debug-non-zts-20020429
+EXTENSION_DIR = /usr/lib/php/20020429
 EXTRA_LDFLAGS =
 EXTRA_LIBS =
-INCLUDES = -I/usr/local/include/php -I/usr/local/include/php/main -I/usr/local/include/php/Zend -I/usr/local/include/php/TSRM
+INCLUDES = -I/usr/include/php -I/usr/include/php/main -I/usr/include/php/Zend -I/usr/include/php/TSRM
 LEX =
 LEX_OUTPUT_ROOT =
 LFLAGS =

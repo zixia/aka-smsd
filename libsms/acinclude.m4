@@ -109,7 +109,7 @@ AC_DEFUN(PHP_EVAL_LIBLINE,[
     case $ac_i in
     -l*)
       ac_ii=`echo $ac_i|cut -c 3-`
-      PHP_ADD_LIBRARY($ac_ii,1,$2)
+      PHP_ADD_LIBRARY($ac_ii,,$2)
     ;;
     -L*)
       ac_ii=`echo $ac_i|cut -c 3-`
@@ -1263,21 +1263,4 @@ AC_DEFUN(PHP_SETUP_ICONV, [
     $2
 ifelse([$3],[],,[else $3])
   fi
-])
-
-
-dnl
-dnl PHP_AP_EXTRACT_VERSION(/path/httpd)
-dnl This macro is used to get a comparable
-dnl version for apache1/2.
-dnl
-AC_DEFUN(PHP_AP_EXTRACT_VERSION,[
-  ac_output=`$1 -v 2>&1`
-  ac_IFS=$IFS
-IFS="- /.
-"
-  set $ac_output
-  IFS=$ac_IFS
-
-  APACHE_VERSION=`expr [$]4 \* 1000000 + [$]5 \* 1000 + [$]6`
 ])

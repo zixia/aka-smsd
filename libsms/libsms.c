@@ -211,6 +211,8 @@ PHP_FUNCTION(sendsms)
 	int s,type;
 	int lenPack;
 	char* buffer;
+	PSMSChildProtocolPassword pw;
+	PSMSChildProtocolSendMessage ps;
 
 
 	memset(&sin,0,sizeof(sin));
@@ -247,7 +249,7 @@ PHP_FUNCTION(sendsms)
 
 	lenPack=sizeof(SMSChildProtocolPassword);
 	buffer=(char *)malloc(lenPack);
-	PSMSChildProtocolPassword pw=(PSMSChildProtocolPassword)buffer;
+	pw=(PSMSChildProtocolPassword)buffer;
 	memset(pw,0,lenPack);
 	pw->head.msgTypeID=MSGTYPE_PWD;
 	sms_longToByte(pw->head.SMSSerialNo,3);
@@ -261,7 +263,7 @@ PHP_FUNCTION(sendsms)
 	lenPack= sizeof(SMSChildProtocolSendMessage)+Content_len;
 	buffer=(char *)malloc(lenPack);
 
-	PSMSChildProtocolSendMessage ps=(PSMSChildProtocolSendMessage)buffer;
+	ps=(PSMSChildProtocolSendMessage)buffer;
 	memset(ps,0,lenPack);
 	ps->head.msgTypeID=MSGTYPE_SM;
 	sms_longToByte(ps->head.SMSSerialNo,2);

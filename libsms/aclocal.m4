@@ -1,15 +1,14 @@
-# aclocal.m4 generated automatically by aclocal 1.6.1 -*- Autoconf -*-
+dnl aclocal.m4 generated automatically by aclocal 1.4-p5
 
-# Copyright 1996, 1997, 1998, 1999, 2000, 2001, 2002
-# Free Software Foundation, Inc.
-# This file is free software; the Free Software Foundation
-# gives unlimited permission to copy and/or distribute it,
-# with or without modifications, as long as this notice is preserved.
+dnl Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
+dnl This file is free software; the Free Software Foundation
+dnl gives unlimited permission to copy and/or distribute it,
+dnl with or without modifications, as long as this notice is preserved.
 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
-# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE.
+dnl This program is distributed in the hope that it will be useful,
+dnl but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+dnl even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+dnl PARTICULAR PURPOSE.
 
 dnl $Id$
 dnl
@@ -122,7 +121,7 @@ AC_DEFUN(PHP_EVAL_LIBLINE,[
     case $ac_i in
     -l*)
       ac_ii=`echo $ac_i|cut -c 3-`
-      PHP_ADD_LIBRARY($ac_ii,1,$2)
+      PHP_ADD_LIBRARY($ac_ii,,$2)
     ;;
     -L*)
       ac_ii=`echo $ac_i|cut -c 3-`
@@ -1276,23 +1275,6 @@ AC_DEFUN(PHP_SETUP_ICONV, [
     $2
 ifelse([$3],[],,[else $3])
   fi
-])
-
-
-dnl
-dnl PHP_AP_EXTRACT_VERSION(/path/httpd)
-dnl This macro is used to get a comparable
-dnl version for apache1/2.
-dnl
-AC_DEFUN(PHP_AP_EXTRACT_VERSION,[
-  ac_output=`$1 -v 2>&1`
-  ac_IFS=$IFS
-IFS="- /.
-"
-  set $ac_output
-  IFS=$ac_IFS
-
-  APACHE_VERSION=`expr [$]4 \* 1000000 + [$]5 \* 1000 + [$]6`
 ])
 
 # libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
