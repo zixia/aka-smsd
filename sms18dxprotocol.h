@@ -46,6 +46,7 @@ int isMsgValid(POAKSREQTRANSFERMOINFO pHead,char* buf, int len, SMSMessage** msg
 	(*msg)->FeeTargetNumber[0]=0;
 	(*msg)->SMSBodyLength=len;
 	memcpy((*msg)->SMSBody, buf, len);
+	(*msg)->sendTime=time(NULL);
 
 	(*msg)->arriveTime=time(NULL);
 	strncpy((*msg)->parentID,"18dx",SMS_PARENTID_LEN);

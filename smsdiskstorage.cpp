@@ -23,6 +23,14 @@ int CSMSDiskStorage::set_notifier() {
 	if (m_IncomingDirectory.length()<1) {
 		return SUCCESS;
 	}
+	if (m_IncomingBackupDirectory.length()<1) {
+		struct stat buf;
+		if ((lstat(m_IncomingBackupDirectory.c_str(),&buf))<0) {
+			if (errno==ENOENT) {
+				mkdir(m_IncomingBackupDirectory.c_str(),0755);
+			}
+		} 
+	}
 	struct sigaction act;
 	act.sa_sigaction = __smsDiskStorage_notify_handler;
 	sigemptyset(&act.sa_mask);

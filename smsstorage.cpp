@@ -1,8 +1,17 @@
 #include "sms.h"
+#include "mgrep.h"
 
 
 using namespace SMS;
 using namespace std;
+int CSMSStorage::writeSMStoStorage(const char* sourceNo, const char* TargetNo, char* buf, unsigned int buf_size){
+	if (mgrep_str(buf, buf_size,m_filterBuf)==0) {
+		return SUCCESS;
+	} 
+	syslog(LOG_ERR," msg have bad word!");
+	return ERROR;
+
+}
 
 int CSMSStorage::OnNotify(){
 	syslog(LOG_ERR, "there is new msg!");

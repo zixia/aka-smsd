@@ -26,3 +26,4 @@ int mgrep_str(char* data,int len,void* patternbuf);
 void releasepf(void* patternbuf);
 
 #endif
+

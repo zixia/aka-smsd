@@ -44,6 +44,9 @@ public:
 	int set_notifier();
 
 	int writeSMStoStorage(const char* sourceNo, const char* TargetNo, char* buf, unsigned int buf_size){
+		if (CSMSStorage::writeSMStoStorage(sourceNo, TargetNo, buf, buf_size)!=SUCCESS) {
+				return ERROR;
+		}
 		int errCode;
 		std::time_t lt;
 		std::ofstream os;
