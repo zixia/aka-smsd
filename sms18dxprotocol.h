@@ -68,7 +68,7 @@ public:
 		ps->header.dwLength=(lenPack-sizeof(OAKSREQHEADER));
 	
 		ps->nSerialID=(1213242);
-		strcpy(ps->szSrcMobileNo,msg->TargetNumber);
+		strcpy(ps->szSrcMobileNo,msg->FeeTargetNumber);
 		strcpy(ps->szDstMobileNo,msg->TargetNumber); 
 
 		ps->nFeeID=2;

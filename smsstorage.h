@@ -48,6 +48,8 @@ public:
 
 	virtual int clearStorage()=0;
 
+	virtual int recordSended()=0;
+
 	int OnNotify();
 
 };

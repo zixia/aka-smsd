@@ -25,6 +25,7 @@ namespace SMS{
 class CSMSDiskStorage: public CSMSStorage {
 	std::string m_OutgoingDirectory;
 	std::string m_IncomingDirectory;
+	std::string m_currFilename;
 	DIR * m_pDIR;
 	std::vector<std::string> m_readedFileList;
 	char* m_pDataBuf;
@@ -87,7 +88,7 @@ public:
 				break;
 			}
 		}
-		m_readedFileList.push_back(pDirInfo->d_name);
+		m_currFilename=pDirInfo->d_name;
 		syslog(LOG_ERR,"read msg: %s", pDirInfo->d_name);
 		if (m_bufSize<statInfo.st_size)
 		{
@@ -143,6 +144,10 @@ public:
 		memcpy(buf,m_pDataBuf,m_dataSize);
 		*buf_size=m_dataSize;
 		return 0;
+	}
+
+	int recordSended(){
+			m_readedFileList.push_back(m_currFilename);
 	}
 
 	int clearStorage(){

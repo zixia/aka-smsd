@@ -39,6 +39,8 @@ int CSMSStorage::OnNotify(){
 			syslog(LOG_ERR, "shit5!");
 			if (m_pSMSPProtocol->Send((SMSMessage *)buf)!=0) {
 				syslog(LOG_ERR,"send error:(");
+			} else {
+				recordSended();
 			}
 			syslog(LOG_ERR, "shit6!");
 		}
