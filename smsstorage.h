@@ -49,6 +49,8 @@ public:
 
 	virtual int recordSended()=0;
 
+	virtual int backupError()=0;
+
 	int OnNotify();
 
 };

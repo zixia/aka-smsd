@@ -13,6 +13,7 @@ int CSMSStorage::OnNotify(){
 		char* buf=NULL;
 		unsigned int bufLen=0;
 		unsigned int dataLen=0;
+		int retCode;
 		do{
 			dataLen=bufLen;
 			syslog(LOG_ERR, "shit1!");
@@ -37,8 +38,14 @@ int CSMSStorage::OnNotify(){
 				}
 			}
 			syslog(LOG_ERR, "shit5!");
-			if (m_pSMSPProtocol->Send((SMSMessage *)buf)!=SUCCESS) {
-				syslog(LOG_ERR,"send error:(");
+			retCode=m_pSMSPProtocol->Send((SMSMessage *)buf);
+			if (retCode!=SUCCESS) {
+				if (retCode==ERROR) {
+					backupError();
+					syslog(LOG_ERR,"send error:(");
+				} else {
+					syslog(LOG_ERR,"send failed");
+				}
 			} else {
 				recordSended();
 			}

@@ -20,6 +20,8 @@
 
 namespace SMS{
 
+#define BACKUPDIR "/home/roy/gateway/error"
+
 #define SIGDSNOTIFY (SIGRTMIN+1)
 
 class CSMSDiskStorage: public CSMSStorage {
@@ -145,6 +147,16 @@ public:
 
 	int recordSended(){
 			m_readedFileList.push_back(m_currFilename);
+	}
+
+	int backupError() {
+		std::string oldpath(m_IncomingDirectory);
+		std::string newpath(BACKUPDIR);
+		oldpath+="/"+m_currFilename;
+		newpath+="/"+m_currFilename;
+		link(oldpath.c_str(),newpath.c_str());
+		unlink(oldpath.c_str());
+		return SUCCESS;
 	}
 
 	int clearStorage(){
