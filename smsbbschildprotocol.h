@@ -514,6 +514,7 @@ int OnAccept(CSMSTcpStream* pStream){
 		syslog(LOG_ERR,"connection user & password wrong!");
 		return -1;
 	}
+	syslog(LOG_ERR, "%s connected!", m_ChildName);
 	char inbox[200];
 	snprintf(inbox,250,"%sinbox/bbs_%s",SMSHOME,m_ChildName);
 	m_pSMSStorage= new CSMSDiskStorage(this,SMSHOME "outbox/deliver", inbox);
