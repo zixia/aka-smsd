@@ -335,7 +335,7 @@ int doUnregister(const char* mobileNo,const char* srcID){
 			query.exec(sql.str());
 			return SMS_BBS_CMD_OK;
 		} 
-		return SMS_BBS_CMD_NO_VALIDCODE;
+		return SMS_BBS_CMD_OK;
 	} catch ( BadQuery er) {
 		syslog(LOG_ERR,"doUnregister -- mysql query err : %s", er.error.c_str());
 		return SMS_BBS_CMD_DB_ERROR;
@@ -653,17 +653,16 @@ int doRegisterSMS(const char* mobileNo,const char* srcID){
 		Query query=m_conn.query();
 		query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNo<<"' and srcID='"<<srcID<<"' ";
 		Result res=query.store();
-		std::stringstream sql;
+		syslog(LOG_ERR,"%s %s %s",m_childCode,mobileNo,srcID);
 
 		if (res.size()!=0) {
-			return ERROR;
+			return SUCCESS;
 		} else {
 			std::stringstream sql;
 			sql<< "insert into SMSRegister_TB(childCode, MobilePhoneNumber, ValidatationNumber, srcID) values( '" 
 				<<m_childCode<<"' , '"<<mobileNo<<"' , '', '"<<srcID<<"' )";
 			query.exec(sql.str());
 		}
-		query.exec(sql.str());
 		return SUCCESS;
 	} catch ( BadQuery er) {
 		syslog(LOG_ERR,"doRegisterSMS -- mysql query err : %s", er.error.c_str());
@@ -682,7 +681,7 @@ int doUnregisterSMS(const char* mobileNo,const char* srcID){
 			query.exec(sql.str());
 			return SUCCESS;
 		} 
-		return ERROR;
+		return SUCCESS;
 	} catch ( BadQuery er) {
 		syslog(LOG_ERR,"doUnregisterSMS -- mysql query err : %s", er.error.c_str());
 		return FAILED;
@@ -693,7 +692,7 @@ int doUnregisterSMS(const char* mobileNo,const char* srcID){
  * 处理注册短消息
  */
 int processRegisterSMS(PSMSMessage msg) {
-	byte isRegister=0; //0 注册 , 1 注销
+	byte isRegister=1; //1 注册 , 0 注销
 	char srcID[SMS_BBS_ID_LEN+1];
 	int retCode;
 	if ( (msg->SMSBodyLength<3) || (msg->SMSBodyLength>SMS_BBS_ID_LEN+3)){
@@ -706,7 +705,7 @@ int processRegisterSMS(PSMSMessage msg) {
 		srcID[msg->SMSBodyLength-3]=0;
 		retCode=doRegisterSMS(msg->SenderNumber, srcID);
 	}else if  ((msg->SMSBody[0]=='U') && (msg->SMSBody[1]=='R') && (msg->SMSBody[2]==':') ) {
-		isRegister=1;
+		isRegister=0;
 		strncpy(srcID, msg->SMSBody+3, msg->SMSBodyLength-3);
 		srcID[msg->SMSBodyLength-3]=0;
 		retCode=doUnregisterSMS(msg->SenderNumber,srcID);
@@ -716,7 +715,7 @@ int processRegisterSMS(PSMSMessage msg) {
 	}
 
 	if (retCode!=SUCCESS) {
-		return FAILED;
+		return retCode;
 	}
 
 	PSMS_BBS_BINDREQUESTPACKET sms;
