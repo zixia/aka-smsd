@@ -23,7 +23,7 @@ int CSMSDiskStorage::set_notifier() {
 	if (m_IncomingDirectory.length()<1) {
 		return SUCCESS;
 	}
-	if (m_IncomingBackupDirectory.length()<1) {
+	if (m_IncomingBackupDirectory.length()>1) {
 		struct stat buf;
 		if ((lstat(m_IncomingBackupDirectory.c_str(),&buf))<0) {
 			if (errno==ENOENT) {

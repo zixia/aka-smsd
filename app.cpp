@@ -51,8 +51,8 @@ void __dochild(int t)
 
 void CApplication::InitDaemon()
 {
-	setuid(48);
-	setgid(48);	
+	setuid(502);
+	setgid(502);	
 	int n;
     if(fork())
        exit(0);
