@@ -56,7 +56,6 @@ int CSMSDaemon::OnSignalChild(){
 }
 
 int CSMSDaemon::OnSignalTerm(){
-	syslog(LOG_ERR,"Terminated by SIGTERM(kill)");
 	exit(0);
 	return 0;
 }

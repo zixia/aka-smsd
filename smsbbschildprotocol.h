@@ -425,7 +425,7 @@ int dispatchMessage( char* msg, DWORD len) {
 	pid=sms_byteToLong((PSMS_BBS_HEADER(msg))->pid);
 	if ( (msgLen+sizeof(SMS_BBS_HEADER))!=len) {
 		doReply(SMS_BBS_CMD_LENGTH_ERR, (PSMS_BBS_HEADER(msg))->SerialNo,(PSMS_BBS_HEADER(msg))->pid);
-		return -1;
+		return QUIT;
 	}
 
 	int retCode=0;
@@ -781,7 +781,8 @@ public:
 					continue;
 				}
 				if (m_pid!=0) {
-					kill(m_pid,SIGTERM);
+			//		kill(m_pid,SIGTERM);
+					kill(m_pid,SIGKILL);
 				}
 				switch(m_pid=fork()){
 					case 0:

@@ -72,6 +72,9 @@ std::string CDeliver::getDest(const std::string& filename){
 	if  (!strncmp(childCode,"20",2)) {
 		return  SMSHOME "inbox/bbs_test";
 	}
+	if  (!strncmp(childCode,"601",3)) {
+		return  SMSHOME "inbox/bbs_hightman";
+	}
 	return SMSHOME "inbox/default";
 }
 

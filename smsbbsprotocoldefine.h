@@ -13,6 +13,7 @@ typedef struct _SMS_BBS_HEADER{	//
 
 //返回值
 #define SMS_BBS_CMD_LOGIN 1
+
 #define SMS_BBS_CMD_OK 101
 #define SMS_BBS_CMD_ERR 102
 #define SMS_BBS_CMD_HEAD_LENGTH_ERR 103	//包头错误
@@ -22,6 +23,7 @@ typedef struct _SMS_BBS_HEADER{	//
 #define SMS_BBS_CMD_NO_VALIDCODE	107		//无认证码供验证
 #define SMS_BBS_CMD_NO_SUCHMOBILE	108	//取消认证码时发现此手机未认证
 #define SMS_BBS_CMD_REGISTERED		109 //手机号码和id已绑定
+#define SMS_BBS_CMD_EXCEEDMONEY_LIMIT	110 //用户当日额度已满
 
 
 #define SMS_BBS_CMD_LOGOUT 2
@@ -32,6 +34,8 @@ typedef struct _SMS_BBS_HEADER{	//
 #define SMS_BBS_CMD_REQUESTREPLY 7
 #define SMS_BBS_CMD_BBSSEND 8
 #define SMS_BBS_CMD_GWSEND 9
+#define SMS_BBS_CMD_REQUIRE_MONEYLIMIT	10
+#define SMS_BBS_CMD_MONEYLIMIT		11
 
 #define SMS_BBS_USER_LEN	19	
 #define SMS_BBS_PASS_LEN	49

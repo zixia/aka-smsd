@@ -19,6 +19,9 @@ public:
 	}
 	int isConnectPermitted(const char * addr, unsigned short int port){
 		syslog(LOG_ERR,"check connect permission %s:%d",addr,port);
+		//syslog(LOG_ERR,"check connect permission %s, %s:%d",m_addr.c_str(),addr,port);
+		if (m_addr.length()==0)
+			return TRUE;
 		if (strcmp(m_addr.c_str(),addr)) {
 			return FALSE;
 		}
