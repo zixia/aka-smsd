@@ -14,18 +14,8 @@ class CSMSBBSChildPrivilegeChecker{
 	std::string m_childCode,m_password,m_addr;
 	Connection *m_pConn;
 public:
-	CSMSBBSChildPrivilegeChecker(const char* childCode, const char* password, const char* addr,Connection *pConn):m_childCode(childCode),
-		m_password(password),m_addr(addr),m_pConn(pConn){
-	}
-	int isConnectPermitted(const char * addr, unsigned short int port){
-		syslog(LOG_ERR,"check connect permission %s:%d",addr,port);
-		//syslog(LOG_ERR,"check connect permission %s, %s:%d",m_addr.c_str(),addr,port);
-		if (m_addr.length()==0)
-			return TRUE;
-		if (strcmp(m_addr.c_str(),addr)) {
-			return FALSE;
-		}
-		return TRUE;
+	CSMSBBSChildPrivilegeChecker(Connection *pConn):m_childCode(childCode),
+	m_pConn(pConn){
 	}
 	int canSendSMS(const char* srcMobileNo, const char* srcID){
 		try{

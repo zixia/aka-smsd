@@ -79,6 +79,7 @@ class CSMSBBSChildProtocol: public CSMSProtocol{
 	CSMSBBSChildPrivilegeChecker *m_pChildPrivilegeChecker;
 	CSMSStorage* m_pSMSStorage;
 	char m_childCode[SMS_MAXCHILDCODE_LEN+1];
+	char m_childName[SMS_MAXCHILDNAME_LEN+1];
 	Connection m_conn;
 	int m_listenPort;
 	CSMSLogger m_SMSLogger;
@@ -515,14 +516,18 @@ int OnAccept(CSMSTcpStream* pStream){
 	}
 	len+=i;
 	syslog(LOG_ERR," %s login %s", (PSMS_BBS_LOGINPACKET(buf))->user,(PSMS_BBS_LOGINPACKET(buf))->password);
-
+	InetHostAddress addr=pStream->getPeer();
+	struct in_addr address=addri->getAddress();
+	m_pStream=pStream;
 	
-	if (!m_pChildPrivilegeChecker->canUserConnect( (PSMS_BBS_LOGINPACKET(buf))->user,(PSMS_BBS_LOGINPACKET(buf))->password)  ){
+	if (!m_pChildPrivilegeChecker->setChild(address.s_addr,  (PSMS_BBS_LOGINPACKET(buf))->user,(PSMS_BBS_LOGINPACKET(buf))->password, m_ChildCode, m_ChildName, &m_defaultMoneyLimit)  ){
 		doReply(SMS_BBS_CMD_ERR,(PSMS_BBS_HEADER(buf))->SerialNo,(PSMS_BBS_HEADER(buf))->pid);
 		syslog(LOG_ERR,"connection user & password wrong!");
 		return -1;
 	}
-	m_pStream=pStream;
+	char inbox[200];
+	snprintf(inbox,250,"%sinbox/bbs_%s",SMSHOME,m_ChildName);
+	m_pSMSStorage= new CSMSDiskStorage(this,SMSHOME "outbox/deliver", inbox);
 	m_pSMSStorage->init();
 	m_pSMSStorage->OnNotify();
 	doReply(SMS_BBS_CMD_OK,(PSMS_BBS_HEADER(buf))->SerialNo,(PSMS_BBS_HEADER(buf))->pid);
@@ -946,17 +951,19 @@ public:
  *  port: 监听端口
  * 
  */
-	CSMSBBSChildProtocol(const char* childCode,const char* password,const char* addr, int port,int defaultMoneyLimit): m_conn(use_exceptions),m_SMSLogger(&m_conn){
+	CSMSBBSChildProtocol(int listenPort,int defaultMoneyLimit): m_conn(use_exceptions),m_SMSLogger(&m_conn){
 		m_pid=0;
 		m_state=ready;
 		m_pStream=NULL;
 		m_serial=0;
-		m_pChildPrivilegeChecker=new CSMSBBSChildPrivilegeChecker(childCode, password,addr,&m_conn);
+		m_pChildPrivilegeChecker=new CSMSBBSChildPrivilegeChecker(&m_conn);
 		strncpy(m_childCode,childCode,SMS_MAXCHILDCODE_LEN);
 		m_childCode[SMS_MAXCHILDCODE_LEN]=0;
-		m_listenPort=port;
+		m_childName[SMS_MAXCHILDNAME_LEN]=0;
+		m_listenPort=listenPort;
 		m_defaultMoneyLimit=defaultMoneyLimit;
 		m_pSMSFeeCodeGetter=new CSMSMysqlFeeCodeGetter(&m_conn);
+		m_pStorage=NULL;
 		
 	}
 /* 构造函数 */
@@ -969,7 +976,6 @@ public:
 	int Run(CSMSStorage* pSMSStorage){
 		InetAddress addr;
 		CSMSTcpStream tcp;
-		m_pSMSStorage=pSMSStorage;
 
         try   {
 			CBBSChildProtocolTCPSocket* pServiceSocket=new CBBSChildProtocolTCPSocket(addr,m_listenPort,m_pChildPrivilegeChecker);
