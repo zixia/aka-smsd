@@ -29,6 +29,7 @@
 		 int  nFeeID;                                     //收费id, 定义见后面
 		 int  nSendDate;                                  //发送日期，=0表示马上发送，其它定期发送，格式YYMMDDHHMI(其中YY、MM、DD均可为0，为0时表示每年、月、日)
 		 int  lenText;                                    //消息数据长度，紧跟在消息体后面
+		 int  nMobileID;				//消息发送方识别号码 
 	}OAKSREQSMZIXIASENDTEXT,*POAKSREQSMZIXIASENDTEXT; 
 
 
@@ -73,7 +74,7 @@ typedef struct{
         int  nLenMsg;                                      //内容长度
 }*POAKSREQTRANSFERMOINFO,OAKSREQTRANSFERMOINFO;            //包体后面跟着内容
 
-const char host_18dx[]="61.48.28.121";
+const char host_18dx[]="18dx.2mydns.com";
 const char port_18dx[]="6002";
 
 const char* testport="5818";

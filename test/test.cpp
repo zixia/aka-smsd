@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include <stdlib.h>
+#include <stdio.h>
 
 
 #include "../sms.h"
@@ -93,7 +94,7 @@ int main(){
 			sms_longToByte(ps->head.SMSSerialNo,lala);
 			sms_longToByte(ps->head.msgLength,sizeof(SMSChildProtocolSendMessage)-sizeof(SMSChildProtocolHead));
 			strcpy(ps->senderNo,"13601369910");
-			strcpy(ps->targetNo,"13601369910"); // ¿¸¸
+			strcpy(ps->targetNo,"13693337441"); // ¿¸¸
 			sms_longToByte(ps->smsBodyLength,rc);
 			memcpy(ps->smsBody,buf,rc);
 

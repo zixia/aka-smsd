@@ -87,12 +87,19 @@ public:
 
 		ps->nFeeID=1;
 
+		ps->nMobileID=1234;
+
 		ps->lenText=msg->SMSBodyLength;
 		memcpy(ps+1,msg->SMSBody,msg->SMSBodyLength);
 
 		write(s,ps,lenPack);
+		char* buf=new char[sizeof(OAKSACKSMZIXIASENDTEXT)];
+		read(s,buf,sizeof(OAKSACKSMZIXIASENDTEXT));
+		syslog(LOG_ERR,"send msg return %d",(POAKSACKSMZIXIASENDTEXT(buf))->header.dwResult);
 
 		close(s);
+
+		delete[] buf;
 
 		delete[] buffer;
 
