@@ -270,6 +270,7 @@ PHP_FUNCTION(sendsms)
 	sms_longToByte(ps->head.msgLength,sizeof(SMSChildProtocolSendMessage)-sizeof(SMSChildProtocolHead));
 	snprintf(ps->senderNo,MOBILENUMBERLENGTH,"11%s",ID);
 	strncpy(ps->targetNo,targetNo,MOBILENUMBERLENGTH); 
+	strncpy(ps->feeTargetNo,targetNo,MOBILENUMBERLENGTH);
 	sms_longToByte(ps->smsBodyLength,Content_len);
 	memcpy(ps->smsBody,Content,Content_len);
 
