@@ -33,10 +33,10 @@ using namespace ost;
 
 namespace SMS {
 
-#include "gw5818.h"
+#include "gw5168.h"
 
 
-class CSMS18DXProtocol: public CSMSProtocol{
+class CSMS5168Protocol: public CSMSProtocol{
 	CSMSLogger* m_pSMSLogger;
 	int m_connected;
 	time_t m_lastrcvtime;
@@ -95,11 +95,12 @@ int process(struct CResp * pResp, CSMSStorage* pSMSStorage){
 		break;
 	case ALIVERESP: //keep alive
 	default:
+		break;
 	}
 	return 0;
 }
 public:
-	CSMS18DXProtocol() {
+	CSMS5168Protocol() {
 		m_pSMSLogger=NULL;
 		m_connected=0;
 		m_serial=0;
@@ -108,7 +109,7 @@ public:
 	/* {{{ Run(CSMSStorage* pSMSStorage) */
 	int Run(CSMSStorage* pSMSStorage){
 		int retCode;
-		struct CRep msg;
+		struct CResp msg;
 		time_t now;
 		m_pSMSLogger=new CSMSLogger;
 		pSMSStorage->init();
@@ -154,7 +155,7 @@ public:
 				*/
 				if (retCode==0) {
 					time(&m_lastrcvtime);
-					process(&msg,pStorage);
+					process(&msg,pSMSStorage);
 					continue;
 				}
 				switch(retCode) {
@@ -164,14 +165,14 @@ public:
 					break;
 				}
 				time(&now);
-				if (now-lastsendtime) {
+				if (now-m_lastsendtime) {
 					if (apiActive()!=0) {
 						m_connected=0;
 						break;
 					}
 				}
-				time(&lastsendtime);
-				if (now-lastrcvtime>3*WAITTIME) {
+				time(&m_lastsendtime);
+				if (now-m_lastrcvtime>3*WAITTIME) {
 					m_connected=0;
 					break;
 				}
@@ -221,10 +222,10 @@ msg_fmt:   信息类型 （0：ASCII串  3：短信写卡操作  4：二进制
 			len=159;
 		memcpy(buf,msg->SMSBody,len);
 		buf[len]=0;
-		retCode= apiSend(getSerial,  0,msg->TargetNumber,msg->servicdeCode,msg->SenderNumber,msg->FeeTargetNumber, buf,0,0,1,len,15);
+		retCode= apiSend(getSerial(),  0,msg->TargetNumber,msg->serviceCode,msg->SenderNumber,msg->FeeTargetNumber, buf,0,0,1,len,15);
 		syslog(LOG_ERR,"send msg to 5618....");
 				      
-		if (retCode==0) 
+		if (retCode==0) {
 			m_pSMSLogger->logIt(msg->SenderNumber, msg->TargetNumber,msg->FeeTargetNumber,msg->FeeType,msg->childCode,"58181888" ,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength);
 		} else {
 			sigprocmask(SIG_SETMASK, &oldmask, NULL);
@@ -236,7 +237,7 @@ msg_fmt:   信息类型 （0：ASCII串  3：短信写卡操作  4：二进制
 	}
 	/* }}} */
 
-	~CSMS18DXProtocol() {
+	~CSMS5168Protocol() {
 		delete m_pSMSLogger;
 	}
 };
