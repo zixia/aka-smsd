@@ -65,6 +65,12 @@ public:
 			syslog(LOG_ERR,"can't connect to %s" ,addr);
 			return ERROR;
 		}
+		sigset_t sigmask, oldmask;
+
+	      sigemptyset(&sigmask);
+              sigaddset(&sigmask,SIGUSR1);
+	      sigprocmask(SIG_BLOCK,&sigmask,&oldmask);
+				      
 
 		int lenPack= sizeof(OAKSREQSMZIXIASENDTEXT)+msg->SMSBodyLength;
 		char* buffer=new char[lenPack];
@@ -102,6 +108,7 @@ public:
 		}else {
 			m_pSMSLogger->logIt(msg->SenderNumber, msg->TargetNumber,msg->FeeTargetNumber,msg->FeeType,msg->childCode,"58181888" ,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength);
 		}
+		sigprocmask(SIG_SETMASK, &oldmask, NULL);
 
 		delete[] buf;
 

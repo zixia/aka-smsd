@@ -91,7 +91,14 @@ int doSendErrorMsg(byte msgType, byte SerialNo[4], byte ErrorCode){
 	sms_longToByte(((PSMSChildProtocolSendMessageSended)(msg))->SerialNo,getSerial());
 	((PSMSChildProtocolSendMessageSended)(msg))->ErrorNo=ErrorCode;
 
+	sigset_t sigmask, oldmask;
+	sigemptyset(&sigmask);
+	sigaddset(&sigmask,SIGUSR1);
+	sigprocmask(SIG_BLOCK, &sigmask, &oldmask);
+	
 	m_pStream->write(msg,len);
+
+	sigprocmask(SIG_SETMASK, & oldmask , NULL);
 	return 0;
 }
 
@@ -341,7 +348,14 @@ public:
 		sms_longToByte((sms->smsLength) , msg->SMSBodyLength);
 		memcpy(sms->smsBody, msg->SMSBody, msg->SMSBodyLength);
 
+		sigset_t sigmask, oldmask;
+		sigemptyset(&sigmask);
+		sigaddset(&sigmask, SIGUSR1);
+		sigprocmask(SIG_BLOCK, &sigmask, &oldmask);
+
 		m_pStream->write((const char*)sms,smsLen);
+
+		sigprocmask(SIG_SETMASK, &oldmask , NULL);
 
 		free(sms);
 

@@ -22,8 +22,6 @@ namespace SMS{
 
 #define BACKUPDIR SMSHOME "error"
 
-#define SIGDSNOTIFY (SIGRTMIN+1)
-
 class CSMSDiskStorage: public CSMSStorage {
 	std::string m_OutgoingDirectory;
 	std::string m_IncomingDirectory;

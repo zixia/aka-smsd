@@ -26,7 +26,7 @@ int CSMSDiskStorage::set_notifier() {
 	act.sa_sigaction = __smsDiskStorage_notify_handler;
 	sigemptyset(&act.sa_mask);
 	act.sa_flags = SA_SIGINFO;
-	sigaction(SIGDSNOTIFY, &act, NULL);
+	sigaction(SIGUSR1, &act, NULL);
 	if (m_fp==0) {
 		m_fp=open(m_IncomingDirectory.c_str(), O_RDONLY);
 		if (m_fp<0) {
@@ -35,7 +35,7 @@ int CSMSDiskStorage::set_notifier() {
 		}
 	}
 	syslog(LOG_ERR, "start monitor: %s %d", m_IncomingDirectory.c_str(),m_fp);
-	if (fcntl(m_fp, F_SETSIG, SIGDSNOTIFY )<0) {
+	if (fcntl(m_fp, F_SETSIG, SIGUSR1)<0) {
 		syslog(LOG_ERR," fcntl F_SETSIG failed : %d ",errno);
 		exit(-1);
 	}

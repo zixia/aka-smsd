@@ -107,13 +107,17 @@ DWORD getSerial(){ //产生序列号
  * 向下游发送消息
  */
 int doSendMsg(void* msg, DWORD len){
+	sigset_t sigmask,oldmask;
+	int i=0;
+	int sended=0;
 	if (m_pStream==NULL){
 		return ERROR;
 	}
 	syslog(LOG_ERR," send msg to child ,length=%d",len);
 	//todo: 中断恢复与处理
-	int i=0;
-	int sended=0;
+	sigemptyset(&sigmask);
+	sigaddset(&sigmask,SIGUSR1);
+	sigprocmask(SIG_BLOCK,&sigmask,&oldmask);
 
 	while (i=m_pStream->write(((char*)msg)+sended,len-sended)) {
 
@@ -121,6 +125,7 @@ int doSendMsg(void* msg, DWORD len){
 			if  (errno==EINTR) {
 				continue;
 			} 
+			sigprocmask(SIG_SETMASK,&oldmask,NULL);
 			syslog(LOG_ERR, "do send msg error: %d" , errno);
 			return FAILED;
 		}
@@ -128,6 +133,7 @@ int doSendMsg(void* msg, DWORD len){
 		if (sended>=len) 
 			break;
 	}
+	sigprocmask(SIG_SETMASK,&oldmask,NULL);
 	return SUCCESS;
 }
  /* doSendMsg()
@@ -241,8 +247,7 @@ int getValidateNum(const char* mobileNo, const char* srcID, char* validateNo, in
 		std::stringstream sql;
 		sql<< "replace into SMSRegister_TB(childCode, MobilePhoneNumber, ValidatationNumber,srcID) values( '" 
 				<<m_childCode<<"' , '"<<mobileNo<<"' , '" <<validateNo <<"', '"<<srcID<<"' )";
-			query.exec(sql.str());
-		}
+		query.exec(sql.str());
 		return SUCCESS;
 	} catch ( BadQuery er) {
 		syslog(LOG_ERR," getValidateNum -- mysql query err : %s", er.error.c_str());
