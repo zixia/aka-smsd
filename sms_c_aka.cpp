@@ -12,7 +12,7 @@ public:
 
 	CMyDaemon(char* applicationName,int logFacility): CSMSDaemon(applicationName,logFacility){
 		m_pSMSProtocol=new CSMSChildProtocol;
-		m_pSMSStorage = new CSMSDiskStorage(m_pSMSProtocol,SMSHOME "outbox/deliver", SMSHOME "inbox/default");
+		m_pSMSStorage = new CSMSDiskStorage(m_pSMSProtocol,SMSHOME "outbox/deliver", SMSHOME "inbox/default", SMSHOME "inbox.back/default");
 	}
 };
 

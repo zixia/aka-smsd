@@ -25,6 +25,8 @@ namespace SMS{
 class CSMSDiskStorage: public CSMSStorage {
 	std::string m_OutgoingDirectory;
 	std::string m_IncomingDirectory;
+	std::string m_IncomingBackupDirectory;
+	std::string m_errorDirectory;
 	std::string m_currFilename;
 	DIR * m_pDIR;
 	std::vector<std::string> m_readedFileList;
@@ -35,7 +37,7 @@ class CSMSDiskStorage: public CSMSStorage {
 
 
 public:
-	CSMSDiskStorage(CSMSProtocol *pSMSPProtocol, const std::string & OutgoingDirectory, const std::string & IncomingDirectory );
+	CSMSDiskStorage(CSMSProtocol *pSMSPProtocol, const std::string & OutgoingDirectory, const std::string & IncomingDirectory, const std::string &IncomingBackupDirectory, const std::string &errorDirectory=BACKUPDIR);
 
 	~CSMSDiskStorage();
 
@@ -150,7 +152,7 @@ public:
 
 	int backupError() {
 		std::string oldpath(m_IncomingDirectory);
-		std::string newpath(BACKUPDIR);
+		std::string newpath(m_errorDirectory);
 		oldpath+="/"+m_currFilename;
 		newpath+="/"+m_currFilename;
 		link(oldpath.c_str(),newpath.c_str());
@@ -162,6 +164,8 @@ public:
 		std::vector<std::string>::const_iterator it;
 		for (it=m_readedFileList.begin();it!=m_readedFileList.end();it++){
 			std::string file=m_IncomingDirectory+"/"+(*it);
+			std::string backupfile=m_IncomingBackupDirectory+"/"+(*it);
+			link(file.c_str(),backupfile.c_str());
 			unlink(file.c_str());
 			syslog(LOG_ERR,"deleted file:%s", file.c_str());
 		}

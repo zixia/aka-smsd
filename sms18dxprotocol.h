@@ -31,7 +31,7 @@ namespace SMS {
 class CSMS18DXProtocol: public CSMSProtocol{
 	CSMSLogger* m_pSMSLogger;
 	TCPSocket *m_pServiceSocket;
-
+	CSMSTcpStream m_tcp;
 
 int isMsgValid(POAKSREQTRANSFERMOINFO pHead,char* buf, int len, SMSMessage** msg, unsigned int * msgLen){
 	*msgLen=sizeof(SMSMessage)+len;
@@ -48,7 +48,7 @@ int isMsgValid(POAKSREQTRANSFERMOINFO pHead,char* buf, int len, SMSMessage** msg
 	memcpy((*msg)->SMSBody, buf, len);
 
 	(*msg)->arriveTime=time(NULL);
-	strncpy((*msg)->parentID,"18dx",SMS_MAXCHILDCODE_LEN);
+	strncpy((*msg)->parentID,"18dx",SMS_PARENTID_LEN);
 	(*msg)->parentID[SMS_PARENTID_LEN]=0;
 	(*msg)->FeeType=0;
 
@@ -152,13 +152,14 @@ public:
 	
 	/* {{{ Send(SMSMessage* msg) */
 	int Send(SMSMessage* msg){
-		CSMSTcpStream tcp;
 		char addr[100];
 		int retCode;
 		snprintf(addr,sizeof(addr),"%s:%s",host_18dx,port_18dx);
 		syslog(LOG_ERR,"send message to %s",addr);
-		tcp.open(addr);
-		if (!tcp){
+		if (!m_tcp) {
+			m_tcp.open(addr);
+		}
+		if (!m_tcp){
 			syslog(LOG_ERR,"can't connect to %s" ,addr);
 			return FAILED;
 		}
@@ -190,16 +191,24 @@ public:
 		ps->lenText=msg->SMSBodyLength;
 		memcpy(ps+1,msg->SMSBody,msg->SMSBodyLength);
 
-		tcp.write(ps,lenPack);
+		retCode=m_tcp.write(ps,lenPack,6000);
 		char* buf=new char[sizeof(OAKSACKSMZIXIASENDTEXT)];
-		retCode = tcp.read(buf,sizeof(OAKSACKSMZIXIASENDTEXT),6000);
+		if (retCode>0) {
+			retCode = m_tcp.read(buf,sizeof(OAKSACKSMZIXIASENDTEXT),6000);
+		}
 		if ( TIMEOUT==retCode ){
+			m_tcp.close();
 			syslog(LOG_ERR,"send msg timeout, faint" );
 			return ERROR;
 		}
+		if (retCode<=0) {
+			m_tcp.close();
+			syslog(LOG_ERR,"send msg error: %d", retCode);
+			return ERROR;
+		}
+				
 		syslog(LOG_ERR,"send msg return %d",(POAKSACKSMZIXIASENDTEXT(buf))->header.dwResult);
 
-		tcp.close();
 		DWORD result=(POAKSACKSMZIXIASENDTEXT(buf))->header.dwResult;
 		delete[] buf;
 		delete[] buffer;

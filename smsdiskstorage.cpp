@@ -55,8 +55,8 @@ retry:
 }
 
 
-CSMSDiskStorage::CSMSDiskStorage(CSMSProtocol *pSMSPProtocol, const string & OutgoingDirectory, const string & IncomingDirectory ):m_OutgoingDirectory(OutgoingDirectory),
-	m_IncomingDirectory(IncomingDirectory),m_pDIR(NULL),m_dataSize(0),m_pDataBuf(NULL),m_bufSize(0),CSMSStorage(pSMSPProtocol){
+CSMSDiskStorage::CSMSDiskStorage(CSMSProtocol *pSMSPProtocol, const string & OutgoingDirectory, const string & IncomingDirectory, const string& IncomingBackupDirectory, const string& errorDirectory=BACKUPDIR ):m_OutgoingDirectory(OutgoingDirectory),
+	m_IncomingDirectory(IncomingDirectory),m_pDIR(NULL),m_dataSize(0),m_pDataBuf(NULL),m_bufSize(0),CSMSStorage(pSMSPProtocol),m_IncomingBackupDirectory(IncomingBackupDirectory), m_errorDirectory(errorDirectory){
 	__smsDiskStorage=this;
 	m_fp=0;
 
