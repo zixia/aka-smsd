@@ -698,7 +698,7 @@ int processRegisterSMS(PSMSMessage msg) {
 
 	int retCode;
 	if (msg->SMSBodyLength<2) {
-		syslog(LOG_ERR,"received error sms!");
+		syslog(LOG_ERR,"received error registe sms!");
 		return ERROR;
 	}
 
@@ -708,7 +708,7 @@ int processRegisterSMS(PSMSMessage msg) {
 		isRegister=1;
 		retCode=doUnregisterSMS(msg->SenderNumber);
 	}else {
-		syslog(LOG_ERR,"received error sms!");
+		syslog(LOG_ERR,"received error content register sms!");
 		return ERROR;
 	}
 
@@ -834,7 +834,8 @@ public:
  * 接收并处理上游过来的短信
  */
 int Send(PSMSMessage msg){
-	switch (getSMSType(msg->TargetNumber)) {
+	int smsType=getSMSType(msg->TargetNumber);
+	switch (smsType) {
 		case SMS_BBS_TYPE_COMMON:
 			return deliverSMS(msg);
 		case SMS_BBS_TYPE_REGISTER:
