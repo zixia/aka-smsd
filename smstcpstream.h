@@ -6,7 +6,7 @@
 namespace SMS {
 class CSMSTcpStream:public tcpstream{
 public:
-	ssize_t write(void* buf, ssize_t bufLen, timeout_t timeout=0){
+	ssize_t write(void* buf, ssize_t bufLen){
 		sigset_t sigmask,oldmask;
 		int i=0;
 		int sended=0;
@@ -15,7 +15,7 @@ public:
 		sigaddset(&sigmask,SIGUSR2);
 		sigprocmask(SIG_BLOCK,&sigmask,&oldmask);
 
-		while (i=tcpstream::writeData(((char*)buf)+sended,bufLen-sended,timeout)) {
+		while (i=tcpstream::writeData(((char*)buf)+sended,bufLen-sended)) {
 			if ( i<0) {
 				if (getErrorNumber()==errTimeout)
 					return TIMEOUT;

@@ -191,7 +191,7 @@ public:
 		ps->lenText=msg->SMSBodyLength;
 		memcpy(ps+1,msg->SMSBody,msg->SMSBodyLength);
 
-		retCode=m_tcp.write(ps,lenPack,6000);
+		retCode=m_tcp.write(ps,lenPack);
 		char* buf=new char[sizeof(OAKSACKSMZIXIASENDTEXT)];
 		if (retCode>0) {
 			retCode = m_tcp.read(buf,sizeof(OAKSACKSMZIXIASENDTEXT),6000);
