@@ -7,6 +7,8 @@
 
 namespace SMS{
 
+#define FILTERINTERVAL (600)
+
 class SMS_Storage_error : public std::runtime_error{
 public:
 	 SMS_Storage_error(const std::string& whatString): std::runtime_error(whatString) {};
@@ -29,15 +31,18 @@ class CSMSStorage{
 	virtual int set_notifier()=0;
 	char* m_buffer;
 	void* m_filterBuf;
-
-public:
-	CSMSStorage(CSMSProtocol *pSMSPProtocol):m_pSMSPProtocol(pSMSPProtocol){
-	}
-
-	int init() {
+	time_t m_ft;
+private:
+	int initFilter(){
+		time_t tm=m_ft;
+		m_ft=time(NULL);
+		if (m_ft-tm<=FILTERINTERVAL) {
+			return 0;
+		}
 	    int fp;
 	    size_t pattern_imagesize;
 	    default_setting();
+		free(m_filterBuf);
 	    fp = open(SMSHOME "etc/badword", O_RDONLY);
 	    if (fp==-1) {
 			syslog(LOG_ERR,"can't open badword file!");
@@ -48,6 +53,16 @@ public:
 
 		flock(fp,LOCK_UN);
 		close(fp);
+		return 0;
+			
+	}
+
+public:
+	CSMSStorage(CSMSProtocol *pSMSPProtocol):m_pSMSPProtocol(pSMSPProtocol),m_filterBuf(NULL),m_ft(0){
+	}
+
+	int init() {
+		initFilter();
 		return	set_notifier();
 	}
 	virtual ~CSMSStorage() {};

@@ -16,6 +16,7 @@
 
 namespace SMS{
 
+
 #define MOBILENUMBERLENGTH 16  //ºÅÂë³¤¶È
 #define FEETYPE_DEFAULT 1;
 
@@ -48,7 +49,7 @@ namespace SMS{
 #define DB_USER "aka"
 #define DB_PASSWORD "aA3$;G(~cjKK"
 
-#define SMSHOME "/home/roy/akasmsd/"
+#define SMSHOME "/opt/sms/"
 #define SMSETCDIR SMSHOME "etc/"
 		
 #define SMS_PARENTID_LEN 80

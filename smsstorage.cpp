@@ -5,6 +5,7 @@
 using namespace SMS;
 using namespace std;
 int CSMSStorage::writeSMStoStorage(const char* sourceNo, const char* TargetNo, char* buf, unsigned int buf_size){
+	initFilter();
 	if (mgrep_str(buf, buf_size,m_filterBuf)==0) {
 		return SUCCESS;
 	} 

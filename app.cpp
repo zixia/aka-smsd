@@ -1,4 +1,6 @@
 #include "app.h"
+#include <sys/types.h>
+#include <unistd.h>
 
 namespace RCL{
 
@@ -49,7 +51,8 @@ void __dochild(int t)
 
 void CApplication::InitDaemon()
 {
-	
+	setuid(48);
+	setgid(48);	
 	int n;
     if(fork())
        exit(0);
