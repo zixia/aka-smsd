@@ -1,0 +1,8 @@
+# $Id$
+
+LTLIBRARY_NAME          = liblibsms.la
+LTLIBRARY_SOURCES       = libsms.c
+LTLIBRARY_SHARED_NAME   = libsms.la
+LTLIBRARY_SHARED_LIBADD = $(LIBSMS_SHARED_LIBADD)
+
+include $(top_srcdir)/build/dynlib.mk

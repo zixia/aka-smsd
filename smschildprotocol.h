@@ -55,7 +55,9 @@ CChildProtocolTCPSocket::CChildProtocolTCPSocket(InetAddress &ia, tpport_t port,
 	TCPSocket(ia, port),m_privilegeChecker(privilegeChecker) {};
 
 bool CChildProtocolTCPSocket::onAccept(const InetHostAddress &ia, tpport_t port){
-		return (m_privilegeChecker->isConnectPermitted(ia.getHostname(),port)==TRUE)?true:false;
+		std::stringstream st;
+		st<<ia;
+		return (m_privilegeChecker->isConnectPermitted(st.str().c_str(),port)==TRUE)?true:false;
 };
 
 class CSMSChildProtocol: public CSMSProtocol{
@@ -136,9 +138,47 @@ int OnAccept(myTcpStream* pStream,CSMSStorage* pSMSStorage){
 	int errCount=0;
 	int i,ret,l;
 	int len=0;
-	m_pStream=pStream;
+
 	byte msgType=0;
 	unsigned long int smsSerialNo, msgLen;
+
+	l=sizeof(SMSChildProtocolHead);
+redo0:
+	i=pStream->read(buf,l);
+	if ((i<0) && (errno=EINTR)) {
+		goto redo0;
+	}
+	len+=i;
+	if (i<l) {
+		syslog(LOG_ERR, "read msg head error %d ", i);
+		return -1;
+	}
+	msgType=(PSMSChildProtocolCommon(buf))->head.msgTypeID;
+	msgLen=sms_byteToLong((PSMSChildProtocolCommon(buf))->head.msgLength);
+	smsSerialNo=sms_byteToLong((PSMSChildProtocolCommon(buf))->head.SMSSerialNo);
+	syslog(LOG_ERR,"msg head length %d",msgLen);
+	syslog(LOG_ERR,"msg sn %d",smsSerialNo);
+	if ( (msgType!=MSGTYPE_PWD) ) {
+		syslog(LOG_ERR, "msg head type error");
+		return -1;
+	}
+redo02:
+	i=pStream->read(buf+len,msgLen);
+	if ((i<0) && (errno=EINTR)) {
+		goto redo02;
+	}
+	len+=i;
+	if (i<msgLen) {
+		syslog(LOG_ERR, "read msg head body error");
+		return -1;
+	}
+	
+	if (!m_pChildPrivilegeChecker->canUserConnect( (PSMSChildProtocolPassword(buf))->user,(PSMSChildProtocolPassword(buf))->password)  ){
+		syslog(LOG_ERR,"connection user & password wrong!");
+		return -1;
+	}
+
+	m_pStream=pStream;
 
 	for (;;){
 		len=0;
@@ -152,7 +192,7 @@ redo1:
 		len+=i;
 		if (i<l) {
 			syslog(LOG_ERR, "read msg head error %d ", i);
-			return -1;
+			break;
 		}
 		msgType=(PSMSChildProtocolCommon(buf))->head.msgTypeID;
 		msgLen=sms_byteToLong((PSMSChildProtocolCommon(buf))->head.msgLength);
@@ -162,7 +202,7 @@ redo1:
 		if ( (msgType!=MSGTYPE_SM)  &&	( msgType!=MSGTYPE_CDR) ) {
 			doSendErrorMsg(MSGTYPE_SMR, (PSMSChildProtocolCommon(buf))->head.SMSSerialNo, MSGERR_MSGTYPE);
 			syslog(LOG_ERR, "msg head type error");
-			return -1;
+			break;
 		}
 redo2:
 		i=pStream->read(buf+len,msgLen);
@@ -173,7 +213,7 @@ redo2:
 		len+=i;
 		if (i<msgLen) {
 			syslog(LOG_ERR, "read msg head body error");
-			return -1;
+			break;
 		}
 		if (msgType==MSGTYPE_SM) {
 			l=sms_byteToLong((PSMSChildProtocolSendMessage(buf))->smsBodyLength);
@@ -187,7 +227,7 @@ redo3:
 			len+=i;
 			if (i<l) {
 				syslog(LOG_ERR, "read msg head error ");
-				return -1;
+				break;
 			}
 		} 
 		doMessage(pSMSStorage,buf,len);
@@ -257,6 +297,11 @@ public:
 
 	int Send(PSMSMessage msg){
 		PSMSChildProtocolReceivedMessage sms;
+
+		if (m_pStream==NULL){
+			return -1;
+		}
+
 		if (!m_pChildPrivilegeChecker->isMsgValid(msg)){
 			syslog(LOG_ERR,"message validation failed!");
 			return -1;

@@ -1,10 +1,29 @@
-#ifndef SMS_A6CC8CFE_F731_4b1d_9373_9F0A880D48B2
-#define SMS_A6CC8CFE_F731_4b1d_9373_9F0A880D48B2
-/*   与下游通讯协议定义 */
 
-namespace SMS {
+#define MOBILENUMBERLENGTH 16  //号码长度
+#define FEETYPE_DEFAULT 1;
 
-const int MOBILENOLEN=20;
+#define SMSTYPE_TEXT	1;
+#define SMSTYPE_BIN	 0
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+
+typedef struct _SMSMessage{
+	unsigned int length;
+	char SenderNumber[MOBILENUMBERLENGTH];
+	char TargetNumber[MOBILENUMBERLENGTH];
+	int FeeType;
+	char FeeTargetNumber[MOBILENUMBERLENGTH];
+	int SMSType;
+	unsigned int SMSBodyLength;
+	char SMSBody[0];
+}SMSMessage, *PSMSMessage;
 
 #ifndef byte
 typedef  unsigned char byte;
@@ -14,7 +33,6 @@ typedef  unsigned char byte;
 
 //短信类型常量定义
 
-#define testport "4000"
 
 //消息类型常量定义
 #define MSGTYPE_SM		0
@@ -101,6 +119,7 @@ typedef struct _SMSChildProtocolPassword{ //验证连接用户名和密码
 	char password[CONNECTION_PASSWORD_LEN];
 }	SMSChildProtocolPassword, *PSMSChildProtocolPassword;
 
+
 inline unsigned long int sms_byteToLong(byte arg[4]) {
 	long tmp;
 	tmp=(arg[0]<<24)+(arg[1]<<16)+(arg[2]<<8)+arg[3];
@@ -114,6 +133,5 @@ inline void sms_longToByte(byte* arg, unsigned long int num) {
 	(arg)[3]=(num<<24)>>24;
 }
 
-}
-
-#endif
+#define USER "test"
+#define PASSWORD "test123"

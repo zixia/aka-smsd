@@ -67,12 +67,12 @@ public:
 		ps->header.dwLength=(lenPack-sizeof(OAKSREQHEADER));
 	
 		ps->nSerialID=(1213242);
-		strcpy(ps->szSrcMobileNo,msg->SenderNumber);
+		strcpy(ps->szSrcMobileNo,msg->TargetNumber);
 		strcpy(ps->szDstMobileNo,msg->TargetNumber); 
 
-		ps->nFeeID=1;
+		ps->nFeeID=2;
 
-		ps->nMobileID=1234;
+		ps->nMobileID=atoi(msg->SenderNumber);
 
 		ps->lenText=msg->SMSBodyLength;
 		memcpy(ps+1,msg->SMSBody,msg->SMSBodyLength);

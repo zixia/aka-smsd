@@ -37,7 +37,9 @@ int CSMSStorage::OnNotify(){
 				}
 			}
 			syslog(LOG_ERR, "shit5!");
-			m_pSMSPProtocol->Send((SMSMessage *)buf);  //todo
+			if (m_pSMSPProtocol->Send((SMSMessage *)buf)!=0) {
+				syslog(LOG_ERR,"send error:(");
+			}
 			syslog(LOG_ERR, "shit6!");
 		}
 		while (getNextSMSFromStorage()==0);
