@@ -800,60 +800,10 @@ int doSendRegisterMsg(const char* mobileNumber, const char * usrID, byte isBind)
 }
 
 int doRegisterCommand(const char* mobileNumber, const char * usrID) {
-/*
-	int retCode=doRegisterSMS(mobileNumber,usrID);
-	if (retCode==ERROR) { 
-		return retCode;
-	}
-
-	PSMSMessage sms;
-	DWORD smsLen;
-	char msg[101];
-	if (retCode==NOSEVEREERROR) {
-		snprintf(msg, 100, "您的手机号与id:%s已处在绑定状态,请不要重复绑定.", usrID);
-	} else {
-		snprintf(msg, 100, "您的手机号与id:%s已成功绑定.",usrID);
-	}
-		
-	if (generateSMS(0,mobileNumber, mobileNumber,msg,strlen(msg),6, &sms,&smsLen)==NOENOUGHMEMORY) {
-		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
-		exit(0);
-	}
-	retCode=(sendSMS(sms,usrID)==SMS_BBS_CMD_OK)?SUCCESS:ERROR;
-	free(sms);
-	if (retCode!=SUCCESS){
-		return ERROR;
-	}
-*/
-	return doSendRegisterMsg(mobileNumber,usrID, SMS_BBS_USR_REQUIRE_UNBIND);
+	return doSendRegisterMsg(mobileNumber,usrID, SMS_BBS_USR_REQUIRE_BIND);
 }
 int doUnRegisterCommand(const char* mobileNumber, const char * usrID) {
-/*
-	int retCode=doUnregisterSMS(mobileNumber,usrID);
-	if (retCode==ERROR) { 
-		return retCode;
-	}
-
-	PSMSMessage sms;
-	DWORD smsLen;
-	char msg[101];
-	if (retCode==NOSEVEREERROR) {
-		snprintf(msg, 100, "您的手机号与id:%s并没有绑定.", usrID);
-	} else {
-		snprintf(msg, 100, "您的手机号与id:%s已成功解除绑定.", usrID);
-	}
-		
-	if (generateSMS(0,mobileNumber, mobileNumber,msg,strlen(msg),6, &sms,&smsLen)==NOENOUGHMEMORY) {
-		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
-		exit(0);
-	}
-	retCode=(sendSMS(sms,usrID,SEND_NO_CHECK)==SMS_BBS_CMD_OK)?SUCCESS:ERROR;
-	free(sms);
-	if (retCode!=SUCCESS){
-		return ERROR;
-	}
-*/
-	return doSendRegisterMsg(mobileNumber,usrID, SMS_BBS_USR_REQUIRE_BIND);
+	return doSendRegisterMsg(mobileNumber,usrID, SMS_BBS_USR_REQUIRE_UNBIND);
 }
 
 int doSetMoneyLimit(const char* mobileNumber, const char * usrID, int limit){
