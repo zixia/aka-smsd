@@ -49,7 +49,8 @@ namespace SMS{
 #define DB_PASSWORD "aA3$;G(~cjKK"
 
 #define SMSHOME "/home/roy/akasmsd/"
-
+#define SMSETCDIR SMSHOME "etc/"
+		
 #define SMS_PARENTID_LEN 80
 #define SMS_FEECODE_LEN		10
 

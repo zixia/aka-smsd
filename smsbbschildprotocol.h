@@ -17,6 +17,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/file.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <string.h>
@@ -593,6 +594,45 @@ int dispatchMessage( char* msg, DWORD len) {
 /* dispatchMessage()
  */
 
+int doStartChild(const char* childName){
+	int fd;
+	char buf[201];
+	char readBuf[31];
+	char writeBuf[31];
+	int len;
+	snprintf(buf,200,"%s%s.pid",SMSETCDIR, childName);
+	buf[200]=0;
+	fd=open(buf,O_RDWR|O_CREAT);
+	if (fd<0) {
+		syslog(LOG_ERR,"can't open pid file: %s %d",buf,errno);
+		return 0;
+	}
+	if (flock(fd,LOCK_EX)<0) {
+		syslog(LOG_ERR,"lock pid file %s error: %di", buf, errno);
+		close(fd);
+		return 0;
+	}
+	len=read(fd,readBuf,30);
+	if (len<0) {
+		syslog(LOG_ERR,"can't read pid file %s: %d" ,buf ,errno);
+		flock(fd,LOCK_UN);
+		close(fd);
+		return 0;
+	}
+	readBuf[len]=0;
+	if (len>0) {
+		kill(atoi(readBuf),SIGTERM);
+	}
+	lseek(fd,0,SEEK_SET);
+	snprintf(writeBuf,30,"%d",getpid());
+	writeBuf[30]=0;
+	write(fd,writeBuf,strlen(writeBuf));
+	flock(fd,LOCK_UN);
+	close(fd);
+	return 0;
+}
+	
+
 /* {{{ OnAccept()
  *
  * 从客户端读取消息
@@ -640,6 +680,7 @@ int OnAccept(CSMSTcpStream* pStream){
 		syslog(LOG_ERR,"connection failed!");
 		return -1;
 	}
+	doStartChild(m_childName);
 	closelog();
 	snprintf( RCL::__z_self, 16, "sms_c_bbs_%s", m_childName ) ;
 	openlog(RCL::__z_self, LOG_PID, LOG_LOCAL0);
