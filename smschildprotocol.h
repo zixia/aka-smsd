@@ -2,6 +2,7 @@
 #define SMS_51AD2DAD_B486_4391_A641_84C4719FF7DE
 
 #include "sms.h"
+#include "smschildprivilegechecker.h"
 #include <asm/errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -13,6 +14,11 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <sstream>
+#include <cc++/socket.h>
+#ifdef  CCXX_NAMESPACES
+using namespace std;
+using namespace ost;
+#endif
 
 #include "childprotocol.h"
 
@@ -21,12 +27,45 @@ namespace SMS {
 
 const int queueLen=10;
 
+
+class CChildProtocolTCPSocket : public TCPSocket
+{
+	CSMSChildPrivilegeChecker* m_privilegeChecker;
+protected:
+        bool onAccept(const InetHostAddress &ia, tpport_t port);
+
+public:
+        CChildProtocolTCPSocket(InetAddress &ia, tpport_t port, CSMSChildPrivilegeChecker* privilegeChecker);
+};
+
+class myTcpStream:public tcpstream{
+public:
+	ssize_t write(const char* buf, ssize_t bufLen){
+		return tcpstream::writeData(buf,bufLen);
+	}
+
+	ssize_t read(char* buf, ssize_t bufLen){
+		return tcpstream::readData(buf,bufLen);
+	}
+
+};
+
+
+CChildProtocolTCPSocket::CChildProtocolTCPSocket(InetAddress &ia, tpport_t port, CSMSChildPrivilegeChecker* privilegeChecker) : 
+	TCPSocket(ia, port),m_privilegeChecker(privilegeChecker) {};
+
+bool CChildProtocolTCPSocket::onAccept(const InetHostAddress &ia, tpport_t port){
+		return (m_privilegeChecker->isConnectPermitted(ia.getHostname(),port)==TRUE)?true:false;
+};
+
 class CSMSChildProtocol: public CSMSProtocol{
 	int m_pid;
 	int m_state;
-	int m_sock;
+	myTcpStream *m_pStream;
 	enum { ready,headLenghtUnkown, headIncomplete, bodyIncomplete };
 	unsigned long int m_serial;
+	CChildProtocolTCPSocket *m_pServiceSocket;
+	CSMSChildPrivilegeChecker *m_pChildPrivilegeChecker;
 private:
 
 unsigned long int getSerial(){
@@ -45,7 +84,8 @@ int doSendErrorMsg(int msgType, byte SerialNo[4], byte ErrorCode){
 	sms_longToByte(((PSMSChildProtocolSendMessageSended)(msg))->head.msgLength,len-sizeof(SMSChildProtocolHead));
 	sms_longToByte(((PSMSChildProtocolSendMessageSended)(msg))->SerialNo,getSerial());
 	((PSMSChildProtocolSendMessageSended)(msg))->ErrorNo=ErrorCode;
-	write(m_sock,msg,len);
+
+	m_pStream->write(msg,len);
 	return 0;
 }
 
@@ -61,6 +101,10 @@ int isMsgValid(char* buf, unsigned long int len, SMSMessage** msg, unsigned int 
 	strncpy((*msg)->TargetNumber , testMsg->targetNo , MOBILENUMBERLENGTH);
 	(*msg)->SMSBodyLength=sms_byteToLong(testMsg->smsBodyLength);
 	memcpy((*msg)->SMSBody, testMsg->smsBody, (*msg)->SMSBodyLength);
+	if (!m_pChildPrivilegeChecker->isMsgValid(*msg)){
+		syslog(LOG_ERR,"message validation failed!");
+		return -1;
+	}
 	return 0;
 }
 
@@ -71,7 +115,9 @@ int doMessage(CSMSStorage* pSMSStorage, char* msg, unsigned long int len){
 		int ret;
 		if (!(ret=isMsgValid(msg,len, &formatedMsg,&msgLen))){
 			pSMSStorage->writeSMStoStorage(formatedMsg->SenderNumber,formatedMsg->TargetNumber,(char *)formatedMsg,msgLen);
+			syslog(LOG_ERR,"send reply 1");
 			doSendErrorMsg(MSGTYPE_SMR, (PSMSChildProtocolCommon(msg))->head.SMSSerialNo, MSG_OK);
+			syslog(LOG_ERR,"send reply 2");
 			doSendErrorMsg(MSGTYPE_SMS, (PSMSChildProtocolCommon(msg))->head.SMSSerialNo, MSG_OK);
 			delete formatedMsg;
 		} else {
@@ -85,12 +131,12 @@ int doMessage(CSMSStorage* pSMSStorage, char* msg, unsigned long int len){
 }
 
 
-int OnAccept(int s,CSMSStorage* pSMSStorage){
+int OnAccept(myTcpStream* pStream,CSMSStorage* pSMSStorage){
 	char buf[1000];
 	int errCount=0;
 	int i,ret,l;
 	int len=0;
-	m_sock=s;
+	m_pStream=pStream;
 	byte msgType=0;
 	unsigned long int smsSerialNo, msgLen;
 
@@ -98,7 +144,7 @@ int OnAccept(int s,CSMSStorage* pSMSStorage){
 		len=0;
 		l=sizeof(SMSChildProtocolHead);
 redo1:
-		i=read(s,buf,l);
+		i=pStream->read(buf,l);
 		if ((i<0) && (errno=EINTR)) {
 			goto redo1;
 		}
@@ -119,7 +165,7 @@ redo1:
 			return -1;
 		}
 redo2:
-		i=read(s,buf+len,msgLen);
+		i=pStream->read(buf+len,msgLen);
 		if ((i<0) && (errno=EINTR)) {
 			goto redo2;
 		}
@@ -133,7 +179,7 @@ redo2:
 			l=sms_byteToLong((PSMSChildProtocolSendMessage(buf))->smsBodyLength);
 			syslog(LOG_ERR, "msg body length %d", l);
 redo3:
-			i=read(s,buf+len,l);
+			i=pStream->read(buf+len,l);
 			if ((i<0) && (errno=EINTR)) {
 				goto redo3;
 			}
@@ -148,112 +194,76 @@ redo3:
 	}
 
 
-	m_sock=-1;
+	m_pStream=NULL;
 	return 0;
 }
 public:
-	CSMSChildProtocol() {
+	CSMSChildProtocol(){
 		m_pid=0;
 		m_state=ready;
-		m_sock=-1;
+		m_pStream=NULL;
 		m_serial=0;
+		m_pServiceSocket=NULL;
+		m_pChildPrivilegeChecker=NULL;
+
 	}
 
 	int Run(CSMSStorage* pSMSStorage){
-//		hostent * phe;
-		servent * pse;
-		protoent *ppe;
-		sockaddr_in sin;
-		int s,type;
+		InetAddress addr;
+		m_pChildPrivilegeChecker=new CSMSChildPrivilegeChecker;
+		myTcpStream tcp;
+        try   {
+			m_pServiceSocket=new CChildProtocolTCPSocket(addr,atoi(testport),m_pChildPrivilegeChecker);
 
-		memset(&sin,0,sizeof(sin));
-		sin.sin_family=AF_INET;
+			while(m_pServiceSocket->isPendingConnection()){
+				tcp.open(*m_pServiceSocket);
+				if (m_pid!=0) {
+					kill(m_pid,SIGTERM);
+				}
+				switch(m_pid=fork()){
+					case 0:
+						delete m_pServiceSocket;
+						pSMSStorage->init();
+						OnAccept(&tcp,pSMSStorage);
+						tcp.close();
+						exit(0);
+						break;
+					case -1:
+						syslog(LOG_ERR,"fork error");
+						exit(-1);
+						break;
+					default:
+						tcp.close();
+				}
 
+			}	
+		} catch (Socket *socket)
+        {
+                tpport_t port;
+                InetAddress saddr = (InetAddress)socket->getPeer(&port);
+				syslog(LOG_ERR,"socket error %s : %d", saddr.getHostname(), port);
 
-		if (pse=getservbyname(testport,"tcp")){
-			sin.sin_port=pse->s_port;
-		} else if ( (sin.sin_port=htons((unsigned short)atoi(testport) ))==0)	{
-			syslog(LOG_ERR, "get port error.");
-			exit(-1);
-		}
-/*
-		if (phe = gethostbyname(host_18dx) )	{
-			memcpy(&sin.sin_addr,phe->h_addr, phe->h_length);
-		} else if (( sin.sin_addr.s_addr = inet_addr (host_18dx)) == INADDR_NONE)
-		{
-			syslog(LOG_ERR, "get host error.");
-			exit(-1);
-		}
-*/
-
-		sin.sin_addr.s_addr=INADDR_ANY;
-
-		if ( ( ppe=getprotobyname("tcp")) == 0)
-		{
-			syslog(LOG_ERR, "get tcp error.");
-			exit(-1);
-		}
-		type=SOCK_STREAM;
-		s=socket(PF_INET, type,ppe->p_proto);
-		if (s<0)
-		{
-			syslog(LOG_ERR, "get socket error");
-			exit(-1);
-		}
-
-		
-		if (bind(s,(struct sockaddr *)&sin, sizeof(sin))<0){
-			syslog(LOG_ERR, "bind error");
-			exit(-1);
-		}
-		listen(s,queueLen);
-
-		struct sockaddr_in fsin;
-		unsigned int alen;
-		int ssock;
-		for(;;){
-			alen=sizeof(fsin);
-			ssock=accept(s,(struct sockaddr *)&fsin, &alen);
-			if (ssock<0) {
-/*
-				if (errno=EINTR)
-					continue;
-*/
-				syslog(LOG_ERR,"accept error");
-				continue;
-			}
-			if (m_pid!=0) {
-				kill(m_pid,SIGTERM);
-			}
-			switch(m_pid=fork()){
-				case 0:
-					close(s);
-					pSMSStorage->init();
-					OnAccept(ssock,pSMSStorage);
-					close(ssock);
-					exit(0);
-					break;
-				case -1:
-					syslog(LOG_ERR,"fork error");
-					exit(-1);
-					break;
-				default:
-					close(ssock);
-			}
-
-		}		
+                if(socket->getErrorNumber() == Socket::errResourceFailure)
+                {
+                        syslog(LOG_ERR, "bind failed; no resources" );
+                }
+                if(socket->getErrorNumber() == Socket::errBindingFailed)
+                {
+                        syslog(LOG_ERR, "bind failed; port busy" );
+                }
+        }
 		return 0;
 	}
 
-	int Send(SMSMessage* msg){
+	int Send(PSMSMessage msg){
 		PSMSChildProtocolReceivedMessage sms;
+		if (!m_pChildPrivilegeChecker->isMsgValid(msg)){
+			syslog(LOG_ERR,"message validation failed!");
+			return -1;
+		}
 		unsigned long int smsLen=sizeof(SMSChildProtocolReceivedMessage)+msg->SMSBodyLength;
 		
 		syslog(LOG_ERR,"write msg ....");
-		if (m_sock==-1) {
-			syslog(LOG_ERR,"no valid socket");
-			return -1;
-		}
 		
 		sms=(PSMSChildProtocolReceivedMessage)malloc(smsLen);
 
@@ -272,7 +282,8 @@ public:
 		strncpy(sms->targetNo , msg->TargetNumber , MOBILENUMBERLENGTH);
 		sms_longToByte((sms->smsLength) , msg->SMSBodyLength);
 		memcpy(sms->smsBody, msg->SMSBody, msg->SMSBodyLength);
-		write(m_sock,sms,smsLen);
+
+		m_pStream->write((const char*)sms,smsLen);
 
 		return 0;
 

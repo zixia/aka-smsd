@@ -21,11 +21,19 @@ namespace SMS{
 #define SMSTYPE_TEXT	1;
 #define SMSTYPE_BIN	 0
 
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
 class CSMSProtocol;
 class CSMSStorage;
 class CSMSDaemon;
 
-struct SMSMessage{
+typedef struct _SMSMessage{
 	unsigned int length;
 	char SenderNumber[MOBILENUMBERLENGTH];
 	char TargetNumber[MOBILENUMBERLENGTH];
@@ -34,7 +42,7 @@ struct SMSMessage{
 	int SMSType;
 	unsigned int SMSBodyLength;
 	char SMSBody[0];
-};
+}SMSMessage, *PSMSMessage;
 
 
 
