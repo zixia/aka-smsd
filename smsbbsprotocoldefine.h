@@ -41,11 +41,15 @@ typedef struct _SMS_BBS_HEADER{	//
 #define SMS_BBS_PASS_LEN	49
 #define SMS_BBS_VALID_LEN	6	//认证码长度
 #define SMS_BBS_TYPE_LEN	0	//短信类型长度
+#define SMS_BBS_MAX_COMMAND_SMS_LEN	200	//控制短信最大长度
 
+
+#define SMS_BBS_USR_REQUIRE_BIND	0
+#define SMS_BBS_USR_REQUIRE_UNBIND	1
 
 //短消息类型代码
 #define SMS_BBS_TYPE_COMMON		0	//普通短信
-#define SMS_BBS_TYPE_REGISTER	1	//认证短信
+#define SMS_BBS_TYPE_COMMAND		1	//用户操作短信
 #define SMS_BBS_TYPE_NONE		-1
 //消息类型
 

@@ -31,8 +31,10 @@ namespace SMS{
 
 //返回值定义
 #define SUCCESS 0
+#define NOSEVEREERROR	1
 #define FAILED	-1
 #define ERROR	-101
+#define PARSE_ERROR	-102
 #define NOENOUGHMEMORY -401
 #define QUIT -501
 

@@ -11,6 +11,7 @@
 
 #include "sms.h"
 #include "smsbbschildprivilegechecker.h"
+#include "smsmysqlfeecodegetter.h"
 #include <asm/errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -33,7 +34,8 @@ using namespace ost;
 
 namespace SMS {
 
-
+#define SEND_NO_CHECK	1
+#define SEND_CHECK 0
 
 const char CODES[]="0123456789";
 
@@ -80,6 +82,8 @@ class CSMSBBSChildProtocol: public CSMSProtocol{
 	Connection m_conn;
 	int m_listenPort;
 	CSMSLogger m_SMSLogger;
+	int m_defaultMoneyLimit;
+	CSMSFeeCodeGetter* m_pSMSFeeCodeGetter;
 private:
 
 DWORD getSerial(){ //产生序列号
@@ -100,7 +104,7 @@ int doSendMsg(void* msg, DWORD len){
 	rc=m_pStream->write((char*)msg,len);
 	if ( rc<len) {
 			syslog(LOG_ERR, "do send msg error: %d" , errno);
-			return FAILED;
+			return ERROR;
 	}
 	return SUCCESS;
 }
@@ -173,13 +177,43 @@ int convertSMS(PSMS_BBS_BBSSENDSMS msg,  SMSMessage** sms, DWORD *smsLen){
 }
 
 /* convertSMS()
- */
+ *  }}} */
+
+int countMoney(const char* mobileNumber, const char* usrID, int feeMoney) {
+	try{
+			Query query=m_conn.query();
+			query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNumber<<"' and UPPER(srcID)=UPPER('"<<usrID<<"') and todayMoney+"<<feeMoney<<"<=moneyLimit";
+			Result res=query.store();
+			if (res.size()!=0) {
+					std::stringstream sql;
+					sql<< "update  SMSRegister_TB set todayMoney=todayMoney+"<<feeMoney<<" where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNumber<<"' and UPPER(srcID)=UPPER('"<<usrID<<"') ";
+					query.exec(sql.str());			
+					return SMS_BBS_CMD_OK;
+			} else {
+				syslog(LOG_ERR,"%s %s 's todayMoneyLimit exeeded", usrID, mobileNumber);
+				return SMS_BBS_CMD_EXCEEDMONEY_LIMIT;
+			}
+	} catch ( BadQuery er) {
+			syslog(LOG_ERR," mysql query err : %s", er.error.c_str());
+	}
+	return SMS_BBS_CMD_DB_ERROR;
+}
 
 /* {{{ sendSMS()
  * 向上游发送短信
  *
  */
-int sendSMS(PSMSMessage sms) {
+int sendSMS(PSMSMessage sms,const char* usrID, int bCheck=SEND_CHECK) {
+	if (bCheck!=SEND_NO_CHECK) {
+		int feeMoney=0;
+		int retCode;
+		if (m_pSMSFeeCodeGetter->getFee(sms->FeeType,&feeMoney)!=SUCCESS){
+			return SMS_BBS_CMD_DB_ERROR;
+		}
+		if ((retCode=countMoney(sms->FeeTargetNumber,usrID,feeMoney))!=SMS_BBS_CMD_OK) {
+			return retCode;
+		}
+	}
 	if (m_pSMSStorage->writeSMStoStorage(sms->SenderNumber,sms->TargetNumber,(char *)sms,sms->length)==SUCCESS) {
 		return SMS_BBS_CMD_OK;
 	} else {
@@ -229,8 +263,8 @@ int getValidateNum(const char* mobileNo, const char* srcID, char* validateNo, in
 		}
 		generateValidateNum(validateNo,validNumLen);
 		std::stringstream sql;
-		sql<< "replace into SMSRegister_TB(childCode, MobilePhoneNumber, ValidatationNumber,srcID) values( '" 
-				<<m_childCode<<"' , '"<<mobileNo<<"' , '" <<validateNo <<"', '"<<srcID<<"' )";
+		sql<< "replace into SMSRegister_TB(childCode, MobilePhoneNumber, ValidatationNumber,srcID,moneyLimit) values( '" 
+				<<m_childCode<<"' , '"<<mobileNo<<"' , '" <<validateNo <<"', '"<<srcID<<"',"<<m_defaultMoneyLimit<< " )";
 		query.exec(sql.str());
 		return SUCCESS;
 	} catch ( BadQuery er) {
@@ -245,9 +279,9 @@ int getValidateNum(const char* mobileNo, const char* srcID, char* validateNo, in
  * 发送注册短信
  *
  */
-int doSendRegisterSMS(const char* targetMobileNo, const char* srcID){
+int doSendRegisterSMS(const char* targetMobileNo, const char* usrID){
 	char validateNo[SMS_BBS_VALID_LEN+1];
-	int retCode=getValidateNum(targetMobileNo,srcID, validateNo,SMS_BBS_VALID_LEN);
+	int retCode=getValidateNum(targetMobileNo,usrID, validateNo,SMS_BBS_VALID_LEN);
 	if (retCode!=SUCCESS) {
 		return retCode;
 	}
@@ -261,7 +295,7 @@ int doSendRegisterSMS(const char* targetMobileNo, const char* srcID){
 		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
 		exit(0);
 	}
-	retCode=sendSMS(sms);
+	retCode=sendSMS(sms,usrID);
 	free(sms);
 	return retCode;
 }
@@ -340,11 +374,12 @@ int doSend(PSMS_BBS_BBSSENDSMS msg){
 	}
 	PSMSMessage sms;
 	DWORD smsLen;
+	int retCode;
 	if (convertSMS(msg,&sms,&smsLen)==NOENOUGHMEMORY) {
 		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
 		exit(0);
 	}
-	int retCode=sendSMS(sms);
+	retCode=sendSMS(sms,msg->srcUserID);
 	free(sms);
 	return retCode;
 }
@@ -546,7 +581,7 @@ int getSMSType(const char * targetMobileNo) {
 		return SMS_BBS_TYPE_NONE;
 	}
 	if ( strlen(targetMobileNo)==prefixLen){
-                return SMS_BBS_TYPE_REGISTER;
+                return SMS_BBS_TYPE_COMMAND;
 	}
 	return SMS_BBS_TYPE_COMMON;
 }
@@ -622,11 +657,11 @@ int doRegisterSMS(const char* mobileNo,const char* srcID){
 		syslog(LOG_ERR,"%s %s %s",m_childCode,mobileNo,srcID);
 
 		if (res.size()!=0) {
-			return SUCCESS;
+			return NOSEVEREERROR;
 		} else {
 			std::stringstream sql;
-			sql<< "insert into SMSRegister_TB(childCode, MobilePhoneNumber, ValidatationNumber, srcID) values( '" 
-				<<m_childCode<<"' , '"<<mobileNo<<"' , '', '"<<srcID<<"' )";
+			sql<< "insert into SMSRegister_TB(childCode, MobilePhoneNumber, ValidatationNumber, srcID, moneyLimit) values( '" 
+				<<m_childCode<<"' , '"<<mobileNo<<"' , '', '"<<srcID<<"',"<<m_defaultMoneyLimit<<" )";
 			query.exec(sql.str());
 		}
 		return SUCCESS;
@@ -647,68 +682,260 @@ int doUnregisterSMS(const char* mobileNo,const char* srcID){
 			query.exec(sql.str());
 			return SUCCESS;
 		} 
-		return SUCCESS;
+		return NOSEVEREERROR;
 	} catch ( BadQuery er) {
 		syslog(LOG_ERR,"doUnregisterSMS -- mysql query err : %s", er.error.c_str());
 		return FAILED;
 	}
 }
 
-/* {{{ processRegisterSMS()
- * 处理注册短消息
- */
-int processRegisterSMS(PSMSMessage msg) {
-	byte isRegister=1; //1 注册 , 0 注销
-	char srcID[SMS_BBS_ID_LEN+1];
-	int retCode;
-	if ( (msg->SMSBodyLength<3) || (msg->SMSBodyLength>SMS_BBS_ID_LEN+3)){
-		syslog(LOG_ERR,"received error registe sms!");
+int doSendRegisterMsg(const char* mobileNumber, const char * usrID, byte isBind) {
+	SMS_BBS_BINDREQUESTPACKET sms;
+	DWORD smsLen=sizeof(SMS_BBS_BINDREQUESTPACKET);
+	
+	memset(&sms,0,smsLen);
+	sms.header.Type=SMS_BBS_CMD_REQUEST;
+	sms_longToByte( (sms.header.SerialNo), getSerial());
+	sms_longToByte( (sms.header.msgLength),smsLen-sizeof(SMS_BBS_HEADER) );
+
+	strncpy(sms.MobileNo, mobileNumber, MOBILENUMBERLENGTH);
+	sms.MobileNo[MOBILENUMBERLENGTH]=0;
+	strncpy(sms.cUserID, usrID, SMS_BBS_ID_LEN);
+
+	sms.cUserID[SMS_BBS_ID_LEN]=0;
+
+	sms.Bind=isBind;
+	int retCode=doSendMsg(&sms,smsLen);
+
+	return retCode;
+}
+
+int doRegisterCommand(const char* mobileNumber, const char * usrID) {
+	int retCode=doRegisterSMS(mobileNumber,usrID);
+	if (retCode==ERROR) { 
+		return retCode;
+	}
+	PSMSMessage sms;
+	DWORD smsLen;
+	char msg[101];
+	if (retCode==NOSEVEREERROR) {
+		snprintf(msg, 100, "您的手机号与id:%s已处在绑定状态,请不要重复绑定.", usrID);
+	} else {
+		snprintf(msg, 100, "您的手机号与id:%s已成功绑定.",usrID);
+	}
+		
+	if (generateSMS(0,mobileNumber, mobileNumber,msg,strlen(msg),6, &sms,&smsLen)==NOENOUGHMEMORY) {
+		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
+		exit(0);
+	}
+	retCode=(sendSMS(sms,usrID)==SMS_BBS_CMD_OK)?SUCCESS:ERROR;
+	free(sms);
+	if (retCode!=SUCCESS){
 		return ERROR;
 	}
-
-	if  ((msg->SMSBody[0]=='R') && (msg->SMSBody[1]=='G')&& (msg->SMSBody[2]==':')) {
-		strncpy(srcID, msg->SMSBody+3, msg->SMSBodyLength-3);
-		srcID[msg->SMSBodyLength-3]=0;
-		retCode=doRegisterSMS(msg->SenderNumber, srcID);
-	}else if  ((msg->SMSBody[0]=='U') && (msg->SMSBody[1]=='R') && (msg->SMSBody[2]==':') ) {
-		isRegister=0;
-		strncpy(srcID, msg->SMSBody+3, msg->SMSBodyLength-3);
-		srcID[msg->SMSBodyLength-3]=0;
-		retCode=doUnregisterSMS(msg->SenderNumber,srcID);
-	}else {
-		syslog(LOG_ERR,"received error content register sms!");
+	return doSendRegisterMsg(mobileNumber,usrID, SMS_BBS_USR_REQUIRE_UNBIND);
+}
+int doUnRegisterCommand(const char* mobileNumber, const char * usrID) {
+	int retCode=doUnregisterSMS(mobileNumber,usrID);
+	if (retCode==ERROR) { 
+		return retCode;
+	}
+	PSMSMessage sms;
+	DWORD smsLen;
+	char msg[101];
+	if (retCode==NOSEVEREERROR) {
+		snprintf(msg, 100, "您的手机号与id:%s并没有绑定.", usrID);
+	} else {
+		snprintf(msg, 100, "您的手机号与id:%s已成功解除绑定.", usrID);
+	}
+		
+	if (generateSMS(0,mobileNumber, mobileNumber,msg,strlen(msg),6, &sms,&smsLen)==NOENOUGHMEMORY) {
+		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
+		exit(0);
+	}
+	retCode=(sendSMS(sms,usrID,SEND_NO_CHECK)==SMS_BBS_CMD_OK)?SUCCESS:ERROR;
+	free(sms);
+	if (retCode!=SUCCESS){
 		return ERROR;
 	}
+	return doSendRegisterMsg(mobileNumber,usrID, SMS_BBS_USR_REQUIRE_BIND);
+}
 
+int doSetMoneyLimit(const char* mobileNumber, const char * usrID, int limit){
+	try{
+		Query query=m_conn.query();
+		std::stringstream sql;
+		sql<< "update  SMSRegister_TB set moneyLimit="<<limit<<" where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNumber<<"' and UPPER(srcID)=UPPER('"<<usrID<<"') ";
+		query.exec(sql.str());			
+		return SUCCESS;
+	} catch ( BadQuery er) {
+		syslog(LOG_ERR," mysql query err : %s", er.error.c_str());
+	}
+	return ERROR;
+}
+
+int doSetMoneyLimitCommand(const char* mobileNumber, const char * usrID, int limit) {
+	int retCode=doSetMoneyLimit(mobileNumber,usrID,limit);
 	if (retCode!=SUCCESS) {
 		return retCode;
 	}
+	PSMSMessage sms;
+	DWORD smsLen;
+	char msg[101];
+	snprintf(msg, 100, "您已成功设置bbs每日短信发送限额为 %d.%02d ", limit/100, limit%100);
+	if (generateSMS(0,mobileNumber, mobileNumber,msg,strlen(msg),6, &sms,&smsLen)==NOENOUGHMEMORY) {
+		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
+		exit(0);
+	}
+	retCode=(sendSMS(sms,usrID)==SMS_BBS_CMD_OK)?SUCCESS:ERROR;
+	free(sms);
+	return retCode;
+}
 
-	PSMS_BBS_BINDREQUESTPACKET sms;
+int doZeroTodayTotal(const char* mobileNumber, const char * usrID){
+	try{
+		Query query=m_conn.query();
+		std::stringstream sql;
+		sql<< "update  SMSRegister_TB set todayMoney=0 where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNumber<<"' and UPPER(srcID)=UPPER('"<<usrID<<"') ";
+		query.exec(sql.str());			
+		return SUCCESS;
+	} catch ( BadQuery er) {
+		syslog(LOG_ERR," mysql query err : %s", er.error.c_str());
+	}
+	return ERROR;
+}
 
-	DWORD smsLen=sizeof(SMS_BBS_BINDREQUESTPACKET);
-	
-	sms=(PSMS_BBS_BINDREQUESTPACKET)malloc(smsLen);
+int doZeroTodayTotalCommand(const char* mobileNumber, const char * usrID) {
+	int retCode=doZeroTodayTotal(mobileNumber,usrID);
+	if (retCode!=SUCCESS) {
+		return retCode;
+	}
+	PSMSMessage sms;
+	DWORD smsLen;
+	char msg[101];
+	snprintf(msg, 100, "您已成功清零本日bbs短信累积发送金额");
+	if (generateSMS(0,mobileNumber, mobileNumber,msg,strlen(msg),6, &sms,&smsLen)==NOENOUGHMEMORY) {
+		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
+		exit(0);
+	}
+	retCode=(sendSMS(sms,usrID)==SMS_BBS_CMD_OK)?SUCCESS:ERROR;
+	free(sms);
+	return retCode;
+}
 
-	if (sms==NULL) {
-		syslog(LOG_ERR,"Fatal Error: can't alloc enough memory for message generation!");
-		exit(-1);
+int doGetMoneyLimit(const char* mobileNumber, const char * usrID, int* pLimit){
+	try{
+		Query query=m_conn.query();
+		query<< "select moneyLimit  from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNumber<<"' and UPPER(srcID)=UPPER('"<<usrID<<"') ";
+		Result res=query.store();
+		if (res.size()!=0) {
+			Row row=*(res.begin());
+			*pLimit=atoi(row["moneyLimit"]);
+			return SUCCESS;
+		} 
+	} catch ( BadQuery er) {
+		syslog(LOG_ERR," mysql query err : %s", er.error.c_str());
+	}
+	return FAILED;
+}
+
+int doGetMoneyLimitCommand(const char* mobileNumber, const char * usrID) {
+	int limit;
+	int retCode=doGetMoneyLimit(mobileNumber,usrID,&limit);
+	if (retCode!=SUCCESS) {
+		return retCode;
+	}
+	PSMSMessage sms;
+	DWORD smsLen;
+	char msg[101];
+	snprintf(msg, 100, "您当前的bbs日短信发送限额为 %d.%02d元", limit/100, limit %100);
+	if (generateSMS(0,mobileNumber, mobileNumber,msg,strlen(msg),6, &sms,&smsLen)==NOENOUGHMEMORY) {
+		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
+		exit(0);
+	}
+	retCode=(sendSMS(sms,usrID)==SMS_BBS_CMD_OK)?SUCCESS:ERROR;
+	free(sms);
+	return retCode;
+}
+
+int doGetTodayTotal(const char* mobileNumber, const char * usrID, int* pTotal){
+	try{
+		Query query=m_conn.query();
+		query<< "select todayMoney  from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<mobileNumber<<"' and UPPER(srcID)=UPPER('"<<usrID<<"') ";
+		Result res=query.store();
+		if (res.size()!=0) {
+			Row row=*(res.begin());
+			*pTotal=atoi(row["todayMoney"]);
+			return SUCCESS;
+		} 
+	} catch ( BadQuery er) {
+		syslog(LOG_ERR," mysql query err : %s", er.error.c_str());
+	}
+	return FAILED;
+}
+
+int doGetTodayTotalCommand(const char* mobileNumber, const char * usrID) {
+	int total;
+	int retCode=doGetMoneyLimit(mobileNumber,usrID,&total);
+	if (retCode!=SUCCESS) {
+		return retCode;
+	}
+	PSMSMessage sms;
+	DWORD smsLen;
+	char msg[101];
+	snprintf(msg, 100, "您本日在bbs上已收发短信共 %d.%02d 元", total/100, total%100);
+	if (generateSMS(0,mobileNumber, mobileNumber,msg,strlen(msg),6, &sms,&smsLen)==NOENOUGHMEMORY) {
+		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
+		exit(0);
+	}
+	retCode=(sendSMS(sms,usrID)==SMS_BBS_CMD_OK)?SUCCESS:ERROR;
+	free(sms);
+	return retCode;
+}
+
+/* {{{ processRegisterSMS()
+ * 处理用户命令短消息
+ */
+int processCommandSMS(PSMSMessage msg) {
+	char usrID[SMS_BBS_MAX_COMMAND_SMS_LEN+1]="";
+	char command[SMS_BBS_MAX_COMMAND_SMS_LEN+1]="";
+	char option1[SMS_BBS_MAX_COMMAND_SMS_LEN+1]="";
+        char option2[SMS_BBS_MAX_COMMAND_SMS_LEN+1]="";	
+	char buf[SMS_BBS_MAX_COMMAND_SMS_LEN+1];
+	int retCode;
+	if ( (msg->SMSBodyLength>SMS_BBS_MAX_COMMAND_SMS_LEN)){
+		syslog(LOG_ERR,"received error registe sms!");
+		return ERROR;
+	}
+	memcpy(buf,msg->SMSBody,msg->SMSBodyLength);
+	buf[msg->SMSBodyLength]=0;
+	sscanf(buf,"%s %s %s %s",command, usrID, option1,option2);
+#ifdef DEBUG
+	syslog(LOG_ERR,"command: -%s- srcID: -%s- option1: -%s- option2: -%s-",command,usrID,option1,option2);
+#endif
+	if (strlen(usrID)==0)
+		return PARSE_ERROR;
+	if (!strcasecmp(command,"ZCYH")) { //上行注册
+		return doRegisterCommand(msg->SenderNumber, usrID);
+	} 
+	if (!strcasecmp(command,"QXZC")) { //取消注册
+		return doUnRegisterCommand(msg->SenderNumber, usrID);
+	} 
+	if (!strcasecmp(command,"SZXE")) { //设置限额
+		return doSetMoneyLimitCommand(msg->SenderNumber, usrID,atoi(option1));
+	}
+	if (!strcasecmp(command,"QKYY")) { //清空当日已用钱数
+		return doZeroTodayTotalCommand(msg->SenderNumber, usrID);
+	}
+	if (!strcasecmp(command,"CXXE")) { //查询限额
+		return doGetMoneyLimitCommand(msg->SenderNumber , usrID);
+	}
+	if (!strcasecmp(command,"CXYY")) { //查询当日已用钱数
+		return doGetTodayTotalCommand(msg->SenderNumber , usrID);
 	}
 
-	memset(sms,0,smsLen);
-	sms->header.Type=SMS_BBS_CMD_REQUEST;
-	sms_longToByte( (sms->header.SerialNo), getSerial());
-	sms_longToByte( (sms->header.msgLength),smsLen-sizeof(SMS_BBS_HEADER) );
+	return PARSE_ERROR;
 
-	strncpy(sms->MobileNo, msg->SenderNumber , MOBILENUMBERLENGTH);
-	strncpy(sms->cUserID, srcID, SMS_BBS_ID_LEN);
-
-	sms->Bind=isRegister;
-	retCode=doSendMsg(sms,smsLen);
-
-	free(sms);
-
-	return retCode;
 
 }
 /* processRegisterSMS();
@@ -720,7 +947,7 @@ public:
  *  port: 监听端口
  * 
  */
-	CSMSBBSChildProtocol(const char* childCode,const char* password,const char* addr, int port): m_conn(use_exceptions),m_SMSLogger(&m_conn){
+	CSMSBBSChildProtocol(const char* childCode,const char* password,const char* addr, int port,int defaultMoneyLimit): m_conn(use_exceptions),m_SMSLogger(&m_conn){
 		m_pid=0;
 		m_state=ready;
 		m_pStream=NULL;
@@ -729,6 +956,9 @@ public:
 		strncpy(m_childCode,childCode,SMS_MAXCHILDCODE_LEN);
 		m_childCode[SMS_MAXCHILDCODE_LEN]=0;
 		m_listenPort=port;
+		m_defaultMoneyLimit=defaultMoneyLimit;
+		m_pSMSFeeCodeGetter=new CSMSMysqlFeeCodeGetter(&m_conn);
+		
 	}
 /* 构造函数 */
 /* }}} */
@@ -806,17 +1036,21 @@ public:
  */
 int Send(PSMSMessage msg){
 	int smsType;
+	int retCode;
 	syslog(LOG_ERR, "sending msg...%p", msg);
 	smsType=getSMSType(msg->TargetNumber);
 	syslog(LOG_ERR,"sms type: %d",smsType);
 	switch (smsType) {
+		case SMS_BBS_TYPE_COMMAND:
+			retCode=processCommandSMS(msg);
+			if (retCode!=PARSE_ERROR) {
+				return retCode;
+			}
 		case SMS_BBS_TYPE_COMMON:
 			return deliverSMS(msg);
-		case SMS_BBS_TYPE_REGISTER:
-			return processRegisterSMS(msg);
 		default:
 			syslog(LOG_ERR," received unknown sms, targetNumber is : %s ", msg->TargetNumber);
-			return FAILED;
+			return ERROR;
 	}
 
 }
@@ -826,6 +1060,8 @@ int Send(PSMSMessage msg){
 
 
 	~CSMSBBSChildProtocol() {
+		delete m_pChildPrivilegeChecker;
+		delete m_pSMSFeeCodeGetter;
 	}
 };
 

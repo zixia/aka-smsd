@@ -23,12 +23,16 @@ public:
 				return FAILED;
 			}
 			sended+=i;
+			if (sended>=bufLen)
+				break;
 		}
 		sigprocmask(SIG_SETMASK,&oldmask,NULL);
 		return sended;
 	}
 
 	ssize_t read(void* buf, ssize_t bufLen){
+		if (bufLen==0)
+			return 0;
 		int readed;
 		int i;
 		readed=0;
@@ -41,6 +45,8 @@ public:
 				}
 			} else 
 				readed+=i;
+			if (readed>=bufLen)
+				break;
 		}
 		return readed;
 	}

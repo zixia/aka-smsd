@@ -30,7 +30,7 @@ public:
 	int canSendSMS(const char* srcMobileNo, const char* srcID){
 		try{
 			Query query=m_pConn->query();
-			query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<srcMobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"')";
+			query<< "select * from SMSRegister_TB where childCode='"<<m_childCode<<"' and MobilePhoneNumber='"<<srcMobileNo<<"' and UPPER(srcID)=UPPER('"<<srcID<<"') and ValidatationNumber=''";
 			Result res=query.store();
 			if (res.size()!=0) {
 				return TRUE;
