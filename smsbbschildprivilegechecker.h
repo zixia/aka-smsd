@@ -34,7 +34,7 @@ class CSMSBBSChildPrivilegeChecker{
 			syslog(LOG_ERR,"login error can't get network address: %s--%s/%d",net, s ,maskLen);
 			return -1;
 		}
-		if ((addr>>(32-maskLen))!=(in.s_addr>>(32-maskLen)) ) {
+		if ((ntohl(addr)>>(32-maskLen))!=(ntohl(in.s_addr)>>(32-maskLen)) ) {
 			syslog(LOG_ERR,"login error: %u not in %u/%d",addr, in.s_addr,maskLen);
 			return -1;
 		}
