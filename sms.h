@@ -33,6 +33,7 @@ namespace SMS{
 //返回值定义
 #define SUCCESS 0
 #define NOSEVEREERROR	1
+#define TIMEOUT	-100
 #define FAILED	-1
 #define ERROR	-101
 #define CONNECTIONLOST -102

@@ -59,6 +59,8 @@ public:
 	virtual int OnSignalSegv(){return 1;};
 	virtual int OnSignalUser1(){return 1;};
 	virtual int OnSignalAlarm(){return 1;};
+
+	virtual int setAlarm(int seconds){return 0;}
 };
 
 extern CApplication* RCL_GetApp();

@@ -6,7 +6,7 @@
 namespace SMS {
 class CSMSTcpStream:public tcpstream{
 public:
-	ssize_t write(void* buf, ssize_t bufLen){
+	ssize_t write(void* buf, ssize_t bufLen, timeout_t timeout=0){
 		sigset_t sigmask,oldmask;
 		int i=0;
 		int sended=0;
@@ -15,14 +15,16 @@ public:
 		sigaddset(&sigmask,SIGUSR2);
 		sigprocmask(SIG_BLOCK,&sigmask,&oldmask);
 
-		while (i=tcpstream::writeData(((char*)buf)+sended,bufLen-sended)) {
+		while (i=tcpstream::writeData(((char*)buf)+sended,bufLen-sended,timeout)) {
 			if ( i<0) {
+				if (getErrorNumber()==errTimeout)
+					return TIMEOUT;
 				if  (errno==EINTR) 
 					continue;
-				else 
-					break;
-				sigprocmask(SIG_SETMASK,&oldmask,NULL);
-				return FAILED;
+				else {
+					sigprocmask(SIG_SETMASK,&oldmask,NULL);
+					return ERROR;
+				}
 			}
 			sended+=i;
 			if (sended>=bufLen)
@@ -32,18 +34,20 @@ public:
 		return sended;
 	}
 
-	ssize_t read(void* buf, ssize_t bufLen){
+	ssize_t read(void* buf, ssize_t bufLen, timeout_t timeout=0){
 		if (bufLen==0)
 			return 0;
 		int readed;
 		int i;
 		readed=0;
-		while (i=tcpstream::readData(((char*)buf)+readed,bufLen-readed)) {
+		while (i=tcpstream::readData(((char*)buf)+readed,bufLen-readed,timeout)) {
 			if (i<0){
+				if (getErrorNumber()==errTimeout)
+					return TIMEOUT;
 				if (errno==EINTR) { 
 					continue;
 				} else  {
-					break;
+					return ERROR;
 				}
 			} else 
 				readed+=i;
