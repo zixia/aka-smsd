@@ -101,7 +101,7 @@ int isMsgValid(char* buf, unsigned long int len, SMSMessage** msg, unsigned int 
 	(*msg)->length=*msgLen;
 	strncpy((*msg)->SenderNumber , testMsg->senderNo , MOBILENUMBERLENGTH);
 	strncpy((*msg)->TargetNumber , testMsg->targetNo , MOBILENUMBERLENGTH);
-	strncpy((*msg)->FeeTargetNumber , testMsg->targetNo , MOBILENUMBERLENGTH);
+	strncpy((*msg)->FeeTargetNumber , testMsg->feeTargetNo , MOBILENUMBERLENGTH);
 	(*msg)->SMSBodyLength=sms_byteToLong(testMsg->smsBodyLength);
 	memcpy((*msg)->SMSBody, testMsg->smsBody, (*msg)->SMSBodyLength);
 	if (!m_pChildPrivilegeChecker->isMsgValid(*msg)){
