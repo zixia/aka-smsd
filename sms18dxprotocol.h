@@ -37,13 +37,15 @@ public:
 };
 
 class CSMS18DXProtocol: public CSMSProtocol{
-	CSMSLogger m_SMSLogger;
+	CSMSLogger* m_pSMSLogger;
 public:
 	CSMS18DXProtocol() {
+		m_pSMSLogger=NULL;
 	}
 
 	/* {{{ Run(CSMSStorage* pSMSStorage) */
 	int Run(CSMSStorage* pSMSStorage){
+		m_pSMSLogger=new CSMSLogger;
 		for(;;){
 		    pause();
 		}
@@ -97,7 +99,7 @@ public:
 			delete[] buffer;
 			return ERROR;
 		}else {
-			m_SMSLogger.logIt(msg->SenderNumber, msg->TargetNumber,msg->FeeTargetNumber,msg->FeeType,msg->childCode,"58181888" ,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength);
+			m_pSMSLogger->logIt(msg->SenderNumber, msg->TargetNumber,msg->FeeTargetNumber,msg->FeeType,msg->childCode,"58181888" ,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength);
 		}
 
 		delete[] buf;
@@ -110,6 +112,7 @@ public:
 	/* }}} */
 
 	~CSMS18DXProtocol() {
+		delete m_pSMSLogger;
 	}
 };
 

@@ -64,7 +64,7 @@ bool CChildProtocolTCPSocket::onAccept(const InetHostAddress &ia, tpport_t port)
 };
 
 class CSMSChildProtocol: public CSMSProtocol{
-	CSMSLogger m_SMSLogger;
+	CSMSLogger* m_pSMSLogger;
 	int m_pid;
 	int m_state;
 	myTcpStream *m_pStream;
@@ -257,10 +257,11 @@ public:
 		m_serial=0;
 		m_pServiceSocket=NULL;
 		m_pChildPrivilegeChecker=NULL;
-
+		m_pSMSLogger=NULL;
 	}
 
 	int Run(CSMSStorage* pSMSStorage){
+		m_pSMSLogger=new CSMSLogger;
 		InetAddress addr;
 		m_pChildPrivilegeChecker=new CSMSChildPrivilegeChecker;
 		myTcpStream tcp;
@@ -344,7 +345,7 @@ public:
 
 		free(sms);
 
-		m_SMSLogger.logIt(msg->SenderNumber, msg->TargetNumber,"",0,"11",msg->parentID,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength);
+		m_pSMSLogger->logIt(msg->SenderNumber, msg->TargetNumber,"",0,"11",msg->parentID,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength);
 
 
 		return 0;
@@ -352,6 +353,7 @@ public:
 	}
 
 	~CSMSChildProtocol() {
+		delete m_pSMSLogger;
 	}
 };
 
