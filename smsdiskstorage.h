@@ -61,13 +61,10 @@ public:
 			*/
 			os.close();
 		} catch (std::exception e){
-			std::string errorMsg="write ";
-			errorMsg+=filename.str();
-			errorMsg+="error :" ;
-			errorMsg+=e.what();
-			throw SMS_Storage_error(errorMsg);
+			syslog(LOG_ERR, "write file %s error : %s", filename.str().c_str(), e.what());
+			return ERROR;
 		}
-		return 0;
+		return SUCCESS;
 	};
 	
 	int getNextSMSFromStorage() {

@@ -15,13 +15,14 @@
 
 #include <dirent.h>
 #include <string>
+#include <cstring>
 #include <stdexcept>
-
+#include "sms.h"
 #include "deliver.h"
 
 
 
-
+using namespace std;
 
 
 namespace SMS{
@@ -57,6 +58,15 @@ int CDeliver::set_notifier(){
 }
 
 std::string CDeliver::getDest(const std::string& filename){
+	char childCode[SMS_CHILDCODE_LEN+1];
+	int prefixLen=8;
+	for (int i=0;i<SMS_CHILDCODE_LEN;i++) {
+		childCode[i]=(filename.c_str())[prefixLen+i];
+	}
+	childCode[SMS_CHILDCODE_LEN]=0;
+	if (!strcmp(childCode,"12")) {
+		return  "/home/roy/gateway/bbsgo";
+	}
 	return "/home/roy/gateway/go";
 }
 

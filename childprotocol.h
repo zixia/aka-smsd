@@ -4,12 +4,6 @@
 
 namespace SMS {
 
-const int MOBILENOLEN=20;
-
-#ifndef byte
-typedef  unsigned char byte;
-#endif
-
 #define FEETYPE_1 1
 
 //短信类型常量定义

@@ -57,7 +57,7 @@ public:
 		tcp.open(addr);
 		if (!tcp){
 			syslog(LOG_ERR,"can't connect to %s" ,addr);
-			return -1;
+			return ERROR;
 		}
 
 		int lenPack= sizeof(OAKSREQSMZIXIASENDTEXT)+msg->SMSBodyLength;
@@ -82,6 +82,9 @@ public:
 		char* buf=new char[sizeof(OAKSACKSMZIXIASENDTEXT)];
 		tcp.read(buf,sizeof(OAKSACKSMZIXIASENDTEXT));
 		syslog(LOG_ERR,"send msg return %d",(POAKSACKSMZIXIASENDTEXT(buf))->header.dwResult);
+		if ((POAKSACKSMZIXIASENDTEXT(buf))->header.dwResult!=OAKSBIT_SUCCESS) {
+			return ERROR;
+		}
 
 		tcp.close();
 
@@ -89,7 +92,7 @@ public:
 
 		delete[] buffer;
 
-		return 0;
+		return SUCCESS;
 
 	}
 	/* }}} */

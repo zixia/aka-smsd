@@ -75,7 +75,7 @@ unsigned long int getSerial(){
 }
 
 
-int doSendErrorMsg(int msgType, byte SerialNo[4], byte ErrorCode){
+int doSendErrorMsg(byte msgType, byte SerialNo[4], byte ErrorCode){
 	char * msg;
 	unsigned long int len;
 	len=sizeof(SMSChildProtocolSendMessageSended);
@@ -330,6 +330,8 @@ public:
 		memcpy(sms->smsBody, msg->SMSBody, msg->SMSBodyLength);
 
 		m_pStream->write((const char*)sms,smsLen);
+
+		free(sms);
 
 		return 0;
 

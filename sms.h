@@ -29,18 +29,36 @@ namespace SMS{
 #define FALSE 0
 #endif
 
+//返回值定义
+#define SUCCESS 0
+#define FAILED	-1
+#define ERROR	-101
+#define NOENOUGHMEMORY -401
+#define QUIT -501
+
+
+#define SMS_CHILDCODE_LEN	2 //子用户代码长度
+
+#ifndef byte
+	typedef unsigned char byte;
+#endif 
+
+#ifndef DWORD
+	typedef unsigned long int DWORD;
+#endif
+
 class CSMSProtocol;
 class CSMSStorage;
 class CSMSDaemon;
 
 typedef struct _SMSMessage{
-	unsigned int length;
+	DWORD length;
 	char SenderNumber[MOBILENUMBERLENGTH];
 	char TargetNumber[MOBILENUMBERLENGTH];
 	int FeeType;
 	char FeeTargetNumber[MOBILENUMBERLENGTH];
 	int SMSType;
-	unsigned int SMSBodyLength;
+	DWORD SMSBodyLength;
 	char SMSBody[0];
 }SMSMessage, *PSMSMessage;
 
