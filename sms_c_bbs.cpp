@@ -9,7 +9,7 @@ public:
 	
 
 	CMyDaemon(char* applicationName,int logFacility): CSMSDaemon(applicationName,logFacility){
-		m_pSMSProtocol=new CSMSBBSChildProtocol(50013,5000);
+		m_pSMSProtocol=new CSMSBBSChildProtocol(50230,5000);
 		m_pSMSStorage =NULL;
 	}
 };

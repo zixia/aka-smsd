@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <asm/errno.h>
 #include "smsdiskstorage.h"
 
 using namespace std;
@@ -28,8 +29,14 @@ int CSMSDiskStorage::set_notifier() {
 	act.sa_flags = SA_SIGINFO;
 	sigaction(SIGUSR1, &act, NULL);
 	if (m_fp==0) {
+retry:
 		m_fp=open(m_IncomingDirectory.c_str(), O_RDONLY);
 		if (m_fp<0) {
+			if (errno==ENOENT) {
+				if (!mkdir(m_IncomingDirectory.c_str(),0755))
+					goto retry;
+			}
+				
 			syslog(LOG_ERR," open dir  %s error: %d!", m_IncomingDirectory.c_str(), errno);
 			exit(-1);
 		}
