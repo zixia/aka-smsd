@@ -573,7 +573,7 @@ redo2:
  * 获取短消息类别
  */
 int getSMSType(const char * targetMobileNo) { 
-	int prefixLen=8+SMS_CHILDCODE_LEN ;
+	int prefixLen=4+SMS_CHILDCODE_LEN ;
 	char type[2];
 	if ( strlen(targetMobileNo)<=prefixLen){
 		return SMS_BBS_TYPE_NONE;
@@ -589,11 +589,11 @@ int getSMSType(const char * targetMobileNo) {
  * 获取短消息目标ID
  */
 DWORD getTargetID(const char * targetMobileNo) {
-	int prefixLen=8+SMS_CHILDCODE_LEN+SMS_BBS_TYPE_LEN;
+	int prefixLen=4+SMS_CHILDCODE_LEN+SMS_BBS_TYPE_LEN;
 	if (strlen(targetMobileNo)<=prefixLen){
 		return 0L;
 	}
-	return atoi(targetMobileNo+(8+SMS_CHILDCODE_LEN+SMS_BBS_TYPE_LEN));
+	return atoi(targetMobileNo+(prefixLen));
 }
 /* getTargetID()
  *  }}} */
@@ -835,6 +835,7 @@ public:
  */
 int Send(PSMSMessage msg){
 	int smsType=getSMSType(msg->TargetNumber);
+	syslog(LOG_ERR,"sms type: %d",smsType);
 	switch (smsType) {
 		case SMS_BBS_TYPE_COMMON:
 			return deliverSMS(msg);
