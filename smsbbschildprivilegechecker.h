@@ -23,9 +23,11 @@ public:
 	}
 	int isConnectPermitted(const char * addr, unsigned short int port){
 		syslog(LOG_ERR,"check connect permission %s:%d",addr,port);
+		/*
 		if (strcmp(m_addr.c_str(),addr)) {
 			return FALSE;
 		}
+		*/
 		return TRUE;
 	}
 	int canSendSMS(const char* srcMobileNo, const char* targetMobileNo){

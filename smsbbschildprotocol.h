@@ -115,7 +115,7 @@ int doSendMsg(void* msg, DWORD len){
 	//todo: 中断恢复与处理
 	int i=0;
 	int sended=0;
-	while (i=m_pStream->write(msg+sended,len-sende)) {
+	while (i=m_pStream->write(((char*)msg)+sended,len-sended)) {
 		if ( i<0) {
 			if  (errno==EINTR) {
 				continue;
@@ -466,18 +466,21 @@ int OnAccept(myTcpStream* pStream){
 	int len=0;
 	byte msgType=0;
 
+	syslog(LOG_ERR,"lalalal");
 	l=sizeof(SMS_BBS_HEADER);
 redo0:
 	i=pStream->read(buf,l);
+	syslog(LOG_ERR," why no log %d %d!",i,errno);
 	if ((i<0) && (errno=EINTR)) {
 		goto redo0;
 	}
-	len+=i;
 	if (i<l) {
 		syslog(LOG_ERR, "read login msg head error %d ", i);
 		return -1;
 	}
+	len+=i;
 	msgType=(PSMS_BBS_HEADER(buf))->Type;
+
 
 #ifdef DEBUG
 	DWORD smsSerialNo, msgLen ;
@@ -500,6 +503,7 @@ redo02:
 		syslog(LOG_ERR, "read msg head body error");
 		return -1;
 	}
+	syslog(LOG_ERR," %s login %s", (PSMS_BBS_LOGINPACKET(buf))->user,(PSMS_BBS_LOGINPACKET(buf))->password);
 	
 	if (!m_pChildPrivilegeChecker->canUserConnect( (PSMS_BBS_LOGINPACKET(buf))->user,(PSMS_BBS_LOGINPACKET(buf))->password)  ){
 		doReply(SMS_BBS_CMD_ERR,(PSMS_BBS_HEADER(buf))->SerialNo,(PSMS_BBS_HEADER(buf))->pid);
@@ -743,12 +747,6 @@ public:
 		m_state=ready;
 		m_pStream=NULL;
 		m_serial=0;
-		try {
-			m_conn.connect(DB_NAME, DB_HOST, DB_USER, DB_PASSWORD);
-		} catch (BadQuery er) {
-			syslog(LOG_ERR," connect DB error: %s",er.error.c_str());
-			exit(-1);
-		}
 		m_pChildPrivilegeChecker=new CSMSBBSChildPrivilegeChecker(childCode, password,addr,&m_conn);
 		strncpy(m_childCode,childCode,SMS_CHILDCODE_LEN);
 		m_listenPort=port;
@@ -779,21 +777,21 @@ public:
 				switch(m_pid=fork()){
 					case 0:
 						delete pServiceSocket;
-						m_conn.close();
 						try {
 							m_conn.connect(DB_NAME, DB_HOST, DB_USER, DB_PASSWORD);
 						} catch (BadQuery er) {
 							syslog(LOG_ERR," connect DB error: %s",er.error.c_str());
 							exit(-1);
 						}
-						m_conn.close();
 						pSMSStorage->init();
 						OnAccept(&tcp);
 						tcp.close();
+						m_conn.close();
 						exit(0);
 						break;
 					case -1:
 						syslog(LOG_ERR,"fork error");
+						tcp.close();
 						exit(-1);
 						break;
 					default:
@@ -844,7 +842,6 @@ int Send(PSMSMessage msg){
 
 
 	~CSMSBBSChildProtocol() {
-		m_conn.close();
 	}
 };
 
