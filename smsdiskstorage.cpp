@@ -19,6 +19,9 @@ void __smsDiskStorage_notify_handler(int sig, siginfo_t *si, void *data)
 }
 
 int CSMSDiskStorage::set_notifier() {
+	if (m_IncomingDirectory.length()<1) {
+		return SUCCESS;
+	}
 	struct sigaction act;
 	act.sa_sigaction = __smsDiskStorage_notify_handler;
 	sigemptyset(&act.sa_mask);

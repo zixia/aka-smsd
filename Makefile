@@ -6,7 +6,7 @@ HEADERS=18dx.h  deliver.h smschildprotocol.h sms.h smstestchildprotocol.h app.h 
 	smslogger.h
 LIBS= -lccgnu2 -lpthread -ldl -lsqlplus
 
-all: test18dx deliver testchild deliver2 testrcv18dx testbbssmsd
+all: test18dx deliver testchild deliver2 testrcv18dx testbbssmsd zixianetbbssmsd
 deliver: app.o deliver.o
 	$(CXX) -o $@ $^ $(LIBS)
 testchild:testchild.o app.o smsdiskstorage.o smschilddaemon.o smsstorage.o
@@ -18,6 +18,8 @@ testrcv18dx: testrec18dx.o app.o smsdiskstorage.o smsdaemon.o smsstorage.o
 test18dx: test18dx.o app.o smsdiskstorage.o smsdaemon.o smsstorage.o
 	$(CXX) -o $@ $^ $(LIBS)
 testbbssmsd: testbbssmsd.o app.o smsdiskstorage.o smschilddaemon.o smsstorage.o
+	$(CXX) -o $@ $^ $(LIBS)
+zixianetbbssmsd: zixianetbbssmsd.o app.o smsdiskstorage.o smschilddaemon.o smsstorage.o
 	$(CXX) -o $@ $^ $(LIBS)
 
 %.o: %.cpp ${HEADERS}

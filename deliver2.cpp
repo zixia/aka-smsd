@@ -66,6 +66,9 @@ std::string CDeliver::getDest(const std::string& filename){
 	if (!strcmp(childCode,"12")) {
 		return  "/home/roy/gateway/bbsgo";
 	}
+	if  (!strcmp(childCode,"13")) {
+                return  "/home/roy/gateway/zixiabbsgo";
+	}
 	return "/home/roy/gateway/go";
 }
 

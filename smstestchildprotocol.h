@@ -126,6 +126,7 @@ public:
 	}
 
 	int Run(CSMSStorage* pSMSStorage){
+		syslog(LOG_ERR,"start running..");
 		InetAddress addr;
 		myTcpStream tcp;
 		C18dxTCPSocket socket(addr,atoi(testport));
