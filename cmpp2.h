@@ -1,4 +1,4 @@
-#include AKA_SMS_6D37B40E_AE4A_47B2_8757_91FF70855638
+#ifndef AKA_SMS_6D37B40E_AE4A_47B2_8757_91FF70855638
 #define AKA_SMS_6D37B40E_AE4A_47B2_8757_91FF70855638
 
 #include <stdint.h>
@@ -13,22 +13,20 @@ typedef	uint8_t	 UINT8;
 typedef char	OCTETSTRING;
 
 //COMMAND_ID定义
-#define CMPP_CONNECT			0x00000001	//请求连接
-#define CMPP_CONNECT_RESP		0x80000001	//请求连接应答
-#define CMPP_TERMINATE			0x00000002	//终止连接
-#define CMPP_TERMINATE_RESP		0x80000002	//终止连接应答
-#define CMPP_SUBMIT				0x00000004	//提交短信
-#define CMPP_SUBMIT_RESP		0x80000004	//提交短信应答
-#define CMPP_DELIVER			0x00000005	//短信下发
-#define CMPP_DELIVER_RESP		0x80000005	//下发短信应答
-#define CMPP_QUERY				0x00000006	//发送短信状态查询
-#define CMPP_QUERY_RESP			0x80000006	//发送短信状态查询应答
-#define CMPP_CANCEL				0x00000007	//删除短信
-#define CMPP_CANCEL_RESP		0x80000007	//删除短信应答
-#define CMPP_ACTIVE_TEST		0x00000008	//激活测试
-#define CMPP_ACTIVE_TEST_RESP	0x80000008	//激活测试应答
-#define CMPP_FWD				0x00000009	//消息前转
-#define CMPP_FWD_RESP			0x80000009	//消息前转应答
+#define CMPP_CMD_CONNECT			0x00000001	//请求连接
+#define CMPP_CMD_CONNECT_RESP		0x80000001	//请求连接应答
+#define CMPP_CMD_TERMINATE			0x00000002	//终止连接
+#define CMPP_CMD_TERMINATE_RESP		0x80000002	//终止连接应答
+#define CMPP_CMD_SUBMIT				0x00000004	//提交短信
+#define CMPP_CMD_SUBMIT_RESP		0x80000004	//提交短信应答
+#define CMPP_CMD_DELIVER			0x00000005	//短信下发
+#define CMPP_CMD_DELIVER_RESP		0x80000005	//下发短信应答
+#define CMPP_CMD_QUERY				0x00000006	//发送短信状态查询
+#define CMPP_CMD_QUERY_RESP			0x80000006	//发送短信状态查询应答
+#define CMPP_CMD_CANCEL				0x00000007	//删除短信
+#define CMPP_CMD_CANCEL_RESP		0x80000007	//删除短信应答
+#define CMPP_CMD_ACTIVE_TEST		0x00000008	//激活测试
+#define CMPP_CMD_ACTIVE_TEST_RESP	0x80000008	//激活测试应答
 
 //端口号
 #define CMPP_LONGCONNECTION_PORT	7890	//长连接（SP与网关间）
@@ -43,7 +41,7 @@ typedef struct _CMPP_HEADER{
 
 //SP请求连接到ISMG（CMPP_CONNECT）操作 (SP-> ISMG)
 typedef struct _CMPP_CONNECT{
-	OCTETSTRING Source_Addr[6] //源地址，此处为SP_Id，即SP的企业代码
+	OCTETSTRING Source_Addr[6]; //源地址，此处为SP_Id，即SP的企业代码
 	OCTETSTRING AuthenticatorSource[16]; /*	Octet String	用于鉴别源地址。其值通过单向MD5 hash计算得出，表示如下：
 		AuthenticatorSource =
 		MD5（Source_Addr+9 字节的0 +shared secret+timestamp）
@@ -52,7 +50,7 @@ typedef struct _CMPP_CONNECT{
 	UINT8 Version;	//1	Unsigned Integer	双方协商的版本号(高位4bit表示主版本号,低位4bit表示次版本号)
 	UINT32  Timestamp;	//4	Unsigned Integer	时间戳的明文,由客户端产生,格式为MMDDHHMMSS，即月日时分秒，10位(十进制）数字的整型，右对齐 。
 
-} CMPP_CONNECT, *PCMPP_CONNECT;
+}CMPP_CONNECT, *PCMPP_CONNECT;
 
 
 //CMPP_CONNECT_RESP消息定义（ISMG -> SP）
@@ -74,7 +72,7 @@ AuthenticatorISMG =MD5（Status+AuthenticatorSource+shared secret），Shared secre
 */
 	UINT8 Version; //	1	Unsigned Integer	服务器支持的最高版本号
 
-} CMPP_CONNECT_RESP, *PCMPP_CONNECT_RESP;
+}CMPP_CONNECT_RESP, *PCMPP_CONNECT_RESP;
 
 /*
 CMPP_TERMINATE消息定义（SP -> ISMG或ISMG -> SP）
@@ -84,7 +82,7 @@ CMPP_TERMINATE_RESP消息定义（SP -> ISMG或ISMG -> SP）
 */
 
 //SP向ISMG提交短信（CMPP_SUBMIT）操作 (SP->ISMG)
-typedef _CMPP_SUBMIT_PART1 {
+typedef struct _CMPP_SUBMIT_PART1 {
 	UINT64 Msg_Id;		//	8	Unsigned Integer	信息标识，由SP侧短信网关本身产生，本处填空。
 	UINT8 Pk_total;	//1	Unsigned Integer	相同Msg_Id的信息总条数，从1开始
 	UINT8 Pk_number;	//1	Unsigned Integer	相同Msg_Id的信息序号，从1开始
@@ -104,7 +102,7 @@ typedef _CMPP_SUBMIT_PART1 {
 2：对SP计费;
 3：表示本字段无效，对谁计费参见Fee_terminal_Id字段。
 */
-	OCTENTSTRING Fee_terminal_Id[21];	//Unsigned Integer	被计费用户的号码（如本字节填空，则表示本字段无效，对谁计费参见Fee_UserType字段，本字段与Fee_UserType字段互斥）
+	OCTETSTRING Fee_terminal_Id[21];	//Unsigned Integer	被计费用户的号码（如本字节填空，则表示本字段无效，对谁计费参见Fee_UserType字段，本字段与Fee_UserType字段互斥）
 	UINT8 TP_pId; //	1	Unsigned Integer	GSM协议类型。详细是解释请参考GSM03.40中的9.2.3.9
 	UINT8 TP_udhi; //	1	Unsigned Integer	GSM协议类型。详细是解释请参考GSM03.40中的9.2.3.23,仅使用1位，右对齐
 	UINT8 Msg_Fmt; //	1	Unsigned Integer	信息格式
@@ -124,37 +122,37 @@ typedef _CMPP_SUBMIT_PART1 {
 04：对"计费用户号码"的信息费封顶
 05：对"计费用户号码"的收费是由SP实现
 */
-	OCTENTSTRING FeeCode[6]; //	Octet String	资费代码（以分为单位）
-	OCTENTSTRING ValId_Time[17]; //	Octet String	存活有效期，格式遵循SMPP3.3协议
-	OCTENTSTRING At_Time[17]; //	Octet String	定时发送时间，格式遵循SMPP3.3协议
-	OCTENTSTRING Src_Id[21]; 	//Octet String	源号码
+	OCTETSTRING FeeCode[6]; //	Octet String	资费代码（以分为单位）
+	OCTETSTRING ValId_Time[17]; //	Octet String	存活有效期，格式遵循SMPP3.3协议
+	OCTETSTRING At_Time[17]; //	Octet String	定时发送时间，格式遵循SMPP3.3协议
+	OCTETSTRING Src_Id[21]; 	//Octet String	源号码
 /*
 SP的服务代码或前缀为服务代码的长号码, 网关将该号码完整的填到SMPP协议Submit_SM消息相应的source_addr字段，该号码最终在用户手机上显示为短消息的主叫号码
 */
-} CMPP_SUBMIT_PART1, *PCMPP_SUBMIT_PART1;
+}CMPP_SUBMIT_PART1, *PCMPP_SUBMIT_PART1;
 
-typedef _CMPP_SUBMIT_PART2 {
+typedef struct _CMPP_SUBMIT_PART2 {
 	UINT8 DestUsr_tl;//	1	Unsigned Integer	接收信息的用户数量(小于100个用户)
 }CMPP_SUBMIT_PART2, *PCMPP_SUBMIT_PART2;
 
-typedef _CMPP_SUBMIT_PART3 {
+typedef struct _CMPP_SUBMIT_PART3 {
 	OCTETSTRING Dest_terminal_Id[0][21]; //	21*DestUsr_tl	Octet String	接收短信的MSISDN号码
 }CMPP_SUBMIT_PART3, *PCMPP_SUBMIT_PART3;
 
-typedef _CMPP_SUBMIT_PART4 {
+typedef struct _CMPP_SUBMIT_PART4 {
 	UINT8 Msg_Length;	//1	Unsigned Integer	信息长度(Msg_Fmt值为0时：<160个字节；其它<=140个字节)
 }CMPP_SUBMIT_PART4, *PCMPP_SUBMIT_PART4;
 
-typedef _CMPP_SUBMIT_PART5 {
+typedef struct _CMPP_SUBMIT_PART5 {
 	OCTETSTRING Msg_Content[0];//	Msg_length	Octet String	信息内容
 }CMPP_SUBMIT_PART5, *PCMPP_SUBMIT_PART5;
 
-typedef _CMPP_SUBMIT_PART6 {
+typedef struct _CMPP_SUBMIT_PART6 {
 	OCTETSTRING Reserve[8]; //	8	Octet String	保留
 }CMPP_SUBMIT_PART6, *PCMPP_SUBMIT_PART6;
 
 //CMPP_SUBMIT_RESP消息定义（ISMG -> SP）
-typedef _CMPP_SUBMIT_RESP {
+typedef struct _CMPP_SUBMIT_RESP {
 	UINT64 Msg_Id;//	8	Unsigned Integer	信息标识，生成算法如下：
 /*
 采用64位（8字节）的整数：
@@ -182,7 +180,7 @@ bit44~bit39：秒的二进制表示；
 8：流量控制错
 9~ ：其他错误
 */
-} CMPP_SUBMIT_RESP , *PCMPP_SUBMIT_RESP;
+}CMPP_SUBMIT_RESP , *PCMPP_SUBMIT_RESP;
 
 //SP向ISMG查询发送短信状态（CMPP_QUERY）操作
 typedef struct _CMPP_QUERY{
@@ -201,7 +199,6 @@ typedef struct _CMPP_QUERY{
 
 //CMPP_QUERY_RESP消息的定义（ISMG -> SP）
 typedef struct _CMPP_QUERY_RESP{
-字段名	字节数	属性	描述
 	UINT8 Query_Type; //	1	Unsigned Integer	查询类别
 /*
 0：总数查询
@@ -258,7 +255,7 @@ SP的服务代码，一般4--6位，或者是前缀为服务代码的长号码；该号码是手机用户短消息的
 */
 	UINT8 Msg_Length; //	1	Unsigned Integer	消息长度
 	OCTETSTRING Msg_Content[0]; //	Msg_length	Octet String	消息内容
-} CMPP_DELIVER_PART1, *PCMPP_DELIVER_PART1;
+}CMPP_DELIVER_PART1, *PCMPP_DELIVER_PART1;
 
 typedef struct CMPP_DELIVER_PART2 {
 	OCTETSTRING Reserved[8]; //	8	Octet String	保留项
@@ -301,21 +298,21 @@ typedef struct _CMPP_DELIVER_RESP {
 //SP向ISMG发起删除短信（CMPP_CANCEL）操作
 typedef struct _CMPP_CANCEL {
 	UINT64 Msg_Id; //	8	Unsigned Integer	信息标识（SP想要删除的信息标识）
-} CMPP_CANCEL , *PCMPP_CANCEL;
+}CMPP_CANCEL , *PCMPP_CANCEL;
 
 //CMPP_CANCEL_RESP消息定义（ISMG ' SP）
 typedef struct _CMPP_CANCEL_RESP{
-	UINT* Success_Id; //	1	Unsigned Integer	成功标识
+	UINT8 Success_Id; //	1	Unsigned Integer	成功标识
 /*
 0：成功
 1：失败
 */
-} CMPP_CANCEL_RESP, *PCMPP_CANCEL_RESP;
+}CMPP_CANCEL_RESP, *PCMPP_CANCEL_RESP;
 
 // CMPP_ACTIVE_TEST_RESP定义（SP -> ISMG或ISMG -> SP）
 typedef struct _CMPP_ACTIVE_TEST_RESP{
 	UINT8 Reserved;
-} CMPP_ACTIVE_TEST_RESP, *PCMPP_ACTIVE_TEST_RESP;
+}CMPP_ACTIVE_TEST_RESP, *PCMPP_ACTIVE_TEST_RESP;
 
 #ifdef __cplusplus
 }
