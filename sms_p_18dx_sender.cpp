@@ -1,4 +1,4 @@
-#include "smstestchildprotocol.h"
+#include "sms18dxprotocol.h"
 #include "smsdiskstorage.h"
 
 using namespace SMS;
@@ -9,9 +9,10 @@ public:
 	
 
 	CMyDaemon(char* applicationName,int logFacility): CSMSDaemon(applicationName,logFacility){
-		m_pSMSProtocol=new CSMSTestProtocol;
-		m_pSMSStorage = new CSMSDiskStorage(m_pSMSProtocol,"/home/roy/gateway/goin","");
+		m_pSMSProtocol=new CSMS18DXProtocol;
+		m_pSMSStorage = new CSMSDiskStorage(m_pSMSProtocol,"",SMSHOME "outbox/18dx");
+
 	}
 };
 
-CMyDaemon myDaemon("testrec18dx",LOG_LOCAL0);
+CMyDaemon myDaemon("sms_p_18dx_sender",LOG_LOCAL0);

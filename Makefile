@@ -6,27 +6,27 @@ HEADERS=18dx.h  deliver.h smschildprotocol.h sms.h smstestchildprotocol.h app.h 
 	smslogger.h
 LIBS= -lccgnu2 -lpthread -ldl -lsqlplus
 
-all: test18dx deliver testchild deliver2 testrcv18dx testbbssmsd zixianetbbssmsd roytestbbssmsd
+all: sms_p_18dx_sender deliver testchild deliver2 sms_p_18dx_receiver sms_c_bbs_9sharp sms_c_bbs_zixia sms_c_bbs_smth 
 deliver: app.o deliver.o
 	$(CXX) -o $@ $^ $(LIBS)
 testchild:testchild.o app.o smsdiskstorage.o smschilddaemon.o smsstorage.o
 	$(CXX) -o $@ $^ $(LIBS)
 deliver2:  app.o deliver2.o
 	$(CXX) -o $@ $^ $(LIBS)
-testrcv18dx: testrec18dx.o app.o smsdiskstorage.o smsdaemon.o smsstorage.o
+sms_p_18dx_receiver: sms_p_18dx_receiver.o app.o smsdiskstorage.o smsdaemon.o smsstorage.o
 	$(CXX) -o $@ $^ $(LIBS)
-test18dx: test18dx.o app.o smsdiskstorage.o smsdaemon.o smsstorage.o
+sms_p_18dx_sender: sms_p_18dx_sender.o app.o smsdiskstorage.o smsdaemon.o smsstorage.o
 	$(CXX) -o $@ $^ $(LIBS)
-testbbssmsd: testbbssmsd.o app.o smsdiskstorage.o smschilddaemon.o smsstorage.o
+sms_c_bbs_9sharp: sms_c_bbs_9sharp.o app.o smsdiskstorage.o smschilddaemon.o smsstorage.o
 	$(CXX) -o $@ $^ $(LIBS)
-zixianetbbssmsd: zixianetbbssmsd.o app.o smsdiskstorage.o smschilddaemon.o smsstorage.o
+sms_c_bbs_zixia: sms_c_bbs_zixia.o app.o smsdiskstorage.o smschilddaemon.o smsstorage.o
 	$(CXX) -o $@ $^ $(LIBS)
-roytestbbssmsd: roytestbbssmsd.o app.o smsdiskstorage.o smschilddaemon.o smsstorage.o
+sms_c_bbs_smth: sms_c_bbs_smth.o app.o smsdiskstorage.o smschilddaemon.o smsstorage.o
 	$(CXX) -o $@ $^ $(LIBS)
 
 %.o: %.cpp ${HEADERS}
 	$(CXX) $(CXXFLAGS)  -c $< -o $@
 .PHONY: clean
 clean:
-	rm -rf *.o test18dx deliver testchild deliver2 testrcv18dx testbbssmsd
+	rm -rf *.o sms_p_18dx_sender deliver testchild deliver2 sms_p_18dx_receiver sms_c_bbs_9sharp sms_c_bbs_zixia sms_c_bbs_smth 
 

@@ -41,6 +41,7 @@ namespace SMS{
 #define DB_USER "aka"
 #define DB_PASSWORD "aA3$;G(~cjKK"
 
+#define SMSHOME "/home/roy/akasmsd/"
 
 #define SMS_CHILDCODE_LEN	2 //子用户代码长度
 

@@ -1,6 +1,7 @@
 #ifndef SMS_H_4349655C_9F52_4cb3_B691_8B40892AC56D
 #define SMS_H_4349655C_9F52_4cb3_B691_8B40892AC56D
 #include "app.h"
+#include "sms.h"
 
 namespace SMS {
 

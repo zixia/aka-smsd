@@ -29,7 +29,7 @@ namespace SMS{
 
 #define SIGDSNOTIFY (SIGRTMIN+1)
 
-CDeliver _myDaemon("/home/roy/gateway/goin","deliver2",LOG_LOCAL0);
+CDeliver _myDaemon(SMSHOME "inbox/deliver","deliver2",LOG_LOCAL0);
 
 void __smsDiskStorage_notify_handler(int sig, siginfo_t *si, void *data)
 {
@@ -64,15 +64,15 @@ std::string CDeliver::getDest(const std::string& filename){
 	childCode[SMS_CHILDCODE_LEN]=0;
 	syslog(LOG_ERR,"childCode %s",childCode);
 	if (!strcmp(childCode,"12")) {
-		return  "/home/roy/gateway/bbsgo";
+		return  SMSHOME "inbox/bbs_9sharp";
 	}
 	if  (!strcmp(childCode,"13")) {
-                return  "/home/roy/gateway/zixiabbsgo";
+		return  SMSHOME "inbox/bbs_zixia";
 	}
-	if  (!strcmp(childCode,"15")) {
-                return  "/home/roy/gateway/roytestbbsgo";
+	if  (!strcmp(childCode,"16")) {
+		return  SMSHOME "inbox/bbs_smth";
 	}
-	return "/home/roy/gateway/go";
+	return SMSHOME "inbox/default";
 }
 
 int CDeliver::Run(){

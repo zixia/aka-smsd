@@ -9,9 +9,9 @@ public:
 	
 
 	CMyDaemon(char* applicationName,int logFacility): CSMSDaemon(applicationName,logFacility){
-		m_pSMSProtocol=new CSMSBBSChildProtocol("13","zixiabbs","202.205.10.10",4003);
-		m_pSMSStorage = new CSMSDiskStorage(m_pSMSProtocol,"/home/roy/gateway/in","/home/roy/gateway/zixiabbsgo");
+		m_pSMSProtocol=new CSMSBBSChildProtocol("13","zixiabbs","202.205.10.10",50013);
+		m_pSMSStorage = new CSMSDiskStorage(m_pSMSProtocol,SMSHOME "inbox/bbs_zixia",SMSHOME "outbox/deliver");
 	}
 };
 
-CMyDaemon myDaemon("zixia.net.bbschild",LOG_LOCAL0);
+CMyDaemon myDaemon("sms_c_bbs_zixia",LOG_LOCAL0);

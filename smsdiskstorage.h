@@ -20,7 +20,7 @@
 
 namespace SMS{
 
-#define BACKUPDIR "/home/roy/gateway/error"
+#define BACKUPDIR SMSHOME "error"
 
 #define SIGDSNOTIFY (SIGRTMIN+1)
 

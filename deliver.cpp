@@ -28,7 +28,7 @@ namespace SMS{
 
 #define SIGDSNOTIFY (SIGRTMIN+1)
 
-CDeliver _myDaemon("/home/roy/gateway/in","deliver",LOG_LOCAL0);
+CDeliver _myDaemon(SMSHOME "outbox/deliver","deliver",LOG_LOCAL0);
 
 void __smsDiskStorage_notify_handler(int sig, siginfo_t *si, void *data)
 {
@@ -57,7 +57,7 @@ int CDeliver::set_notifier(){
 }
 
 std::string CDeliver::getDest(const std::string& filename){
-	return "/home/roy/gateway/out";
+	return SMSHOME "outbox/18dx";
 }
 
 int CDeliver::Run(){
