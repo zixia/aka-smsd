@@ -11,12 +11,44 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sstream>
+#include <cc++/socket.h>
+#ifdef  CCXX_NAMESPACES
+using namespace std;
+using namespace ost;
+#endif
 
 namespace SMS {
 
 #include "18dx.h"
 
-const int queueLen=10;
+class C18dxTCPSocket : public TCPSocket
+{
+protected:
+        bool onAccept(const InetHostAddress &ia, tpport_t port);
+
+public:
+        C18dxTCPSocket(InetAddress &ia, tpport_t port);
+};
+
+class myTcpStream:public tcpstream{
+public:
+	ssize_t write(const void* buf, ssize_t bufLen){
+		return tcpstream::writeData(buf,bufLen);
+	}
+
+	ssize_t read(void* buf, ssize_t bufLen){
+		return tcpstream::readData(buf,bufLen);
+	}
+
+};
+
+
+C18dxTCPSocket::C18dxTCPSocket(InetAddress &ia, tpport_t port) : 
+	TCPSocket(ia, port) {};
+
+bool C18dxTCPSocket::onAccept(const InetHostAddress &ia, tpport_t port){
+		return true;
+};
 
 class CSMSTestProtocol: public CSMSProtocol{
 private:
@@ -42,10 +74,10 @@ int isMsgValid(char* buffer, unsigned int len, SMSMessage** msg, unsigned int * 
 	return 0;
 }
 
-int OnAccept(int s,CSMSStorage* pSMSStorage){
+int OnAccept(myTcpStream *pStream,CSMSStorage* pSMSStorage){
 	char* msg=new char[10000];
 	unsigned int len=0,i,l;
-	i=read(s,msg,sizeof(OAKSREQTRANSFERMOINFO));
+	i=pStream->read(msg,sizeof(OAKSREQTRANSFERMOINFO));
 	if (i<0) {
 			syslog(LOG_ERR, "read error");
 			exit(-1);
@@ -55,7 +87,7 @@ int OnAccept(int s,CSMSStorage* pSMSStorage){
 	}
 	len+=i;
 	l=((POAKSREQTRANSFERMOINFO)(msg))->nLenMsg;
-	while (i=read(s,msg+len,l)) {
+	while (i=pStream->read(msg+len,l)) {
 		if (i<0) {
 			syslog(LOG_ERR, "read body error");
 			exit(-1);
@@ -87,86 +119,42 @@ public:
 	}
 
 	int Run(CSMSStorage* pSMSStorage){
-//		hostent * phe;
-		servent * pse;
-		protoent *ppe;
-		sockaddr_in sin;
-		int s,type;
+		InetAddress addr;
+		myTcpStream tcp;
+		C18dxTCPSocket socket(addr,atoi(testport));
+        try   {
+			while(socket.isPendingConnection()){
+				tcp.open(socket);
+				switch(fork()){
+					case 0:
+						OnAccept(&tcp,pSMSStorage);
+						tcp.close();
+						exit(0);
+						break;
+					case -1:
+						syslog(LOG_ERR,"fork error");
+						exit(-1);
+						break;
+					default:
+						tcp.close();
+				}
 
-		memset(&sin,0,sizeof(sin));
-		sin.sin_family=AF_INET;
+			}	
+		} catch (Socket *socket)
+        {
+                tpport_t port;
+                InetAddress saddr = (InetAddress)socket->getPeer(&port);
+				syslog(LOG_ERR,"socket error %s : %d", saddr.getHostname(), port);
 
-
-		if (pse=getservbyname(testport,"tcp")){
-			sin.sin_port=pse->s_port;
-		} else if ( (sin.sin_port=htons((unsigned short)atoi(testport) ))==0)	{
-			syslog(LOG_ERR, "get port error.");
-			exit(-1);
-		}
-/*
-		if (phe = gethostbyname(host_18dx) )	{
-			memcpy(&sin.sin_addr,phe->h_addr, phe->h_length);
-		} else if (( sin.sin_addr.s_addr = inet_addr (host_18dx)) == INADDR_NONE)
-		{
-			syslog(LOG_ERR, "get host error.");
-			exit(-1);
-		}
-*/
-
-		sin.sin_addr.s_addr=INADDR_ANY;
-
-		if ( ( ppe=getprotobyname("tcp")) == 0)
-		{
-			syslog(LOG_ERR, "get tcp error.");
-			exit(-1);
-		}
-		type=SOCK_STREAM;
-		s=socket(PF_INET, type,ppe->p_proto);
-		if (s<0)
-		{
-			syslog(LOG_ERR, "get socket error");
-			exit(-1);
-		}
-		int on=1;
-		setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
-
-		
-		if (bind(s,(struct sockaddr *)&sin, sizeof(sin))<0){
-			syslog(LOG_ERR, "bind error");
-			exit(-1);
-		}
-		listen(s,queueLen);
-
-		struct sockaddr_in fsin;
-		unsigned int alen;
-		int ssock;
-		for(;;){
-			alen=sizeof(fsin);
-			ssock=accept(s,(struct sockaddr *)&fsin, &alen);
-			if (ssock<0) {
-/*
-				if (errno=EINTR)
-					continue;
-*/
-				syslog(LOG_ERR,"accept error");
-				continue;
-			}
-			switch(fork()){
-				case 0:
-					close(s);
-					OnAccept(ssock,pSMSStorage);
-					close(ssock);
-					exit(0);
-					break;
-				case -1:
-					syslog(LOG_ERR,"fork error");
-					exit(-1);
-					break;
-				default:
-					close(ssock);
-			}
-
-		}		
+                if(socket->getErrorNumber() == Socket::errResourceFailure)
+                {
+                        syslog(LOG_ERR, "bind failed; no resources" );
+                }
+                if(socket->getErrorNumber() == Socket::errBindingFailed)
+                {
+                        syslog(LOG_ERR, "bind failed; port busy" );
+                }
+        }
 		return 0;
 	}
 
