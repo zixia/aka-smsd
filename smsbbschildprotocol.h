@@ -512,7 +512,7 @@ int OnAccept(CSMSTcpStream* pStream){
 	in_addr address=addr.getAddress();
 	if (m_pChildPrivilegeChecker->loginUser(address.s_addr,(PSMS_BBS_LOGINPACKET(buf))->user,(PSMS_BBS_LOGINPACKET(buf))->password,m_childCode,m_childName,&m_defaultMoneyLimit)==FALSE){
 		doReply(SMS_BBS_CMD_ERR,(PSMS_BBS_HEADER(buf))->SerialNo,(PSMS_BBS_HEADER(buf))->pid);
-		syslog(LOG_ERR,"connection user & password wrong!");
+		syslog(LOG_ERR,"connection failed!");
 		return -1;
 	}
 	syslog(LOG_ERR, "%s connected!", m_childName);

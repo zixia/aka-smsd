@@ -19,13 +19,23 @@ class CSMSBBSChildPrivilegeChecker{
 		char s[50];
 		unsigned long int maskLen;
 		in_addr in;
-		s[0]=0;
-		maskLen=0;
-		sscanf(net,"%s/%d",s,maskLen);
+		char * p;
+		strncpy(s,net,49);
+		s[49]=0;
+		p=strrchr(s,'/');
+		if (p==NULL) {
+			syslog(LOG_ERR,"login error: loginNet not valid: %s ",net);
+			return -1;
+		}
+		*p=0;
+		p++;
+		maskLen=atoi(p);
 		if (!inet_aton(s,&in)) {
+			syslog(LOG_ERR,"login error can't get network address: %s--%s/%d",net, s ,maskLen);
 			return -1;
 		}
 		if ((addr>>(32-maskLen))!=(in.s_addr>>(32-maskLen)) ) {
+			syslog(LOG_ERR,"login error: %u not in %u/%d",addr, in.s_addr,maskLen);
 			return -1;
 		}
 		return 0;
