@@ -25,11 +25,11 @@ using namespace ost;
 #include "smstcpstream.h"
 
 #define GWIP	"210.51.0.210"
-#define GWPASSWORD	8001
-#define GWUSER	""
-#define GWPASSWD	""
+#define GWPASSWORD	9001
+#define GWUSER	"10001019"
+#define GWPASSWD	"1234"
 
-#define WAITTIME	100000 //100秒
+#define WAITTIME	10000 //10秒
 
 namespace SMS {
 
@@ -147,7 +147,8 @@ public:
 			time(&m_lastrcvtime);
 			time(&m_lastsendtime);
 			pSMSStorage->OnNotify();
-			while (retCode=apiRecv(&msg,WAITTIME)) {
+			for(;;) {
+				retCode=apiRecv(&msg,WAITTIME);
 				/* retcode:
 				0：调用函数成功
 				1:  接收数据包失败
@@ -168,14 +169,16 @@ public:
 				}
 				time(&now);
 				if (now-m_lastsendtime) {
-					syslog(LOG_ERR,"try to keep log!");
-					if (apiActive()!=0) {
+					syslog(LOG_ERR,"try to keep connection!");
+					if (retCode=apiActive()!=0) {
+						syslog(LOG_ERR,"apiActive failed!: %d",retCode);
 						m_connected=0;
 						break;
 					}
 				}
 				time(&m_lastsendtime);
 				if (now-m_lastrcvtime>3*WAITTIME) {
+					syslog(LOG_ERR,"no reply from gateway...");
 					m_connected=0;
 					break;
 				}
