@@ -45,7 +45,8 @@ namespace SMS{
 
 #define SMSHOME "/home/roy/akasmsd/"
 
-#define SMS_PARENTID_LEN 8
+#define SMS_PARENTID_LEN 80
+#define SMS_FEECODE_LEN		10
 
 #define SMS_MAXCHILDCODE_LEN 4	//最大子客户代码长度
 #define SMS_MAXCHILDNAME_LEN 50 //最大子客户名称长度
@@ -73,6 +74,7 @@ typedef struct _SMSMessage{
 	int SMSType;
 	time_t sendTime;
 	time_t arriveTime;
+	char serviceCode[SMS_FEECODE_LEN+1];
 	DWORD SMSBodyLength;
 	char SMSBody[0];
 }SMSMessage, *PSMSMessage;

@@ -16,6 +16,7 @@
 #include <sstream>
 #include "sms.h"
 #include "smslogger.h"
+#include "time.h"
 #ifdef  CCXX_NAMESPACES
 using namespace std;
 using namespace ost;
@@ -23,32 +24,46 @@ using namespace ost;
 
 #include "smstcpstream.h"
 
+#define GWIP	"210.51.0.210"
+#define GWPASSWORD	8001
+#define GWUSER	""
+#define GWPASSWD	""
+
+#define WAITTIME	100000 //10秒
+
 namespace SMS {
 
-#include "18dx.h"
+#include "gw5818.h"
 
 
 class CSMS18DXProtocol: public CSMSProtocol{
 	CSMSLogger* m_pSMSLogger;
-	TCPSocket *m_pServiceSocket;
+	int m_connected;
+	time_t m_lastrcvtime;
+	time_t m_lastsendtime;
+	unsigned long int m_serial;
+
+unsigned long int getSerial(){ 
+        return m_serial++;
+}
 
 
-int isMsgValid(POAKSREQTRANSFERMOINFO pHead,char* buf, int len, SMSMessage** msg, unsigned int * msgLen){
-	*msgLen=sizeof(SMSMessage)+len;
+int convertMsgFormat(struct CDeliver* pSMS,  SMSMessage** msg, unsigned int * msgLen){
+	*msgLen=sizeof(SMSMessage)+strlen(pSMS->msg);
 	*msg=(SMSMessage*) new char[*msgLen];
 
 	memset(*msg,0,*msgLen);
 	(*msg)->length=*msgLen;
-	strncpy((*msg)->SenderNumber , pHead->szMobileNo , MOBILENUMBERLENGTH);
+	strncpy((*msg)->SenderNumber , pSMS->mobile , MOBILENUMBERLENGTH);
 	(*msg)->SenderNumber[MOBILENUMBERLENGTH]=0;
-	strncpy((*msg)->TargetNumber , (pHead->szSPCode)+4 , MOBILENUMBERLENGTH);
+	strncpy((*msg)->TargetNumber , pSMS->dst_num , MOBILENUMBERLENGTH);
 	(*msg)->TargetNumber[MOBILENUMBERLENGTH];
 	(*msg)->FeeTargetNumber[0]=0;
-	(*msg)->SMSBodyLength=len;
-	memcpy((*msg)->SMSBody, buf, len);
+	(*msg)->SMSBodyLength=strlen(pSMS->msg);
+	memcpy((*msg)->SMSBody, pSMS->msg, strlen(pSMS->msg));
 
 	(*msg)->arriveTime=time(NULL);
-	strncpy((*msg)->parentID,"18dx",SMS_MAXCHILDCODE_LEN);
+	strncpy((*msg)->parentID,"5168",SMS_MAXCHILDCODE_LEN);
 	(*msg)->parentID[SMS_PARENTID_LEN]=0;
 	(*msg)->FeeType=0;
 
@@ -57,94 +72,112 @@ int isMsgValid(POAKSREQTRANSFERMOINFO pHead,char* buf, int len, SMSMessage** msg
 
 
 
-int OnAccept(CSMSTcpStream* pStream,CSMSStorage* pSMSStorage){
-	OAKSREQTRANSFERMOINFO head;
-	char buf[1000];
-	int errCount=0;
-	int i,size;
-	int len=0;
+int process(struct CResp * pResp, CSMSStorage* pSMSStorage){
+	syslog(LOG_ERR," recieve gw msg type: %d",pResp->head.dwCmdID);
 
-
-	size=sizeof(OAKSREQTRANSFERMOINFO);
-	i=pStream->read(&head,size);
-	if (i<size) {
-		syslog(LOG_ERR, "read msg head error %d ", i);
-		return -1;
+	switch (pResp->head.dwCmdID)  {
+	case SUBMITRESP:	//发送短信的网关回应
+		if (pResp->sr.result==0) {
+			syslog(LOG_ERR," msg %d 发送成功！",pResp->sr.msg_id1);
+		} else {
+			syslog(LOG_ERR," msg %d 发送失败: 0x%u！",pResp->sr.msg_id1,pResp->sr.result);
+		}
+		break;
+	case DELIVERY:		//收到网关deliver短信
+		SMSMessage* formatedMsg;
+		unsigned int msgLen;
+		if (!convertMsgFormat(&(pResp->dl), &formatedMsg,&msgLen)){
+			pSMSStorage->writeSMStoStorage(formatedMsg->SenderNumber,formatedMsg->TargetNumber,(char *)formatedMsg,msgLen);
+			delete formatedMsg;
+		} else {
+			return -1;
+		}
+		break;
+	case ALIVERESP: //keep alive
+	default:
 	}
-	i=pStream->read(buf,head.nLenMsg);
-	if (i<head.nLenMsg) {
-		syslog(LOG_ERR, "read msg head body error");
-		return -1;
-	}
-
-	PSMSMessage formatedMsg;
-	unsigned int msgLen;
-
-	syslog(LOG_ERR,"start convert 18dx sms..");
-	
-	if (!isMsgValid(&head,buf,head.nLenMsg, &formatedMsg,&msgLen)){
-		pSMSStorage->writeSMStoStorage(formatedMsg->SenderNumber,formatedMsg->TargetNumber,(char *)formatedMsg,msgLen);
-		delete formatedMsg;
-	} else {
-		return -1;
-	}
-	
-
 	return 0;
 }
 public:
 	CSMS18DXProtocol() {
 		m_pSMSLogger=NULL;
-		m_pServiceSocket=NULL;
-		m_pSMSLogger=NULL;
+		m_connected=0;
+		m_serial=0;
 	}
 
 	/* {{{ Run(CSMSStorage* pSMSStorage) */
 	int Run(CSMSStorage* pSMSStorage){
+		int retCode;
+		struct CRep msg;
+		time_t now;
 		m_pSMSLogger=new CSMSLogger;
 		pSMSStorage->init();
-		pSMSStorage->OnNotify();
-		InetAddress addr;
-		CSMSTcpStream tcp;
-        try {
-		m_pServiceSocket=new TCPSocket(addr,atoi(testport));
+		for(;;) {
+			m_connected=0;
+			for(;;) {
+				if ((retCode=apiLogin(GWIP,GWPASSWORD,GWUSER,GWPASSWD))!=0) {
+					syslog(LOG_ERR,"apiLogin error: %d",retCode);
 
-			while(m_pServiceSocket->isPendingConnection()){
-				tcp.open(*m_pServiceSocket);
-				if (!tcp) {
+				} else {
+					retCode=apiRecv(&msg,WAITTIME);
+					if (retCode==0) {
+						int loginResult=(msg.lr.result & 0x1111);
+						if (msg.lr.result==0) { //登录成功！
+							m_connected=1;
+							break;
+						} else {
+							if (msg.lr.result & 0x1) {
+								syslog(LOG_ERR,"apiLogin failed: user/passwd error!");
+							}
+							if (msg.lr.result & 0x10) {
+								syslog(LOG_ERR,"apiLogin failed: ip error!");
+							}
+							syslog(LOG_ERR,"apiLogin failed. result: 0x%u", msg.lr.result);
+						}
+					} else {
+						syslog(LOG_ERR,"login -- apiRecv failed: %d", retCode);
+					}
+				}
+				apiStop();
+				sleep(10);
+			}
+			time(&m_lastrcvtime);
+			time(&m_lastsendtime);
+			pSMSStorage->OnNotify();
+			while (retCode=apiRecv(&msg,WAITTIME)) {
+				/* retcode:
+				0：调用函数成功
+				1:  接收数据包失败
+				2:  超时
+				3:  等候数据包失败
+				4:  网络断开
+				*/
+				if (retCode==0) {
+					time(&m_lastrcvtime);
+					process(&msg,pStorage);
 					continue;
 				}
-				switch(fork()){
-					case 0:
-						delete m_pServiceSocket;
-						OnAccept(&tcp,pSMSStorage);
-						tcp.close();
-						exit(0);
-						break;
-					case -1:
-						syslog(LOG_ERR,"fork error");
-						exit(-1);
-						break;
-					default:
-						tcp.close();
+				switch(retCode) {
+				case 1:
+				case 4:
+					m_connected=0;
+					break;
 				}
+				time(&now);
+				if (now-lastsendtime) {
+					if (apiActive()!=0) {
+						m_connected=0;
+						break;
+					}
+				}
+				time(&lastsendtime);
+				if (now-lastrcvtime>3*WAITTIME) {
+					m_connected=0;
+					break;
+				}
+			}			
 
-			}	
-		} catch (Socket *socket)
-        {
-                tpport_t port;
-                InetAddress saddr = (InetAddress)socket->getPeer(&port);
-				syslog(LOG_ERR,"socket error %s : %d", saddr.getHostname(), port);
-
-                if(socket->getErrorNumber() == Socket::errResourceFailure)
-                {
-                        syslog(LOG_ERR, "bind failed; no resources" );
-                }
-                if(socket->getErrorNumber() == Socket::errBindingFailed)
-                {
-                        syslog(LOG_ERR, "bind failed; port busy" );
-                }
-        }
+		}
 		return 0;
 	}
 	/* }}} */
@@ -152,69 +185,50 @@ public:
 	
 	/* {{{ Send(SMSMessage* msg) */
 	int Send(SMSMessage* msg){
-		CSMSTcpStream tcp;
-		char addr[100];
-		snprintf(addr,sizeof(addr),"%s:%s",host_18dx,port_18dx);
-		syslog(LOG_ERR,"send message to %s",addr);
-		tcp.open(addr);
-		if (!tcp){
-			syslog(LOG_ERR,"can't connect to %s" ,addr);
+		if (m_connected==0) {
 			return FAILED;
 		}
 		sigset_t sigmask, oldmask;
 
-	      sigemptyset(&sigmask);
-              sigaddset(&sigmask,SIGUSR1);
-	      sigprocmask(SIG_BLOCK,&sigmask,&oldmask);
+		sigemptyset(&sigmask);
+		sigaddset(&sigmask,SIGUSR1);
+		sigprocmask(SIG_BLOCK,&sigmask,&oldmask);
+
+		int retCode;
+		char buf[160];
+		int len;
+/*
+apiSend(  DWORD msg_id1,DWORD	msg_id2,	char mobile[21],char 	service_id[10],char		 src_term[21],	char		 fee_term[21],	char msg[160],char 	udhi,BYTE 		pid,	BYTE	 isReply,	WORD 	msg_len,	BYTE msg_fmt);
+  
+
+  参数说明:
+msg_id1:   用户信息id号
+msg_id2:   保留参数=0
+mobile[21]:   接收号码
+           service_id:   服务代码. 例如-lsxz
+      	 src_term[21]:   发送源号码(在接收手机端显示的发送者号码)比如 '51687001' 
+         fee_term[21]:   计费号码(为手机号码,即从哪个手机上收费)
+           msg[160]:   发送信息
+udhi:   头标示(数据为二进制时可能有意义，文本信息填0)
+pid:    协议ID(数据为二进制时可能有意义，文本信息填0)
+isReply:   是否需要状态报告，目前API内置1，表明需要状态报告。
+msg_len:  发送消息长度
+msg_fmt:   信息类型 （0：ASCII串  3：短信写卡操作  4：二进制
+ 8：UCS2编码15：含GB汉字）
+*/     
+		len=msg->SMSBodyLength;
+		if (len>159) 
+			len=159;
+		memcpy(buf,msg->SMSBody,len);
+		buf[len]=0;
+		retCode= apiSend(getSerial,  0,msg->TargetNumber,msg->servicdeCode,msg->SenderNumber,msg->FeeTargetNumber, buf,0,0,1,len,15);
+		syslog(LOG_ERR,"send msg to 5618....");
 				      
-
-		int lenPack= sizeof(OAKSREQSMZIXIASENDTEXT)+msg->SMSBodyLength;
-		char* buffer=new char[lenPack];
-		POAKSREQSMZIXIASENDTEXT ps=(POAKSREQSMZIXIASENDTEXT)buffer;
-		memset(ps,0,lenPack);
-		ps->header.dwType= (OAKSID_SM_ZIXIASENDTEXT | OAKSID_REQ);
-		ps->header.dwLength=(lenPack-sizeof(OAKSREQHEADER));
-	
-		ps->nSerialID=(1213242);
-		strcpy(ps->szSrcMobileNo,msg->FeeTargetNumber);
-		strcpy(ps->szDstMobileNo,msg->TargetNumber); 
-
-		ps->nFeeID=msg->FeeType;
-
-		strncpy(ps->szMobileID, msg->SenderNumber, MOBILE_ID_LEN);
-		ps->szMobileID[MOBILE_ID_LEN]=0;
-
-		syslog(LOG_ERR, "send no %s to 18dx ",ps->szMobileID);
-
-		ps->lenText=msg->SMSBodyLength;
-		memcpy(ps+1,msg->SMSBody,msg->SMSBodyLength);
-
-		tcp.write(ps,lenPack);
-		char* buf=new char[sizeof(OAKSACKSMZIXIASENDTEXT)];
-		tcp.read(buf,sizeof(OAKSACKSMZIXIASENDTEXT));
-		syslog(LOG_ERR,"send msg return %d",(POAKSACKSMZIXIASENDTEXT(buf))->header.dwResult);
-
-
-		tcp.close();
-		DWORD result=(POAKSACKSMZIXIASENDTEXT(buf))->header.dwResult;
-		delete[] buf;
-		delete[] buffer;
-
-		if (result!=OAKSBIT_SUCCESS) {
-			switch (result) {
-			case OAKSERR_SM_INVALIDID:
-			case OAKSERR_SM_INVALIDSENDNO:
-			case OAKSERR_SM_INVALIDRECVNO:
-			case OAKSERR_SM_MSGTOOLENGTH:
-			case OAKSERR_SM_INVALIDMOBILENO:
-			case OAKSERR_SM_INVALIDSEND:
-			case OAKSERR_SM_INVALIDMSGID:
-				return ERROR;
-			default:
-				return FAILED;
-			}
-		}else {
+		if (retCode==0) 
 			m_pSMSLogger->logIt(msg->SenderNumber, msg->TargetNumber,msg->FeeTargetNumber,msg->FeeType,msg->childCode,"58181888" ,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength);
+		} else {
+			sigprocmask(SIG_SETMASK, &oldmask, NULL);
+			return FAILED;
 		}
 		sigprocmask(SIG_SETMASK, &oldmask, NULL);
 		return SUCCESS;
