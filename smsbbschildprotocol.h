@@ -57,7 +57,14 @@ CBBSChildProtocolTCPSocket::CBBSChildProtocolTCPSocket(InetAddress &ia, tpport_t
 bool CBBSChildProtocolTCPSocket::onAccept(const InetHostAddress &ia, tpport_t port){
 		std::stringstream st;
 		st<<ia;
-		return m_privilegeChecker->isConnectPermitted(st.str().c_str(),port);
+		if (m_privilegeChecker->isConnectPermitted(st.str().c_str(),port)==TRUE) {
+			syslog(LOG_ERR,"%s:%d's connection accepted",st.str().c_str(),port);
+			return true;
+		} else {
+			syslog(LOG_ERR,"%s:%d's connection rejected",st.str().c_str(),port);
+			return false;
+		}
+			
 };
 /* class CBBSChildProtocolTCPSocket
  * }}} */
@@ -744,6 +751,9 @@ public:
 
 			while(pServiceSocket->isPendingConnection()){
 				tcp.open(*pServiceSocket);
+				if (!tcp) {
+					continue;
+				}
 				if (m_pid!=0) {
 					kill(m_pid,SIGTERM);
 				}
