@@ -10,9 +10,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-       int inet_aton(const char *cp, struct in_addr *inp);
-
-
 namespace SMS{
 
 class CSMSBBSChildPrivilegeChecker{
@@ -25,7 +22,7 @@ class CSMSBBSChildPrivilegeChecker{
 		s[0]=0;
 		maskLen=0;
 		sscanf(net,"%s/%d",s,maskLen);
-		if (!inet_aton(s,&in)) 
+		if (!inet_aton(s,&in)) {
 			return -1;
 		}
 		if ((addr>>(32-maskLen))!=(in.s_addr>>(32-maskLen)) ) {
@@ -70,7 +67,7 @@ public:
 					m_childCode=childCode;
 					strncpy(targetChildCode,childCode, SMS_MAXCHILDCODE_LEN);
 					targetChildCode[SMS_MAXCHILDCODE_LEN]=0;
-					strncpy(targetChildName,row["childName"], SMS_MAXCHILDName_LEN);
+					strncpy(targetChildName,row["childName"], SMS_MAXCHILDNAME_LEN);
 					targetChildCode[SMS_MAXCHILDNAME_LEN]=0;
 					*pMoneyLimit=atoi(row["defaultMoneyLimit"]);
 					return TRUE;

@@ -48,7 +48,8 @@ namespace SMS{
 #define SMS_PARENTID_LEN 8
 
 #define SMS_MAXCHILDCODE_LEN 4	//最大子客户代码长度
-
+#define SMS_MAXCHILDNAME_LEN 50 //最大子客户名称长度
+	
 #ifndef byte
 	typedef unsigned char byte;
 #endif 
