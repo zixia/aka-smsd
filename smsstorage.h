@@ -33,7 +33,7 @@ public:
 
 	int init() {
 				
-		set_notifier();
+	return	set_notifier();
 	}
 	virtual ~CSMSStorage() {};
 
