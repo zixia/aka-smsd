@@ -56,22 +56,12 @@ CBBSChildProtocolTCPSocket::CBBSChildProtocolTCPSocket(InetAddress &ia, tpport_t
 	TCPSocket(ia, port),m_privilegeChecker(privilegeChecker) {};
 
 bool CBBSChildProtocolTCPSocket::onAccept(const InetHostAddress &ia, tpport_t port){
-		std::stringstream st;
-		st<<ia;
-		if (m_privilegeChecker->isConnectPermitted(st.str().c_str(),port)==TRUE) {
-			syslog(LOG_ERR,"%s:%d's connection accepted",st.str().c_str(),port);
-			return true;
-		} else {
-			syslog(LOG_ERR,"%s:%d's connection rejected",st.str().c_str(),port);
-			return false;
-		}
-			
+	return true;
 };
 /* class CBBSChildProtocolTCPSocket
  * }}} */
 
 class CSMSBBSChildProtocol: public CSMSProtocol{
-	int m_pid;
 	int m_state;
 	CSMSTcpStream *m_pStream;
 	enum { ready,headLenghtUnkown, headIncomplete, bodyIncomplete };
@@ -516,11 +506,10 @@ int OnAccept(CSMSTcpStream* pStream){
 	}
 	len+=i;
 	syslog(LOG_ERR," %s login %s", (PSMS_BBS_LOGINPACKET(buf))->user,(PSMS_BBS_LOGINPACKET(buf))->password);
-	InetHostAddress addr=pStream->getPeer();
-	struct in_addr address=addri->getAddress();
 	m_pStream=pStream;
-	
-	if (!m_pChildPrivilegeChecker->setChild(address.s_addr,  (PSMS_BBS_LOGINPACKET(buf))->user,(PSMS_BBS_LOGINPACKET(buf))->password, m_ChildCode, m_ChildName, &m_defaultMoneyLimit)  ){
+	InetHostAddress addr=pStream->getPeer();
+	in_addr address=addr->getAddress();
+	if (m_pChildPrivilegeChecker->loginUser(address.s_addr,(PSMS_BBS_LOGINPACKET(buf))->user,(PSMS_BBS_LOGINPACKET(buf))->password,m_childCode,m_childName,&m_defaultMoneyLimit)==FALSE){
 		doReply(SMS_BBS_CMD_ERR,(PSMS_BBS_HEADER(buf))->SerialNo,(PSMS_BBS_HEADER(buf))->pid);
 		syslog(LOG_ERR,"connection user & password wrong!");
 		return -1;
@@ -952,7 +941,6 @@ public:
  * 
  */
 	CSMSBBSChildProtocol(int listenPort,int defaultMoneyLimit): m_conn(use_exceptions),m_SMSLogger(&m_conn){
-		m_pid=0;
 		m_state=ready;
 		m_pStream=NULL;
 		m_serial=0;
@@ -985,11 +973,7 @@ public:
 				if (!tcp) {
 					continue;
 				}
-				if (m_pid!=0) {
-			//		kill(m_pid,SIGTERM);
-					kill(m_pid,SIGKILL);
-				}
-				switch(m_pid=fork()){
+				switch(fork()){
 					case 0:
 						delete pServiceSocket;
 						try {
