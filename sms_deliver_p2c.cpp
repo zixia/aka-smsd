@@ -58,21 +58,18 @@ int CDeliver::set_notifier(){
 }
 
 std::string CDeliver::getDest(const std::string& filename){
-	char childCode[SMS_CHILDCODE_LEN+1];
-	char *p=strstr(filename.c_str(),".")+1;
-	strncpy(childCode,p,SMS_CHILDCODE_LEN);
-	childCode[SMS_CHILDCODE_LEN]=0;
+	char *childCode=strstr(filename.c_str(),".")+1;
 	syslog(LOG_ERR,"childCode %s",childCode);
-	if (!strcmp(childCode,"12")) {
+	if (!strncmp(childCode,"12",2)) {
 		return  SMSHOME "inbox/bbs_9sharp";
 	}
-	if  (!strcmp(childCode,"13")) {
+	if  (!strncmp(childCode,"13",2)) {
 		return  SMSHOME "inbox/bbs_zixia";
 	}
-	if  (!strcmp(childCode,"16")) {
+	if  (!strncmp(childCode,"16",2)) {
 		return  SMSHOME "inbox/bbs_smth";
 	}
-	if  (!strcmp(childCode,"20")) {
+	if  (!strncmp(childCode,"20",2)) {
 		return  SMSHOME "inbox/bbs_test";
 	}
 	return SMSHOME "inbox/default";

@@ -104,7 +104,7 @@ class CSMSBBSChildProtocol: public CSMSProtocol{
 	DWORD m_serial;
 	CSMSBBSChildPrivilegeChecker *m_pChildPrivilegeChecker;
 	CSMSStorage* m_pSMSStorage;
-	char m_childCode[SMS_CHILDCODE_LEN+1];
+	char m_childCode[SMS_MAXCHILDCODE_LEN+1];
 	Connection m_conn;
 	int m_listenPort;
 	CSMSLogger m_SMSLogger;
@@ -191,8 +191,8 @@ int convertSMS(PSMS_BBS_BBSSENDSMS msg,  SMSMessage** sms, DWORD *smsLen){
 	memcpy((*sms)->SMSBody, msg->MsgTxt, (*sms)->SMSBodyLength);
 
 	(*sms)->sendTime=time(NULL);
-	strncpy((*sms)->childCode,m_childCode,SMS_CHILDCODE_LEN);
-	(*sms)->childCode[SMS_CHILDCODE_LEN]=0;
+	strncpy((*sms)->childCode,m_childCode,SMS_MAXCHILDCODE_LEN);
+	(*sms)->childCode[SMS_MAXCHILDCODE_LEN]=0;
 
 	(*sms)->FeeType=6;
 
@@ -294,8 +294,8 @@ int doSendRegisterSMS(const char* targetMobileNo, const char* srcID){
 	memcpy(sms->SMSBody, msg , strlen(msg));
 
 	sms->sendTime=time(NULL);
-	strncpy(sms->childCode,m_childCode,SMS_CHILDCODE_LEN);
-	sms->childCode[SMS_CHILDCODE_LEN]=0;
+	strncpy(sms->childCode,m_childCode,SMS_MAXCHILDCODE_LEN);
+	sms->childCode[SMS_MAXCHILDCODE_LEN]=0;
 
 	sms->FeeType=6;
 
@@ -571,7 +571,7 @@ int OnAccept(myTcpStream* pStream){
  * 获取短消息类别
  */
 int getSMSType(const char * targetMobileNo) { 
-	int prefixLen=SMS_CHILDCODE_LEN ;
+	int prefixLen=strlen(m_childCode);
 	if ( strlen(targetMobileNo)<prefixLen){
 		return SMS_BBS_TYPE_NONE;
 	}
@@ -587,7 +587,7 @@ int getSMSType(const char * targetMobileNo) {
  * 获取短消息目标ID
  */
 DWORD getTargetID(const char * targetMobileNo) {
-	int prefixLen=SMS_CHILDCODE_LEN;
+	int prefixLen=strlen(m_childCode);
 	if (strlen(targetMobileNo)<=prefixLen){
 		return 0L;
 	}
@@ -756,8 +756,8 @@ public:
 		m_pStream=NULL;
 		m_serial=0;
 		m_pChildPrivilegeChecker=new CSMSBBSChildPrivilegeChecker(childCode, password,addr,&m_conn);
-		strncpy(m_childCode,childCode,SMS_CHILDCODE_LEN);
-		m_childCode[SMS_CHILDCODE_LEN]=0;
+		strncpy(m_childCode,childCode,SMS_MAXCHILDCODE_LEN);
+		m_childCode[SMS_MAXCHILDCODE_LEN]=0;
 		m_listenPort=port;
 	}
 /* 构造函数 */

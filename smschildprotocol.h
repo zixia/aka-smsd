@@ -117,8 +117,8 @@ int isMsgValid(char* buf, unsigned long int len, SMSMessage** msg, unsigned int 
 	memcpy((*msg)->SMSBody, testMsg->smsBody, (*msg)->SMSBodyLength);
 
 	(*msg)->sendTime=time(NULL);
-	strncpy((*msg)->childCode,"11",SMS_CHILDCODE_LEN);
-	(*msg)->childCode[SMS_CHILDCODE_LEN]=0;
+	strncpy((*msg)->childCode,"11",SMS_MAXCHILDCODE_LEN);
+	(*msg)->childCode[SMS_MAXCHILDCODE_LEN]=0;
 
 	(*msg)->FeeType=6;
 
