@@ -97,7 +97,7 @@ public:
 			delete[] buffer;
 			return ERROR;
 		}else {
-			m_SMSLogger.logIt(msg->SenderNumber, msg->TargetNumber,msg->FeeTargetNumber,msg->FeeType,msg->childCode,"58181888" ,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody);
+			m_SMSLogger.logIt(msg->SenderNumber, msg->TargetNumber,msg->FeeTargetNumber,msg->FeeType,msg->childCode,"58181888" ,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength);
 		}
 
 		delete[] buf;

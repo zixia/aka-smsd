@@ -65,6 +65,8 @@ int main(){
 	}
 	type=SOCK_STREAM;
 	s=socket(PF_INET, type,ppe->p_proto);
+	cout<<ppe->p_proto;
+	exit(-1);
 	if (s<0)
 	{
 		cout<<"get socket error"<<endl;

@@ -344,7 +344,7 @@ public:
 
 		free(sms);
 
-		m_SMSLogger.logIt(msg->SenderNumber, msg->TargetNumber,"",0,"11",msg->parentID,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody);
+		m_SMSLogger.logIt(msg->SenderNumber, msg->TargetNumber,"",0,"11",msg->parentID,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength);
 
 
 		return 0;

@@ -650,7 +650,7 @@ int deliverSMS(PSMSMessage msg) {
 	syslog(LOG_ERR,"deliver sms to child, retCode=%d",retCode);
 
 	if (retCode==SUCCESS) {
-		m_SMSLogger.logIt(msg->SenderNumber, msg->TargetNumber,"",0,m_childCode,msg->parentID,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody);
+		m_SMSLogger.logIt(msg->SenderNumber, msg->TargetNumber,"",0,m_childCode,msg->parentID,msg->sendTime,time(NULL),msg->arriveTime,msg->SMSBody,msg->SMSBodyLength);
 	}
 
 	delete[] (char*)sms;

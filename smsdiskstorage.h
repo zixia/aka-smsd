@@ -33,6 +33,7 @@ class CSMSDiskStorage: public CSMSStorage {
 	char* m_pDataBuf;
 	unsigned int m_dataSize;
 	unsigned int m_bufSize;
+	int m_fp;
 
 
 public:
