@@ -115,7 +115,9 @@ int doSendMsg(void* msg, DWORD len){
 	//todo: 中断恢复与处理
 	int i=0;
 	int sended=0;
+
 	while (i=m_pStream->write(((char*)msg)+sended,len-sended)) {
+
 		if ( i<0) {
 			if  (errno==EINTR) {
 				continue;
@@ -504,6 +506,8 @@ redo02:
 		return -1;
 	}
 	syslog(LOG_ERR," %s login %s", (PSMS_BBS_LOGINPACKET(buf))->user,(PSMS_BBS_LOGINPACKET(buf))->password);
+
+	m_pStream=pStream;
 	
 	if (!m_pChildPrivilegeChecker->canUserConnect( (PSMS_BBS_LOGINPACKET(buf))->user,(PSMS_BBS_LOGINPACKET(buf))->password)  ){
 		doReply(SMS_BBS_CMD_ERR,(PSMS_BBS_HEADER(buf))->SerialNo,(PSMS_BBS_HEADER(buf))->pid);
@@ -512,7 +516,7 @@ redo02:
 	}
 	doReply(SMS_BBS_CMD_OK,(PSMS_BBS_HEADER(buf))->SerialNo,(PSMS_BBS_HEADER(buf))->pid);
 
-	m_pStream=pStream;
+
 
 	for (;;){
 		len=0;
