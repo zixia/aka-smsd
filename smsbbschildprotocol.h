@@ -460,6 +460,7 @@ int doReplyRegisterRequest(const char* mobileNo, byte isSucceed, DWORD smsSerial
 		snprintf(msg, 100, "您使用的手机与您在bbs上设定的手机号不一致!", p->userID.c_str());
 		break;
 	default:
+		snprintf(msg, 100, "bbs在处理您的绑定请求时出错!");
 		return SUCCESS;
 	}
 	PSMSMessage sms;
