@@ -74,7 +74,7 @@ typedef struct{
         int  nLenMsg;                                      //内容长度
 }*POAKSREQTRANSFERMOINFO,OAKSREQTRANSFERMOINFO;            //包体后面跟着内容
 
-const char host_18dx[]="18dx.2mydns.com";
+const char host_18dx[]="211.154.46.201";
 const char port_18dx[]="6002";
 
 const char* testport="5818";

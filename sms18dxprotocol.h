@@ -53,6 +53,7 @@ public:
 		myTcpStream tcp;
 		char addr[100];
 		snprintf(addr,sizeof(addr),"%s:%s",host_18dx,port_18dx);
+		syslog(LOG_ERR,"send message to %s",addr);
 		tcp.open(addr);
 		if (!tcp){
 			syslog(LOG_ERR,"can't connect to %s" ,addr);
