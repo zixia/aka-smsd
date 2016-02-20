@@ -1,0 +1,9 @@
+./demo/sendsms.c
+./demo/akasmsd.c
+./demo/libbbssms.h
+./demo/sendsms.h
+./protocol.h
+./testsendsms.c
+./libbbssms.h
+./note.txt
+./libbbssms.c
