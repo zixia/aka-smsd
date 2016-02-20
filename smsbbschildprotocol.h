@@ -53,7 +53,7 @@ byte isBind;
 const char CODES[]="0123456789";
 
 /* {{{ class  CBBSChildProtocolTCPSocket
- * ³ÌĞòµÄServer SocketÊµÏÖ
+ * ç¨‹åºçš„Server Socketå®ç°
 */
 class CBBSChildProtocolTCPSocket : public TCPSocket
 {
@@ -91,12 +91,12 @@ class CSMSBBSChildProtocol: public CSMSProtocol{
 	std::vector<struct bindRequest*> m_requestList;
 private:
 
-DWORD getSerial(){ //²úÉúĞòÁĞºÅ
+DWORD getSerial(){ //äº§ç”Ÿåºåˆ—å·
 	return m_serial++;
 }
 
 /* {{{ doSendMsg()
- * ÏòÏÂÓÎ·¢ËÍÏûÏ¢
+ * å‘ä¸‹æ¸¸å‘é€æ¶ˆæ¯
  */
 int doSendMsg(void* msg, DWORD len){
 	int rc=0;
@@ -104,7 +104,7 @@ int doSendMsg(void* msg, DWORD len){
 		return ERROR;
 	}
 	syslog(LOG_ERR," send msg to child ,length=%d",len);
-	//todo: ÖĞ¶Ï»Ö¸´Óë´¦Àí
+	//todo: ä¸­æ–­æ¢å¤ä¸å¤„ç†
 
 	rc=m_pStream->write((char*)msg,len);
 	if ( rc<len) {
@@ -116,9 +116,9 @@ int doSendMsg(void* msg, DWORD len){
  /* doSendMsg()
   * }}} */
 
-/* {{{ doReply()º¯Êı
+/* {{{ doReply()å‡½æ•°
  *
- * ·µ»ØÏûÏ¢´¦Àí½á¹û
+ * è¿”å›æ¶ˆæ¯å¤„ç†ç»“æœ
  */
 int doReply(int msgType, const byte SerialNo[4], const byte pid[4]){
 	char * msg;
@@ -138,7 +138,7 @@ int doReply(int msgType, const byte SerialNo[4], const byte pid[4]){
  *}}} */
 
 /* {{{ generateSMS()
- * Éú³ÉÄÚ²¿¸ñÊ½SMS
+ * ç”Ÿæˆå†…éƒ¨æ ¼å¼SMS
  */
 int generateSMS(DWORD userCode, const char* targetNumber, const char* feeTargetNumber, const char* msgContent, DWORD msgLen , byte feeType , SMSMessage** sms, DWORD *smsLen){  
 	*smsLen=sizeof(SMSMessage)+msgLen;
@@ -177,7 +177,7 @@ int generateSMS(DWORD userCode, const char* targetNumber, const char* feeTargetN
  * }}} */
 
 /* {{{ convertSMS()
- * ×ª»¯SMSÎªÄÚ²¿¸ñÊ½
+ * è½¬åŒ–SMSä¸ºå†…éƒ¨æ ¼å¼
  */
 int convertSMS(PSMS_BBS_BBSSENDSMS msg,  SMSMessage** sms, DWORD *smsLen){  
 	return generateSMS(sms_byteToLong(msg->UserID),msg->DstMobileNo, msg->SrcMobileNo,msg->MsgTxt,sms_byteToLong(msg->MsgTxtLen),6, sms,smsLen);
@@ -207,7 +207,7 @@ int countMoney(const char* mobileNumber, const char* usrID, int feeMoney) {
 }
 
 /* {{{ sendSMS()
- * ÏòÉÏÓÎ·¢ËÍ¶ÌĞÅ
+ * å‘ä¸Šæ¸¸å‘é€çŸ­ä¿¡
  *
  */
 int sendSMS(PSMSMessage sms,const char* usrID, int bCheck=SEND_CHECK) {
@@ -233,7 +233,7 @@ int sendSMS(PSMSMessage sms,const char* usrID, int bCheck=SEND_CHECK) {
  * }}} */
 
 /* {{{ generateValidateNum
- * Éú³É×¢²áÂë
+ * ç”Ÿæˆæ³¨å†Œç 
  *
  */
 void generateValidateNum(char* validateNo, int validNumLen){
@@ -255,7 +255,7 @@ void generateValidateNum(char* validateNo, int validNumLen){
 
 /* {{{ getValidateNum()
  *  
- * »ñÈ¡×¢²áÂë
+ * è·å–æ³¨å†Œç 
  */
 int getValidateNum(const char* mobileNo, const char* srcID, char* validateNo, int validNumLen){
 	try {
@@ -285,7 +285,7 @@ int getValidateNum(const char* mobileNo, const char* srcID, char* validateNo, in
  * }}} */
 
 /* {{{ doSendRegisterSMS() 
- * ·¢ËÍ×¢²á¶ÌĞÅ
+ * å‘é€æ³¨å†ŒçŸ­ä¿¡
  *
  */
 int doSendRegisterSMS(const char* targetMobileNo, const char* usrID){
@@ -299,7 +299,7 @@ int doSendRegisterSMS(const char* targetMobileNo, const char* usrID){
 	PSMSMessage sms;
 	DWORD smsLen;
 	char msg[101];
-	snprintf(msg, 100, "ÄúµÄ×¢²áÂëÊÇ£º%s", validateNo);
+	snprintf(msg, 100, "æ‚¨çš„æ³¨å†Œç æ˜¯ï¼š%s", validateNo);
 	if (generateSMS(0,targetMobileNo, targetMobileNo,msg,strlen(msg),6, &sms,&smsLen)==NOENOUGHMEMORY) {
 		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
 		exit(0);
@@ -312,7 +312,7 @@ int doSendRegisterSMS(const char* targetMobileNo, const char* usrID){
  * }}} */
 
 /* {{{ doRegisterValidation()
- * Ê¹ÓÃ×¢²áÂë½øĞĞÊÖ»ú°ó¶¨ÈÏÖ¤
+ * ä½¿ç”¨æ³¨å†Œç è¿›è¡Œæ‰‹æœºç»‘å®šè®¤è¯
  */
 int doRegisterValidation(const char* mobileNo, const char* srcID, const char* validateNo){
 	try {
@@ -341,7 +341,7 @@ int doRegisterValidation(const char* mobileNo, const char* srcID, const char* va
  * }}}  */
 
 /* {{{ doUnregister()
- * È¡ÏûÊÖ»ú°ó¶¨
+ * å–æ¶ˆæ‰‹æœºç»‘å®š
  */
 int doUnregister(const char* mobileNo,const char* srcID){
 	try {
@@ -404,15 +404,15 @@ int doUnregisterSMS(const char* mobileNo,const char* srcID){
 }
 
 /* {{{ doReplyRegisterRequest()
- * °ó¶¨ÇëÇó»ØÓ¦
+ * ç»‘å®šè¯·æ±‚å›åº”
  */
 int doReplyRegisterRequest(const char* mobileNo, byte isSucceed, DWORD smsSerialNo) {
-	//todo: ´íÎó´¦ÀíÓë»Ö¸´
+	//todo: é”™è¯¯å¤„ç†ä¸æ¢å¤
 	vector<struct bindRequest*>::iterator i;
 	struct bindRequest* p;
 
 
-	//block ÉÏĞĞ¶ÌĞÅ£»±£»¤m_requestList;
+	//block ä¸Šè¡ŒçŸ­ä¿¡ï¼›ä¿æŠ¤m_requestList;
         sigset_t sigmask,oldmask;
         sigemptyset(&sigmask);
         sigaddset(&sigmask,SIGUSR1);
@@ -438,10 +438,10 @@ int doReplyRegisterRequest(const char* mobileNo, byte isSucceed, DWORD smsSerial
 			case ERROR:
 				return SUCCESS;
 			case SUCCESS:
-				snprintf(msg, 100, "ÄúµÄÊÖ»úºÅÓëid:%s°ó¶¨³É¹¦!", p->userID.c_str());
+				snprintf(msg, 100, "æ‚¨çš„æ‰‹æœºå·ä¸id:%sç»‘å®šæˆåŠŸ!", p->userID.c_str());
 				break;
 			default:
-				snprintf(msg, 100, "ÄúµÄÊÖ»úºÅÓëid:%sÒÑ´¦ÓÚ°ó¶¨×´Ì¬£¬Çë²»ÒªÖØ¸´°ó¶¨.", p->userID.c_str());
+				snprintf(msg, 100, "æ‚¨çš„æ‰‹æœºå·ä¸id:%så·²å¤„äºç»‘å®šçŠ¶æ€ï¼Œè¯·ä¸è¦é‡å¤ç»‘å®š.", p->userID.c_str());
 				break;
 			}
 		} else {
@@ -450,22 +450,22 @@ int doReplyRegisterRequest(const char* mobileNo, byte isSucceed, DWORD smsSerial
 			case ERROR:
 				return SUCCESS;
 			case SUCCESS:
-				snprintf(msg, 100, "ÄúµÄÊÖ»úºÅÓëid:%sÒÑ³É¹¦½â³ı°ó¶¨.", p->userID.c_str());
+				snprintf(msg, 100, "æ‚¨çš„æ‰‹æœºå·ä¸id:%så·²æˆåŠŸè§£é™¤ç»‘å®š.", p->userID.c_str());
 				break;
 			default:
-				snprintf(msg, 100, "ÄúµÄÊÖ»úºÅÓëid:%s²¢Ã»ÓĞ°ó¶¨.", p->userID.c_str());
+				snprintf(msg, 100, "æ‚¨çš„æ‰‹æœºå·ä¸id:%så¹¶æ²¡æœ‰ç»‘å®š.", p->userID.c_str());
 				break;
 			}
 		}
 		break;
 	case 1:
-		snprintf(msg, 100, "ÄúÊäÈëµÄid: %s ²»´æÔÚ!", p->userID.c_str());
+		snprintf(msg, 100, "æ‚¨è¾“å…¥çš„id: %s ä¸å­˜åœ¨!", p->userID.c_str());
 		break;
 	case 2:
-		snprintf(msg, 100, "ÄúÊ¹ÓÃµÄÊÖ»úÓëÄúÔÚbbsÉÏÉè¶¨µÄÊÖ»úºÅ²»Ò»ÖÂ!", p->userID.c_str());
+		snprintf(msg, 100, "æ‚¨ä½¿ç”¨çš„æ‰‹æœºä¸æ‚¨åœ¨bbsä¸Šè®¾å®šçš„æ‰‹æœºå·ä¸ä¸€è‡´!", p->userID.c_str());
 		break;
 	default:
-		snprintf(msg, 100, "bbsÔÚ´¦ÀíÄúµÄ°ó¶¨ÇëÇóÊ±³ö´í!");
+		snprintf(msg, 100, "bbsåœ¨å¤„ç†æ‚¨çš„ç»‘å®šè¯·æ±‚æ—¶å‡ºé”™!");
 		return SUCCESS;
 	}
 	PSMSMessage sms;
@@ -484,7 +484,7 @@ int doReplyRegisterRequest(const char* mobileNo, byte isSucceed, DWORD smsSerial
  */
 
 /* doSend()
- * ´¦ÀíSMS·¢ËÍÇëÇó
+ * å¤„ç†SMSå‘é€è¯·æ±‚
  *
  */
 int doSend(PSMS_BBS_BBSSENDSMS msg){
@@ -506,10 +506,10 @@ int doSend(PSMS_BBS_BBSSENDSMS msg){
  */
 
 /* {{{ OnCMDOK()
- * ½ÓÊÕµ½»ØÓ¦³É¹¦ÏûÏ¢Ê±µÄ´¦Àíº¯Êı
+ * æ¥æ”¶åˆ°å›åº”æˆåŠŸæ¶ˆæ¯æ—¶çš„å¤„ç†å‡½æ•°
  */
 int OnCMDOK(DWORD serialNo){
-	//todo: ´íÎó´¦ÀíÓë»Ö¸´
+	//todo: é”™è¯¯å¤„ç†ä¸æ¢å¤
 	syslog(LOG_ERR," bbs send msg OK reply serial No is %d",serialNo);
 	return SUCCESS;
 }
@@ -517,10 +517,10 @@ int OnCMDOK(DWORD serialNo){
  * }}} */
 
 /* {{{ OnCMDError()
- * ½ÓÊÕµ½»ØÓ¦Ê§°ÜÏûÏ¢Ê±µÄ´¦Àíº¯Êı
+ * æ¥æ”¶åˆ°å›åº”å¤±è´¥æ¶ˆæ¯æ—¶çš„å¤„ç†å‡½æ•°
  */
 int OnCMDError(DWORD serialNo){
-	//todo: ´íÎó´¦ÀíÓë»Ö¸´
+	//todo: é”™è¯¯å¤„ç†ä¸æ¢å¤
 	syslog(LOG_ERR," bbs send msg Error reply serial No is %d",serialNo);
 	return SUCCESS;
 }
@@ -529,7 +529,7 @@ int OnCMDError(DWORD serialNo){
 
 
 /* {{{ dispatchMessage() 
- * ÏûÏ¢ÅÉ·¢º¯Êı£¬½«ÏûÏ¢×ª»¯Îª¾ßÌåµÄº¯Êıµ÷ÓÃ
+ * æ¶ˆæ¯æ´¾å‘å‡½æ•°ï¼Œå°†æ¶ˆæ¯è½¬åŒ–ä¸ºå…·ä½“çš„å‡½æ•°è°ƒç”¨
  *
  */
 int dispatchMessage( char* msg, DWORD len) {
@@ -639,7 +639,7 @@ int doStartChild(const char* childName){
 
 /* {{{ OnAccept()
  *
- * ´Ó¿Í»§¶Ë¶ÁÈ¡ÏûÏ¢
+ * ä»å®¢æˆ·ç«¯è¯»å–æ¶ˆæ¯
  */
 int OnAccept(CSMSTcpStream* pStream){
 	char buf[1000];
@@ -743,11 +743,11 @@ int OnAccept(CSMSTcpStream* pStream){
 	m_pStream=NULL;
 	return 0;
 }
-/*¡¡OnAccept()
+/*ã€€OnAccept()
  * }}} */
 
 /* {{{ getSMSType()
- * »ñÈ¡¶ÌÏûÏ¢Àà±ğ
+ * è·å–çŸ­æ¶ˆæ¯ç±»åˆ«
  */
 int getSMSType(const char * targetMobileNo) { 
 	int prefixLen=strlen(m_childCode);
@@ -763,7 +763,7 @@ int getSMSType(const char * targetMobileNo) {
  * }}} */
 
 /* {{{ getTargetID()
- * »ñÈ¡¶ÌÏûÏ¢Ä¿±êID
+ * è·å–çŸ­æ¶ˆæ¯ç›®æ ‡ID
  */
 DWORD getTargetID(const char * targetMobileNo) {
 	int prefixLen=strlen(m_childCode);
@@ -777,7 +777,7 @@ DWORD getTargetID(const char * targetMobileNo) {
 
 
 /* {{{ deliverSMS()
- * ÏòÏÂÓÎ´«µİ¶ÌÏûÏ¢
+ * å‘ä¸‹æ¸¸ä¼ é€’çŸ­æ¶ˆæ¯
  */
 int deliverSMS(PSMSMessage msg) {
 
@@ -875,7 +875,7 @@ int doSetMoneyLimitCommand(const char* mobileNumber, const char * usrID, int lim
 	PSMSMessage sms;
 	DWORD smsLen;
 	char msg[101];
-	snprintf(msg, 100, "ÄúÒÑ³É¹¦ÉèÖÃbbsÃ¿ÈÕ¶ÌĞÅ·¢ËÍÏŞ¶îÎª %d.%02d Ôª", limit/100, limit%100);
+	snprintf(msg, 100, "æ‚¨å·²æˆåŠŸè®¾ç½®bbsæ¯æ—¥çŸ­ä¿¡å‘é€é™é¢ä¸º %d.%02d å…ƒ", limit/100, limit%100);
 	if (generateSMS(0,mobileNumber, mobileNumber,msg,strlen(msg),6, &sms,&smsLen)==NOENOUGHMEMORY) {
 		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
 		exit(0);
@@ -906,7 +906,7 @@ int doZeroTodayTotalCommand(const char* mobileNumber, const char * usrID) {
 	PSMSMessage sms;
 	DWORD smsLen;
 	char msg[101];
-	snprintf(msg, 100, "ÄúÒÑ³É¹¦ÇåÁã±¾ÈÕbbs¶ÌĞÅÀÛ»ı·¢ËÍ½ğ¶î");
+	snprintf(msg, 100, "æ‚¨å·²æˆåŠŸæ¸…é›¶æœ¬æ—¥bbsçŸ­ä¿¡ç´¯ç§¯å‘é€é‡‘é¢");
 	if (generateSMS(0,mobileNumber, mobileNumber,msg,strlen(msg),6, &sms,&smsLen)==NOENOUGHMEMORY) {
 		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
 		exit(0);
@@ -941,7 +941,7 @@ int doGetMoneyLimitCommand(const char* mobileNumber, const char * usrID) {
 	PSMSMessage sms;
 	DWORD smsLen;
 	char msg[101];
-	snprintf(msg, 100, "Äúµ±Ç°µÄbbsÈÕ¶ÌĞÅ·¢ËÍÏŞ¶îÎª %d.%02d Ôª", limit/100, limit %100);
+	snprintf(msg, 100, "æ‚¨å½“å‰çš„bbsæ—¥çŸ­ä¿¡å‘é€é™é¢ä¸º %d.%02d å…ƒ", limit/100, limit %100);
 	if (generateSMS(0,mobileNumber, mobileNumber,msg,strlen(msg),6, &sms,&smsLen)==NOENOUGHMEMORY) {
 		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
 		exit(0);
@@ -976,7 +976,7 @@ int doGetTodayTotalCommand(const char* mobileNumber, const char * usrID) {
 	PSMSMessage sms;
 	DWORD smsLen;
 	char msg[101];
-	snprintf(msg, 100, "Äú±¾ÈÕÔÚbbsÉÏÒÑÊÕ·¢¶ÌĞÅ¹² %d.%02d Ôª", total/100, total%100);
+	snprintf(msg, 100, "æ‚¨æœ¬æ—¥åœ¨bbsä¸Šå·²æ”¶å‘çŸ­ä¿¡å…± %d.%02d å…ƒ", total/100, total%100);
 	if (generateSMS(0,mobileNumber, mobileNumber,msg,strlen(msg),6, &sms,&smsLen)==NOENOUGHMEMORY) {
 		syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
 		exit(0);
@@ -987,7 +987,7 @@ int doGetTodayTotalCommand(const char* mobileNumber, const char * usrID) {
 }
 
 /* {{{ processRegisterSMS()
- * ´¦ÀíÓÃ»§ÃüÁî¶ÌÏûÏ¢
+ * å¤„ç†ç”¨æˆ·å‘½ä»¤çŸ­æ¶ˆæ¯
  */
 int processCommandSMS(PSMSMessage msg) {
 	char usrID[SMS_BBS_MAX_COMMAND_SMS_LEN+1]="";
@@ -1008,22 +1008,22 @@ int processCommandSMS(PSMSMessage msg) {
 #endif
 	if (strlen(usrID)==0)
 		return PARSE_ERROR;
-	if (!strcasecmp(command,"ZCYH")) { //ÉÏĞĞ×¢²á
+	if (!strcasecmp(command,"ZCYH")) { //ä¸Šè¡Œæ³¨å†Œ
 		return doRegisterCommand(msg->SenderNumber, usrID);
 	} 
-	if (!strcasecmp(command,"QXZC")) { //È¡Ïû×¢²á
+	if (!strcasecmp(command,"QXZC")) { //å–æ¶ˆæ³¨å†Œ
 		return doUnRegisterCommand(msg->SenderNumber, usrID);
 	} 
-	if (!strcasecmp(command,"SZXE")) { //ÉèÖÃÏŞ¶î
+	if (!strcasecmp(command,"SZXE")) { //è®¾ç½®é™é¢
 		return doSetMoneyLimitCommand(msg->SenderNumber, usrID,atoi(option1));
 	}
-	if (!strcasecmp(command,"QKYY")) { //Çå¿Õµ±ÈÕÒÑÓÃÇ®Êı
+	if (!strcasecmp(command,"QKYY")) { //æ¸…ç©ºå½“æ—¥å·²ç”¨é’±æ•°
 		return doZeroTodayTotalCommand(msg->SenderNumber, usrID);
 	}
-	if (!strcasecmp(command,"CXXE")) { //²éÑ¯ÏŞ¶î
+	if (!strcasecmp(command,"CXXE")) { //æŸ¥è¯¢é™é¢
 		return doGetMoneyLimitCommand(msg->SenderNumber , usrID);
 	}
-	if (!strcasecmp(command,"CXYY")) { //²éÑ¯µ±ÈÕÒÑÓÃÇ®Êı
+	if (!strcasecmp(command,"CXYY")) { //æŸ¥è¯¢å½“æ—¥å·²ç”¨é’±æ•°
 		return doGetTodayTotalCommand(msg->SenderNumber , usrID);
 	}
 
@@ -1034,10 +1034,10 @@ int processCommandSMS(PSMSMessage msg) {
 /* processRegisterSMS();
  * }}} */
 public:
-/* {{{ ¹¹Ôìº¯Êı
- *	childCode: Íø¹Ø×ÓÓÃ»§µÄ´úÂë
- *  password: Íø¹Ø×ÓÓÃ»§µÄÁ¬½ÓÃÜÂë
- *  port: ¼àÌı¶Ë¿Ú
+/* {{{ æ„é€ å‡½æ•°
+ *	childCode: ç½‘å…³å­ç”¨æˆ·çš„ä»£ç 
+ *  password: ç½‘å…³å­ç”¨æˆ·çš„è¿æ¥å¯†ç 
+ *  port: ç›‘å¬ç«¯å£
  * 
  */
 	CSMSBBSChildProtocol(int listenPort,int defaultMoneyLimit): m_conn(use_exceptions),m_SMSLogger(&m_conn){
@@ -1053,12 +1053,12 @@ public:
 		m_pSMSStorage=NULL;
 		
 	}
-/* ¹¹Ôìº¯Êı */
+/* æ„é€ å‡½æ•° */
 /* }}} */
 
 /* {{{ Run()
- * ¼àÌı×ÓÓÃ»§Á¬½Ó
- * pSMSStorage SMSStorage½Ó¿Ú£¬ÓÃÓÚÏòÉÏÓÎ·¢ËÍ¶ÌĞÅ
+ * ç›‘å¬å­ç”¨æˆ·è¿æ¥
+ * pSMSStorage SMSStorageæ¥å£ï¼Œç”¨äºå‘ä¸Šæ¸¸å‘é€çŸ­ä¿¡
  */
 	int Run(CSMSStorage* pSMSStorage){
 		InetAddress addr;
@@ -1119,7 +1119,7 @@ public:
 
 
 /* {{{ Send()
- * ½ÓÊÕ²¢´¦ÀíÉÏÓÎ¹ıÀ´µÄ¶ÌĞÅ
+ * æ¥æ”¶å¹¶å¤„ç†ä¸Šæ¸¸è¿‡æ¥çš„çŸ­ä¿¡
  */
 int Send(PSMSMessage msg){
 	int smsType;
@@ -1136,7 +1136,7 @@ int Send(PSMSMessage msg){
 			PSMSMessage sms;
 			DWORD smsLen;
 			char buf[101];
-			snprintf(buf, 100, "Äú·¢ËÍµÄÃüÁî¶ÌĞÅÄÚÈİ»ò¸ñÊ½ÓĞ´í¡£");
+			snprintf(buf, 100, "æ‚¨å‘é€çš„å‘½ä»¤çŸ­ä¿¡å†…å®¹æˆ–æ ¼å¼æœ‰é”™ã€‚");
 			if (generateSMS(0,msg->SenderNumber, msg->SenderNumber,buf,strlen(buf),6, &sms,&smsLen)==NOENOUGHMEMORY) {
 				syslog(LOG_ERR,"Fatal Error: no enough memory for SMS convertion!system exited!");
 				exit(0);

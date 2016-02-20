@@ -17,7 +17,7 @@
 namespace SMS{
 
 
-#define MOBILENUMBERLENGTH 16  //ºÅÂë³¤¶È
+#define MOBILENUMBERLENGTH 16  //å·ç é•¿åº¦
 #define FEETYPE_DEFAULT 1;
 
 #define SMSTYPE_TEXT	1;
@@ -31,7 +31,7 @@ namespace SMS{
 #define FALSE 0
 #endif
 
-//·µ»ØÖµ¶¨Òå
+//è¿”å›å€¼å®šä¹‰
 #define SUCCESS 0
 #define NOSEVEREERROR	1
 #define TIMEOUT	-100
@@ -55,8 +55,8 @@ namespace SMS{
 #define SMS_PARENTID_LEN 80
 #define SMS_FEECODE_LEN		10
 
-#define SMS_MAXCHILDCODE_LEN 4	//×î´ó×Ó¿Í»§´úÂë³¤¶È
-#define SMS_MAXCHILDNAME_LEN 50 //×î´ó×Ó¿Í»§Ãû³Æ³¤¶È
+#define SMS_MAXCHILDCODE_LEN 4	//æœ€å¤§å­å®¢æˆ·ä»£ç é•¿åº¦
+#define SMS_MAXCHILDNAME_LEN 50 //æœ€å¤§å­å®¢æˆ·åç§°é•¿åº¦
 	
 typedef uint8_t byte;
 

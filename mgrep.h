@@ -5,11 +5,11 @@
 #define MAXLINE 1024
 #define MAXSYM  256
 #define MAXMEMBER1 4096
-#define MAXPATFILE 2600 /*patternÎÄ¼şµÄ×î´ó³¤¶È*/
-#define BLOCKSIZE  8192  /*ÓÃÓÚÔ¤¶ÁµÄÊı¾İ´óĞ¡*/
-#define MAXHASH    512  /*patternÊ¹ÓÃµÄhash±í´óĞ¡*/
-#define mm 	   511  /*ÓÃÓÚhashÖµµÄÈ¡Ä£ÔËËã*/
-#define max_num    200 /*×î´óµÄpattern¸öÊı*/
+#define MAXPATFILE 2600 /*patternæ–‡ä»¶çš„æœ€å¤§é•¿åº¦*/
+#define BLOCKSIZE  8192  /*ç”¨äºé¢„è¯»çš„æ•°æ®å¤§å°*/
+#define MAXHASH    512  /*patternä½¿ç”¨çš„hashè¡¨å¤§å°*/
+#define mm 	   511  /*ç”¨äºhashå€¼çš„å–æ¨¡è¿ç®—*/
+#define max_num    200 /*æœ€å¤§çš„patternä¸ªæ•°*/
 #define W_DELIM	   128
 #define L_DELIM    10
 

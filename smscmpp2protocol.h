@@ -26,12 +26,12 @@ using namespace ost;
 
 //#define GWIP	"210.51.0.210"
 
-#define WAITTIME	60 //100Ãë
+#define WAITTIME	60 //100ç§’
 
-//C¡¢T¡¢NÎªÍ¨Â·¼ì²é²ÎÊý£¬¾ßÌåº¬Òå¿É²Î¿¼CMPP2 Ð­Òé6.1
-#define LINK_C		180 //3·ÖÖÓ
-#define LINK_T		60  //60Ãë
-#define LINK_N		3   //3´Î
+//Cã€Tã€Nä¸ºé€šè·¯æ£€æŸ¥å‚æ•°ï¼Œå…·ä½“å«ä¹‰å¯å‚è€ƒCMPP2 åè®®6.1
+#define LINK_C		180 //3åˆ†é’Ÿ
+#define LINK_T		60  //60ç§’
+#define LINK_N		3   //3æ¬¡
 
 namespace SMS {
 
@@ -132,7 +132,7 @@ int dispatchMsg(PCMPP_HEADER pHead, int waitTime ) {
 	int msgLen=pHead->Total_Length-sizeof(CMMP_HEADER);
 	syslog(LOG_ERR,"recieving  & dispatching msg...");
 	syslog(LOG_ERR,"msg sn: %d type :0x%X length: %d",pHead->Sequence_Id,pHead->Command_Id, msgLen);
-//¼ì²émsgÀàÐÍºÍ³¤¶ÈÊÇ·ñºÏ·¨
+//æ£€æŸ¥msgç±»åž‹å’Œé•¿åº¦æ˜¯å¦åˆæ³•
 	switch (pHead->Command_id) {
 		case CMPP_CMD_CONNECT_RESP :
 			if (msgLen!=sizeof(CMPP_CONNECT_RESP)) {
@@ -324,20 +324,20 @@ public:
 apiSend(  DWORD msg_id1,DWORD	msg_id2,	char mobile[21],char 	service_id[10],char		 src_term[21],	char		 fee_term[21],	char msg[160],char 	udhi,BYTE 		pid,	BYTE	 isReply,	WORD 	msg_len,	BYTE msg_fmt);
   
 
-  ²ÎÊýËµÃ÷:
-msg_id1:   ÓÃ»§ÐÅÏ¢idºÅ
-msg_id2:   ±£Áô²ÎÊý=0
-mobile[21]:   ½ÓÊÕºÅÂë
-           service_id:   ·þÎñ´úÂë. ÀýÈç-lsxz
-      	 src_term[21]:   ·¢ËÍÔ´ºÅÂë(ÔÚ½ÓÊÕÊÖ»ú¶ËÏÔÊ¾µÄ·¢ËÍÕßºÅÂë)±ÈÈç '51687001' 
-         fee_term[21]:   ¼Æ·ÑºÅÂë(ÎªÊÖ»úºÅÂë,¼´´ÓÄÄ¸öÊÖ»úÉÏÊÕ·Ñ)
-           msg[160]:   ·¢ËÍÐÅÏ¢
-udhi:   Í·±êÊ¾(Êý¾ÝÎª¶þ½øÖÆÊ±¿ÉÄÜÓÐÒâÒå£¬ÎÄ±¾ÐÅÏ¢Ìî0)
-pid:    Ð­ÒéID(Êý¾ÝÎª¶þ½øÖÆÊ±¿ÉÄÜÓÐÒâÒå£¬ÎÄ±¾ÐÅÏ¢Ìî0)
-isReply:   ÊÇ·ñÐèÒª×´Ì¬±¨¸æ£¬Ä¿Ç°APIÄÚÖÃ1£¬±íÃ÷ÐèÒª×´Ì¬±¨¸æ¡£
-msg_len:  ·¢ËÍÏûÏ¢³¤¶È
-msg_fmt:   ÐÅÏ¢ÀàÐÍ £¨0£ºASCII´®  3£º¶ÌÐÅÐ´¿¨²Ù×÷  4£º¶þ½øÖÆ
- 8£ºUCS2±àÂë15£ºº¬GBºº×Ö£©
+  å‚æ•°è¯´æ˜Ž:
+msg_id1:   ç”¨æˆ·ä¿¡æ¯idå·
+msg_id2:   ä¿ç•™å‚æ•°=0
+mobile[21]:   æŽ¥æ”¶å·ç 
+           service_id:   æœåŠ¡ä»£ç . ä¾‹å¦‚-lsxz
+      	 src_term[21]:   å‘é€æºå·ç (åœ¨æŽ¥æ”¶æ‰‹æœºç«¯æ˜¾ç¤ºçš„å‘é€è€…å·ç )æ¯”å¦‚ '51687001' 
+         fee_term[21]:   è®¡è´¹å·ç (ä¸ºæ‰‹æœºå·ç ,å³ä»Žå“ªä¸ªæ‰‹æœºä¸Šæ”¶è´¹)
+           msg[160]:   å‘é€ä¿¡æ¯
+udhi:   å¤´æ ‡ç¤º(æ•°æ®ä¸ºäºŒè¿›åˆ¶æ—¶å¯èƒ½æœ‰æ„ä¹‰ï¼Œæ–‡æœ¬ä¿¡æ¯å¡«0)
+pid:    åè®®ID(æ•°æ®ä¸ºäºŒè¿›åˆ¶æ—¶å¯èƒ½æœ‰æ„ä¹‰ï¼Œæ–‡æœ¬ä¿¡æ¯å¡«0)
+isReply:   æ˜¯å¦éœ€è¦çŠ¶æ€æŠ¥å‘Šï¼Œç›®å‰APIå†…ç½®1ï¼Œè¡¨æ˜Žéœ€è¦çŠ¶æ€æŠ¥å‘Šã€‚
+msg_len:  å‘é€æ¶ˆæ¯é•¿åº¦
+msg_fmt:   ä¿¡æ¯ç±»åž‹ ï¼ˆ0ï¼šASCIIä¸²  3ï¼šçŸ­ä¿¡å†™å¡æ“ä½œ  4ï¼šäºŒè¿›åˆ¶
+ 8ï¼šUCS2ç¼–ç 15ï¼šå«GBæ±‰å­—ï¼‰
 */     
 		len=msg->SMSBodyLength;
 		if (len>159) 

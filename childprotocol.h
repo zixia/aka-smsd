@@ -1,23 +1,23 @@
 #ifndef SMS_A6CC8CFE_F731_4b1d_9373_9F0A880D48B2
 #define SMS_A6CC8CFE_F731_4b1d_9373_9F0A880D48B2
-/*   ÓëÏÂÓÎÍ¨Ñ¶Ğ­Òé¶¨Òå */
+/*   ä¸ä¸‹æ¸¸é€šè®¯åè®®å®šä¹‰ */
 
 namespace SMS {
 
 #define FEETYPE_1 1
 
-//¶ÌĞÅÀàĞÍ³£Á¿¶¨Òå
+//çŸ­ä¿¡ç±»å‹å¸¸é‡å®šä¹‰
 
 #define testport "4000"
 
-//ÏûÏ¢ÀàĞÍ³£Á¿¶¨Òå
+//æ¶ˆæ¯ç±»å‹å¸¸é‡å®šä¹‰
 #define MSGTYPE_SM		0
 #define MSGTYPE_SMR		1
 #define MSGTYPE_SMS		2
 #define MSGTYPE_RM		3
 #define MSGTYPE_CD		4
 #define MSGTYPE_CDR		5
-#define MSGTYPE_PWD		10    //ÑéÖ¤Á¬½ÓÃÜÂë
+#define MSGTYPE_PWD		10    //éªŒè¯è¿æ¥å¯†ç 
 
 #define CONNECTION_USER_LEN		20
 #define CONNECTION_PASSWORD_LEN 50
@@ -25,26 +25,26 @@ namespace SMS {
 
 
 typedef struct _SMSChildProtocolHead{
-	byte msgTypeID;	//ÏûÏ¢ÀàĞÍ
-	byte SMSSerialNo[4];		//ÓÉÏûÏ¢Ö÷¶¯²úÉú·½Éú³ÉµÄĞÅÏ¢ĞòÁĞºÅ£¬¸ßÎ»ÔÚÇ°
-	byte msgLength[4]; //²»°üÀ¨Í·ĞÅÏ¢µÄÏûÏ¢Ìå³¤¶È£¨×Ö½ÚÊı£©¸ßÎ»ÔÚÇ°£¬µÍÎ»ÔÚºó
-	byte unused[4];	//±£Áô£¬½«À´×öchecksum
+	byte msgTypeID;	//æ¶ˆæ¯ç±»å‹
+	byte SMSSerialNo[4];		//ç”±æ¶ˆæ¯ä¸»åŠ¨äº§ç”Ÿæ–¹ç”Ÿæˆçš„ä¿¡æ¯åºåˆ—å·ï¼Œé«˜ä½åœ¨å‰
+	byte msgLength[4]; //ä¸åŒ…æ‹¬å¤´ä¿¡æ¯çš„æ¶ˆæ¯ä½“é•¿åº¦ï¼ˆå­—èŠ‚æ•°ï¼‰é«˜ä½åœ¨å‰ï¼Œä½ä½åœ¨å
+	byte unused[4];	//ä¿ç•™ï¼Œå°†æ¥åšchecksum
 } SMSChildProtocolHead, *PSMSChildProtocolHead;
 
-typedef struct _SMSChildProtocolCommon { //ÓÃÓÚ´¦ÀíÏûÏ¢Í·µÄ½á¹¹
-	SMSChildProtocolHead head;		//Í·ĞÅÏ¢	
+typedef struct _SMSChildProtocolCommon { //ç”¨äºå¤„ç†æ¶ˆæ¯å¤´çš„ç»“æ„
+	SMSChildProtocolHead head;		//å¤´ä¿¡æ¯	
 } SMSChildProtocolCommon, *PSMSChildProtocolCommon;
 
 
-typedef struct _SMSChildProtocolSendMessage { //ÏÂÓÎÍø¹ØµÄ·¢ËÍ¶ÌĞÅÏûÏ¢
-	SMSChildProtocolHead head;		//Í·ĞÅÏ¢
-	char senderNo[MOBILENUMBERLENGTH+1];  //¶ÌĞÅµÄ·¢ËÍ·½ºÅÂë
-	char targetNo[MOBILENUMBERLENGTH+1];	//¶ÌĞÅµÄ½ÓÊÕ·½ºÅÂë
-	char feeTargetNo[MOBILENUMBERLENGTH+1];		//±¾´Î¶ÌĞÅ¼Æ·ÑµÄ¶ÔÏóºÅÂë
-	byte feeTypeID;				//		ÊÕ·ÑÀàĞÍ´úÂë
-	byte smsTypeID;				//		¶ÌĞÅÀàĞÍ
-	byte smsBodyLength[4];		//¶ÌĞÅÄÚÈİ³¤¶È£¨×Ö½Ú£© ¸ßÎ»ÔÚÇ°£¬µÍÎ»ÔÚºó
-	char smsBody[0];		//¶ÌĞÅÄÚÈİ
+typedef struct _SMSChildProtocolSendMessage { //ä¸‹æ¸¸ç½‘å…³çš„å‘é€çŸ­ä¿¡æ¶ˆæ¯
+	SMSChildProtocolHead head;		//å¤´ä¿¡æ¯
+	char senderNo[MOBILENUMBERLENGTH+1];  //çŸ­ä¿¡çš„å‘é€æ–¹å·ç 
+	char targetNo[MOBILENUMBERLENGTH+1];	//çŸ­ä¿¡çš„æ¥æ”¶æ–¹å·ç 
+	char feeTargetNo[MOBILENUMBERLENGTH+1];		//æœ¬æ¬¡çŸ­ä¿¡è®¡è´¹çš„å¯¹è±¡å·ç 
+	byte feeTypeID;				//		æ”¶è´¹ç±»å‹ä»£ç 
+	byte smsTypeID;				//		çŸ­ä¿¡ç±»å‹
+	byte smsBodyLength[4];		//çŸ­ä¿¡å†…å®¹é•¿åº¦ï¼ˆå­—èŠ‚ï¼‰ é«˜ä½åœ¨å‰ï¼Œä½ä½åœ¨å
+	char smsBody[0];		//çŸ­ä¿¡å†…å®¹
 }SMSChildProtocolSendMessage, *PSMSChildProtocolSendMessage; 
 
 #define MSG_OK					0
@@ -56,41 +56,41 @@ typedef struct _SMSChildProtocolSendMessage { //ÏÂÓÎÍø¹ØµÄ·¢ËÍ¶ÌĞÅÏûÏ¢
 #define MSGERR_SMSLEN			41
 #define MSGERR_MSGTYPE			51
 
-typedef struct _SMSChildProtocolSendMessgeReceived{ //±¾µØÍø¹Ø½ÓÊÜµ½·¢ËÍ¶ÌĞÅÏûÏ¢Ö®ºóµÄ·µ»Ø
-	SMSChildProtocolHead head;		//Í·ĞÅÏ¢
-	byte SerialNo[4];			//ÓÉ±¾µØÍø¹ØÉú³ÉµÄĞÅÏ¢ĞòÁĞºÅ£¬¸ßÎ»ÔÚÇ°
-	byte ErrorNo;			 //¶Ô·¢ËÍ¶ÌĞÅÏûÏ¢ÄÚÈİvalidateÖ®ºóµÄ½á¹û
+typedef struct _SMSChildProtocolSendMessgeReceived{ //æœ¬åœ°ç½‘å…³æ¥å—åˆ°å‘é€çŸ­ä¿¡æ¶ˆæ¯ä¹‹åçš„è¿”å›
+	SMSChildProtocolHead head;		//å¤´ä¿¡æ¯
+	byte SerialNo[4];			//ç”±æœ¬åœ°ç½‘å…³ç”Ÿæˆçš„ä¿¡æ¯åºåˆ—å·ï¼Œé«˜ä½åœ¨å‰
+	byte ErrorNo;			 //å¯¹å‘é€çŸ­ä¿¡æ¶ˆæ¯å†…å®¹validateä¹‹åçš„ç»“æœ
 } SMSChildProtocolSendMessgeReceived, *PSMSChildProtocolSendMessgeReceived;
 
 #define SEND_OK					0
 
-typedef struct _SMSChildProtocolSendMessageSended{ //±¾µØÍø¹Ø³É¹¦·¢ËÍ¶ÌĞÅÏûÏ¢Ö®ºóµÄ·µ»Ø
-	SMSChildProtocolHead head;		//Í·ĞÅÏ¢
-	byte SerialNo[4];			//ÓÉ±¾µØÍø¹ØÉú³ÉµÄĞÅÏ¢ĞòÁĞºÅ£¬¸ßÎ»ÔÚÇ°
-	byte ErrorNo;			 //·¢ËÍ½á¹û
+typedef struct _SMSChildProtocolSendMessageSended{ //æœ¬åœ°ç½‘å…³æˆåŠŸå‘é€çŸ­ä¿¡æ¶ˆæ¯ä¹‹åçš„è¿”å›
+	SMSChildProtocolHead head;		//å¤´ä¿¡æ¯
+	byte SerialNo[4];			//ç”±æœ¬åœ°ç½‘å…³ç”Ÿæˆçš„ä¿¡æ¯åºåˆ—å·ï¼Œé«˜ä½åœ¨å‰
+	byte ErrorNo;			 //å‘é€ç»“æœ
 }SMSChildProtocolSendMessageSended, *PSMSChildProtocolSendMessageSended;
 
-typedef struct _SMSChildProtocolReceivedMessage{ //±¾µØÍø¹Ø×ª·¢¸øÏÂÓÎµÄ¶ÌĞÅ
-	SMSChildProtocolHead head;		//Í·ĞÅÏ¢
-	char senderNo[MOBILENUMBERLENGTH+1];  //¶ÌĞÅµÄ·¢ËÍ·½ºÅÂë
-	char targetNo[MOBILENUMBERLENGTH+1];	//¶ÌĞÅµÄ½ÓÊÕ·½ºÅÂë
-	byte smsTypeID;				//		¶ÌĞÅÀàĞÍ
-	byte smsLength[4];		//¶ÌĞÅÄÚÈİ³¤¶È£¨×Ö½Ú£© ¸ßÎ»ÔÚÇ°£¬µÍÎ»ÔÚºó
-	char smsBody[0];		//¶ÌĞÅÄÚÈİ
+typedef struct _SMSChildProtocolReceivedMessage{ //æœ¬åœ°ç½‘å…³è½¬å‘ç»™ä¸‹æ¸¸çš„çŸ­ä¿¡
+	SMSChildProtocolHead head;		//å¤´ä¿¡æ¯
+	char senderNo[MOBILENUMBERLENGTH+1];  //çŸ­ä¿¡çš„å‘é€æ–¹å·ç 
+	char targetNo[MOBILENUMBERLENGTH+1];	//çŸ­ä¿¡çš„æ¥æ”¶æ–¹å·ç 
+	byte smsTypeID;				//		çŸ­ä¿¡ç±»å‹
+	byte smsLength[4];		//çŸ­ä¿¡å†…å®¹é•¿åº¦ï¼ˆå­—èŠ‚ï¼‰ é«˜ä½åœ¨å‰ï¼Œä½ä½åœ¨å
+	char smsBody[0];		//çŸ­ä¿¡å†…å®¹
 }SMSChildProtocolReceivedMessage, *PSMSChildProtocolReceivedMessage;
 
-typedef struct _SMSChildProtocolConnectionDetect{ //±¾µØÍø¹Ø¶ÔÏÂÓÎ½øĞĞ×´Ì¬¼ì²â
-	SMSChildProtocolHead head;		//Í·ĞÅÏ¢
-	byte SerialNo[4];			//ÓÉ±¾µØÍø¹ØÉú³ÉµÄĞÅÏ¢ĞòÁĞºÅ£¬¸ßÎ»ÔÚÇ°
+typedef struct _SMSChildProtocolConnectionDetect{ //æœ¬åœ°ç½‘å…³å¯¹ä¸‹æ¸¸è¿›è¡ŒçŠ¶æ€æ£€æµ‹
+	SMSChildProtocolHead head;		//å¤´ä¿¡æ¯
+	byte SerialNo[4];			//ç”±æœ¬åœ°ç½‘å…³ç”Ÿæˆçš„ä¿¡æ¯åºåˆ—å·ï¼Œé«˜ä½åœ¨å‰
 }	SMSChildProtocolConnectionDetect, *PSMSChildProtocolConnectionDetect;
 
-typedef struct _SMSChildProtocolReply{ //ÏÂÓÎ¶Ô±¾µØÍø¹Ø×´Ì¬¼ì²âµÄ»Ø¸´
-	SMSChildProtocolHead head;		//Í·ĞÅÏ¢
-	byte SerialNo[4];			//ÓÉ±¾µØÍø¹ØÉú³ÉµÄĞÅÏ¢ĞòÁĞºÅ£¬¸ßÎ»ÔÚÇ°
+typedef struct _SMSChildProtocolReply{ //ä¸‹æ¸¸å¯¹æœ¬åœ°ç½‘å…³çŠ¶æ€æ£€æµ‹çš„å›å¤
+	SMSChildProtocolHead head;		//å¤´ä¿¡æ¯
+	byte SerialNo[4];			//ç”±æœ¬åœ°ç½‘å…³ç”Ÿæˆçš„ä¿¡æ¯åºåˆ—å·ï¼Œé«˜ä½åœ¨å‰
 }	SMSChildProtocolReply, *PSMSChildProtocolReply;
 
-typedef struct _SMSChildProtocolPassword{ //ÑéÖ¤Á¬½ÓÓÃ»§ÃûºÍÃÜÂë
-	SMSChildProtocolHead head;		//Í·ĞÅÏ¢
+typedef struct _SMSChildProtocolPassword{ //éªŒè¯è¿æ¥ç”¨æˆ·åå’Œå¯†ç 
+	SMSChildProtocolHead head;		//å¤´ä¿¡æ¯
 	char user[CONNECTION_USER_LEN];			
 	char password[CONNECTION_PASSWORD_LEN];
 }	SMSChildProtocolPassword, *PSMSChildProtocolPassword;

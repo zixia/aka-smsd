@@ -1,76 +1,76 @@
-	#define OAKSID_REQ                                                   0x00000000     // ÇëÇóÏûÏ¢ÀàÐÍ±êÖ¾
-	#define OAKSID_ACK                                                   0x80000000     // Ó¦´ðÏûÏ¢ÀàÐÍ±êÖ¾
-	#define BUFLEN_MOBILENO                                               (15+1)       //ÊÖ»úºÅÂë³¤¶È 
+	#define OAKSID_REQ                                                   0x00000000     // è¯·æ±‚æ¶ˆæ¯ç±»åž‹æ ‡å¿—
+	#define OAKSID_ACK                                                   0x80000000     // åº”ç­”æ¶ˆæ¯ç±»åž‹æ ‡å¿—
+	#define BUFLEN_MOBILENO                                               (15+1)       //æ‰‹æœºå·ç é•¿åº¦ 
 	#define MOBILE_ID_LEN							19
 	
-	//ÆäÖÐ,
-	//·¢ËÍ°üÍ·¶¨ÒåÎª
+	//å…¶ä¸­,
+	//å‘é€åŒ…å¤´å®šä¹‰ä¸º
 	typedef  struct _tagOAKSREQHeader{
-		 DWORD   dwType;                     //ÏûÏ¢ÀàÐÍ
-		 DWORD   dwLength;                   //ÏûÏ¢Ìå³¤¶È(²»°üÀ¨Í·ÐÅÏ¢)
-		 DWORD   dwCheckSum;                 //Ä¿Ç°Ê¼ÖÕÌî0¼´¿É
+		 DWORD   dwType;                     //æ¶ˆæ¯ç±»åž‹
+		 DWORD   dwLength;                   //æ¶ˆæ¯ä½“é•¿åº¦(ä¸åŒ…æ‹¬å¤´ä¿¡æ¯)
+		 DWORD   dwCheckSum;                 //ç›®å‰å§‹ç»ˆå¡«0å³å¯
 	}OAKSREQHEADER,*POAKSREQHEADER; 
-	//ÊÕ·Ñ´úÂë(FeeID)¶¨ÒåÎª
-	//1                           Ãâ·Ñ(sp³Ðµ£Í¨µÀ·Ñ)
-	//2                           0.20Ôª
-	//4                           1.00Ôª
-	//25                          2.00Ôª
-	//0.5ÔªµÄ´úÂëÏÖÔÚ´ý¶¨
+	//æ”¶è´¹ä»£ç (FeeID)å®šä¹‰ä¸º
+	//1                           å…è´¹(spæ‰¿æ‹…é€šé“è´¹)
+	//2                           0.20å…ƒ
+	//4                           1.00å…ƒ
+	//25                          2.00å…ƒ
+	//0.5å…ƒçš„ä»£ç çŽ°åœ¨å¾…å®š
 
-	//·¢ËÍ°ü½á¹¹¶¨Òå
+	//å‘é€åŒ…ç»“æž„å®šä¹‰
 	#define OAKSID_SM_ZIXIASENDTEXT                                      0x00000200     
 	typedef struct{
 		 OAKSREQHEADER header;                      
-		 int  nSerialID;                                  //ÐòÁÐºÅid,Ö±½ÓÔÚ»Ø¸´µÄÊ±ºòÐ´ÉÏ.
-		 char szSrcMobileNo[BUFLEN_MOBILENO];             //·¢ËÍ·½ÊÖ»úºÅÂë
-		 char szDstMobileNo[BUFLEN_MOBILENO];             //½ÓÊÕ·½ÊÖ»úºÅÂë
-		 int  nFeeID;                                     //ÊÕ·Ñid, ¶¨Òå¼ûºóÃæ
-		 int  nSendDate;                                  //·¢ËÍÈÕÆÚ£¬=0±íÊ¾ÂíÉÏ·¢ËÍ£¬ÆäËü¶¨ÆÚ·¢ËÍ£¬¸ñÊ½YYMMDDHHMI(ÆäÖÐYY¡¢MM¡¢DD¾ù¿ÉÎª0£¬Îª0Ê±±íÊ¾Ã¿Äê¡¢ÔÂ¡¢ÈÕ)
-		 int  lenText;                                    //ÏûÏ¢Êý¾Ý³¤¶È£¬½ô¸úÔÚÏûÏ¢ÌåºóÃæ
-		 char szMobileID[MOBILE_ID_LEN+1];				//ÏûÏ¢·¢ËÍ·½Ê¶±ðºÅÂë 
+		 int  nSerialID;                                  //åºåˆ—å·id,ç›´æŽ¥åœ¨å›žå¤çš„æ—¶å€™å†™ä¸Š.
+		 char szSrcMobileNo[BUFLEN_MOBILENO];             //å‘é€æ–¹æ‰‹æœºå·ç 
+		 char szDstMobileNo[BUFLEN_MOBILENO];             //æŽ¥æ”¶æ–¹æ‰‹æœºå·ç 
+		 int  nFeeID;                                     //æ”¶è´¹id, å®šä¹‰è§åŽé¢
+		 int  nSendDate;                                  //å‘é€æ—¥æœŸï¼Œ=0è¡¨ç¤ºé©¬ä¸Šå‘é€ï¼Œå…¶å®ƒå®šæœŸå‘é€ï¼Œæ ¼å¼YYMMDDHHMI(å…¶ä¸­YYã€MMã€DDå‡å¯ä¸º0ï¼Œä¸º0æ—¶è¡¨ç¤ºæ¯å¹´ã€æœˆã€æ—¥)
+		 int  lenText;                                    //æ¶ˆæ¯æ•°æ®é•¿åº¦ï¼Œç´§è·Ÿåœ¨æ¶ˆæ¯ä½“åŽé¢
+		 char szMobileID[MOBILE_ID_LEN+1];				//æ¶ˆæ¯å‘é€æ–¹è¯†åˆ«å·ç  
 	}OAKSREQSMZIXIASENDTEXT,*POAKSREQSMZIXIASENDTEXT; 
 
 
-	//½ÓÊÕ°üÍ·¶¨ÒåÎª
+	//æŽ¥æ”¶åŒ…å¤´å®šä¹‰ä¸º
 	typedef  struct _tagOAKSHeader{
-		 DWORD   dwType;                     //ÏûÏ¢ÀàÐÍ
-		 DWORD   dwLength;                   //ÏûÏ¢Ìå³¤¶È(²»°üÀ¨Í·ÐÅÏ¢)
-		 DWORD   dwResult;                   //½á¹û·µ»Ø
+		 DWORD   dwType;                     //æ¶ˆæ¯ç±»åž‹
+		 DWORD   dwLength;                   //æ¶ˆæ¯ä½“é•¿åº¦(ä¸åŒ…æ‹¬å¤´ä¿¡æ¯)
+		 DWORD   dwResult;                   //ç»“æžœè¿”å›ž
 	}OAKSACKHEADER,*POAKSACKHEADER; 
 
-	//»Ø¸´°ü½á¹¹¶¨Òå
+	//å›žå¤åŒ…ç»“æž„å®šä¹‰
 	typedef struct{
 		 OAKSACKHEADER header;
-		 int  nSerialID;                                //ÐòÁÐºÅid, »Ø¸´µÄÊ±ºòÌíÐ´.
+		 int  nSerialID;                                //åºåˆ—å·id, å›žå¤çš„æ—¶å€™æ·»å†™.
 	}OAKSACKSMZIXIASENDTEXT,*POAKSACKSMZIXIASENDTEXT;
 
 
 
-	//·µ»ØÖµ·ÅÔÚheaderÖÐµÄdwResult £¬ ¶¨ÒåÎª£º
-	#define		OAKSBIT_SUCCESS								1				//·¢ËÍ³É¹¦
+	//è¿”å›žå€¼æ”¾åœ¨headerä¸­çš„dwResult ï¼Œ å®šä¹‰ä¸ºï¼š
+	#define		OAKSBIT_SUCCESS								1				//å‘é€æˆåŠŸ
 	
-	#define     OAKSERR_SM_SOCKET                           410            //·þÎñÆ÷Socket´íÎó
-	#define     OAKSERR_SM_INVALIDID                        411            //ÓÃ»§ÊÖ»úºÅÂëÎÞÐ§
-	#define     OAKSERR_SM_INVALIDSENDNO                    412            //·¢ËÍ·½ÊÖ»úºÅÂëÎÞÐ§
-	#define     OAKSERR_SM_INVALIDRECVNO                    413            //½ÓÊÕ·½ÊÖ»úºÅÂëÎÞÐ§
-	#define     OAKSERR_SM_MSGTOOLENGTH                     417             //ÎÄ×ÖÐÅÏ¢¹ý³¤»òÎª¿Õ£¨ÎÞÐ§£©
-	#define     OAKSERR_SM_MOBILESVRERR                     420             //ÓëÖÐ¹úÒÆ¶¯Íø¹ØÍ¨Ñ¶Ê§°Ü
-	#define     OAKSERR_SM_BUSY                             503            //·þÎñÆ÷Ã¦
-	#define     OAKSERR_SM_INVALIDMOBILENO                  508            //ÊÖ»úºÅÂë´íÎó
-	#define     OAKSERR_SM_PASTDATE                         510            //¶¨ÆÚ·¢ËÍÊ±¼äÒÑ¾­¹ýÁË
-	#define     OAKSERR_SM_INVALIDSEND                      525            //ÒÆ¶¯ºÍÁªÍ¨µÄÊÖ»úºÅÂë²»ÄÜ»¥Ïà·¢ËÍ
-	#define     OAKSERR_SM_INVALIDMSGID                     526            //·þÎñ´úÂë´íÎó
-	#define     OAKSERR_SM_DISABLEMSGID                     532            //ÕâÏî·þÎñÔÝÍ£
+	#define     OAKSERR_SM_SOCKET                           410            //æœåŠ¡å™¨Socketé”™è¯¯
+	#define     OAKSERR_SM_INVALIDID                        411            //ç”¨æˆ·æ‰‹æœºå·ç æ— æ•ˆ
+	#define     OAKSERR_SM_INVALIDSENDNO                    412            //å‘é€æ–¹æ‰‹æœºå·ç æ— æ•ˆ
+	#define     OAKSERR_SM_INVALIDRECVNO                    413            //æŽ¥æ”¶æ–¹æ‰‹æœºå·ç æ— æ•ˆ
+	#define     OAKSERR_SM_MSGTOOLENGTH                     417             //æ–‡å­—ä¿¡æ¯è¿‡é•¿æˆ–ä¸ºç©ºï¼ˆæ— æ•ˆï¼‰
+	#define     OAKSERR_SM_MOBILESVRERR                     420             //ä¸Žä¸­å›½ç§»åŠ¨ç½‘å…³é€šè®¯å¤±è´¥
+	#define     OAKSERR_SM_BUSY                             503            //æœåŠ¡å™¨å¿™
+	#define     OAKSERR_SM_INVALIDMOBILENO                  508            //æ‰‹æœºå·ç é”™è¯¯
+	#define     OAKSERR_SM_PASTDATE                         510            //å®šæœŸå‘é€æ—¶é—´å·²ç»è¿‡äº†
+	#define     OAKSERR_SM_INVALIDSEND                      525            //ç§»åŠ¨å’Œè”é€šçš„æ‰‹æœºå·ç ä¸èƒ½äº’ç›¸å‘é€
+	#define     OAKSERR_SM_INVALIDMSGID                     526            //æœåŠ¡ä»£ç é”™è¯¯
+	#define     OAKSERR_SM_DISABLEMSGID                     532            //è¿™é¡¹æœåŠ¡æš‚åœ
 
 	 #define OAKSID_SM_SVRMOINFO             (0x100 + 88)
 
 typedef struct{
         OAKSREQHEADER h;
-        int  nReserve;                                          //±£Áô×Ö
-        char szMobileNo[BUFLEN_MOBILENO];  //ÊÖ»úºÅÂë
-        char szSPCode[20];                                 //spcode 5818ºóÃæµÄÊý×Ö Èç 1801
-        int  nLenMsg;                                      //ÄÚÈÝ³¤¶È
-}*POAKSREQTRANSFERMOINFO,OAKSREQTRANSFERMOINFO;            //°üÌåºóÃæ¸ú×ÅÄÚÈÝ
+        int  nReserve;                                          //ä¿ç•™å­—
+        char szMobileNo[BUFLEN_MOBILENO];  //æ‰‹æœºå·ç 
+        char szSPCode[20];                                 //spcode 5818åŽé¢çš„æ•°å­— å¦‚ 1801
+        int  nLenMsg;                                      //å†…å®¹é•¿åº¦
+}*POAKSREQTRANSFERMOINFO,OAKSREQTRANSFERMOINFO;            //åŒ…ä½“åŽé¢è·Ÿç€å†…å®¹
 
 const char host_18dx[]="211.154.46.201";
 const char port_18dx[]="6002";

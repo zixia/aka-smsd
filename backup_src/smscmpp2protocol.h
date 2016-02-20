@@ -28,14 +28,14 @@ using namespace ost;
 
 //#define GWIP	"210.51.0.210"
 
-#define WAITTIME	60000 //60Ãë
+#define WAITTIME	60000 //60ç§’
 
-//C¡¢T¡¢NÎªÍ¨Â·¼ì²é²ÎÊı£¬¾ßÌåº¬Òå¿É²Î¿¼CMPP2 Ğ­Òé6.1
-#define LINK_C		180 //3·ÖÖÓ
-#define LINK_T		60  //60Ãë
-#define LINK_N		3   //3´Î
+//Cã€Tã€Nä¸ºé€šè·¯æ£€æŸ¥å‚æ•°ï¼Œå…·ä½“å«ä¹‰å¯å‚è€ƒCMPP2 åè®®6.1
+#define LINK_C		180 //3åˆ†é’Ÿ
+#define LINK_T		60  //60ç§’
+#define LINK_N		3   //3æ¬¡
 
-//CMPPÍ¨ĞÅ´°¿Ú´óĞ¡£¬¾ßÌåº¬Òå²Î¿¼CMPP2Ğ­Òé6.1
+//CMPPé€šä¿¡çª—å£å¤§å°ï¼Œå…·ä½“å«ä¹‰å‚è€ƒCMPP2åè®®6.1
 #define WINDOWSIZE	8
 
 namespace SMS {
@@ -59,10 +59,10 @@ typedef std::vector<packetInfo> PacketInfoList;
 
 class CSMSCMPP2Protocol: public CSMSProtocol{
 	CSMSLogger* m_pSMSLogger;
-	int m_connected; //ÊÇ·ñÒÑÓëÉÏÓÎ³É¹¦Á¬½Ó
-	int m_link_test; //ÒÑ·¢ËÍÇÒÎ´ÊÕµ½»ØÓ¦µÄ²âÊÔ°ü¸öÊı
-	time_t m_lasttesttime; //ÉÏ´Î²âÊÔ°ü·¢ËÍÊ±¼ä
-	time_t m_lastsendtime; //×î½üÒ»´ÎÏòÉÏÓÎ·¢ËÍ·Ç²âÊÔ°üµÄÊ±¼ä
+	int m_connected; //æ˜¯å¦å·²ä¸ä¸Šæ¸¸æˆåŠŸè¿æ¥
+	int m_link_test; //å·²å‘é€ä¸”æœªæ”¶åˆ°å›åº”çš„æµ‹è¯•åŒ…ä¸ªæ•°
+	time_t m_lasttesttime; //ä¸Šæ¬¡æµ‹è¯•åŒ…å‘é€æ—¶é—´
+	time_t m_lastsendtime; //æœ€è¿‘ä¸€æ¬¡å‘ä¸Šæ¸¸å‘é€éæµ‹è¯•åŒ…çš„æ—¶é—´
 	UINT32 m_serial;
 	CSMSTcpStream m_tcp;
 	PacketInfoList m_packetInfoList;
@@ -71,7 +71,7 @@ UINT32 getSerial(){
         return m_serial++;
 }
 
-//Í³Ò»ÏòÉÏÓÎ·¢ËÍĞÅÏ¢
+//ç»Ÿä¸€å‘ä¸Šæ¸¸å‘é€ä¿¡æ¯
 int doSendCommand(UINT32 sn, UINT32 commandID, const char* buf, UINT32 len){
 		sigset_t sigmask, oldmask;
 
@@ -85,13 +85,13 @@ int doSendCommand(UINT32 sn, UINT32 commandID, const char* buf, UINT32 len){
 		head.Sequence_Id=sn;
 		head.Total_Length=sizeof(CMPP_HEADER) + len;
 		
-		//°üÍ·
+		//åŒ…å¤´
 		retCode=m_tcp.write(head,sizeof(CMPP_HEADER),WAITTIME);
 		if (retCode<0) {
 			sigprocmask(SIG_SETMASK, &oldmask, NULL);
 			return ERROR;
 		}
-		//°üÄÚÈİ
+		//åŒ…å†…å®¹
 		if (len>0) {
 			retCode=m_tcp.write(buf,len,WAITTIME);
 			if (retCode<0) {
@@ -165,7 +165,7 @@ int dispatchMsg(PCMPP_HEADER pHead, int waitTime ) {
 	int msgLen=pHead->Total_Length-sizeof(CMMP_HEADER);
 	syslog(LOG_ERR,"recieving  & dispatching msg...");
 	syslog(LOG_ERR,"msg sn: %d type :0x%X length: %d",pHead->Sequence_Id,pHead->Command_Id, msgLen);
-//¼ì²émsgÀàĞÍºÍ³¤¶ÈÊÇ·ñºÏ·¨
+//æ£€æŸ¥msgç±»å‹å’Œé•¿åº¦æ˜¯å¦åˆæ³•
 	switch (pHead->Command_Id) {
 		case CMPP_CMD_CONNECT_RESP :
 			if (msgLen!=sizeof(CMPP_CONNECT_RESP)) {

@@ -1,14 +1,14 @@
 #ifndef MOBILENUMBERLENGTH
-#define MOBILENUMBERLENGTH 16  //ºÅÂë³¤¶È
+#define MOBILENUMBERLENGTH 16  //å·ç é•¿åº¦
 #endif
 #define OAKSID_SM_SVRMOINFO             (0x100 + 88)
 
 typedef struct{
         OAKSREQHEADER h;
-        int  nReserve;                                          //±£Áô×Ö
-        char szMobileNo[BUFLEN_MOBILENO];  //ÊÖ»úºÅÂë
-        char szSPCode[20];                                 //spcode 5818ºóÃæµÄÊý×Ö Èç 1801
-        int  nLenMsg;                                      //ÄÚÈÝ³¤¶È
-}*POAKSREQTRANSFERMOINFO,OAKSREQTRANSFERMOINFO;            //°üÌåºóÃæ¸ú×ÅÄÚÈÝ
+        int  nReserve;                                          //ä¿ç•™å­—
+        char szMobileNo[BUFLEN_MOBILENO];  //æ‰‹æœºå·ç 
+        char szSPCode[20];                                 //spcode 5818åŽé¢çš„æ•°å­— å¦‚ 1801
+        int  nLenMsg;                                      //å†…å®¹é•¿åº¦
+}*POAKSREQTRANSFERMOINFO,OAKSREQTRANSFERMOINFO;            //åŒ…ä½“åŽé¢è·Ÿç€å†…å®¹
 
 const char* testport="5818";

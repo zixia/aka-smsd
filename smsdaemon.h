@@ -8,16 +8,16 @@ namespace SMS{
 
 class CSMSDaemon: public RCL::CApplication{
 /*
- * 1¡¢¹¹Ôìº¯Êý¼ÓÔØ CSMSPProtocolµÄ×ÓÀà
- * 2¡¢¹¹ÔìÊ±¼ÓÔØ CSMSStorage µÄ×ÓÀà
- * 3¡¢¹¹ÔìÊ±¼ÓÔÚ CSMSPrivilige µÄ×ÓÀà
- * 4¡¢½øÐÐ Daemon ³õÊ¼»¯
- * 5¡¢Ê¹ÓÃ CSMSPProtocol ½øÐÐ Listen
- * 6¡¢accept ºóÊ¹ÓÃ CSMSPrivilige ½øÐÐÈÏÖ¤
- * 7¡¢ fork ×Ó½ø³Ì£¬Èç¹ûºóÐøÓÐÍ¨¹ýÑéÖ¤µÄÁ¬½Ó£¬ÔòÉ±ËÀ×Ó½ø³Ì
- * 8¡¢Ê¹ÓÃ CStorage ½øÐÐ dnotify incoming Ä¿Â¼
- * 9¡¢×èÈûÔÚ read socket ÉÏ
- * 10¡¢Èç¹ûÓÐ incoming ÎÄ¼þµ½´ï£¬Ôò CSMSStorage µ÷ÓÃ CSMSDaemon µÄ·¢ËÍº¯Êý
+ * 1ã€æž„é€ å‡½æ•°åŠ è½½ CSMSPProtocolçš„å­ç±»
+ * 2ã€æž„é€ æ—¶åŠ è½½ CSMSStorage çš„å­ç±»
+ * 3ã€æž„é€ æ—¶åŠ åœ¨ CSMSPrivilige çš„å­ç±»
+ * 4ã€è¿›è¡Œ Daemon åˆå§‹åŒ–
+ * 5ã€ä½¿ç”¨ CSMSPProtocol è¿›è¡Œ Listen
+ * 6ã€accept åŽä½¿ç”¨ CSMSPrivilige è¿›è¡Œè®¤è¯
+ * 7ã€ fork å­è¿›ç¨‹ï¼Œå¦‚æžœåŽç»­æœ‰é€šè¿‡éªŒè¯çš„è¿žæŽ¥ï¼Œåˆ™æ€æ­»å­è¿›ç¨‹
+ * 8ã€ä½¿ç”¨ CStorage è¿›è¡Œ dnotify incoming ç›®å½•
+ * 9ã€é˜»å¡žåœ¨ read socket ä¸Š
+ * 10ã€å¦‚æžœæœ‰ incoming æ–‡ä»¶åˆ°è¾¾ï¼Œåˆ™ CSMSStorage è°ƒç”¨ CSMSDaemon çš„å‘é€å‡½æ•°
  */
  
 protected:

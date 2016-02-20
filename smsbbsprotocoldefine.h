@@ -7,23 +7,23 @@ typedef struct _SMS_BBS_HEADER{	//
 	  byte Type;
 	  byte SerialNo[4];
 	  byte pid[4];
-	  byte msgLength[4];   //×ÜPacket³¤¶È
+	  byte msgLength[4];   //æ€»Packeté•¿åº¦
 } SMS_BBS_HEADER, *PSMS_BBS_HEADER;
 
 
-//·µ»ØÖµ
+//è¿”å›žå€¼
 #define SMS_BBS_CMD_LOGIN 1
 
 #define SMS_BBS_CMD_OK 101
 #define SMS_BBS_CMD_ERR 102
-#define SMS_BBS_CMD_HEAD_LENGTH_ERR 103	//°üÍ·´íÎó
-#define SMS_BBS_CMD_DB_ERROR	104		//Êý¾Ý¿â²Ù×÷´íÎó
-#define SMS_BBS_CMD_SMS_VALIDATE_FAILED	105		//¶ÌÐÅÎÞ·¨Í¨¹ý·¢ËÍ¼ì²é
-#define SMS_BBS_CMD_LENGTH_ERR	106			//ÏûÏ¢°ü³¤¶È´íÎó
-#define SMS_BBS_CMD_NO_VALIDCODE	107		//ÎÞÈÏÖ¤Âë¹©ÑéÖ¤
-#define SMS_BBS_CMD_NO_SUCHMOBILE	108	//È¡ÏûÈÏÖ¤ÂëÊ±·¢ÏÖ´ËÊÖ»úÎ´ÈÏÖ¤
-#define SMS_BBS_CMD_REGISTERED		109 //ÊÖ»úºÅÂëºÍidÒÑ°ó¶¨
-#define SMS_BBS_CMD_EXCEEDMONEY_LIMIT	110 //ÓÃ»§µ±ÈÕ¶î¶ÈÒÑÂú
+#define SMS_BBS_CMD_HEAD_LENGTH_ERR 103	//åŒ…å¤´é”™è¯¯
+#define SMS_BBS_CMD_DB_ERROR	104		//æ•°æ®åº“æ“ä½œé”™è¯¯
+#define SMS_BBS_CMD_SMS_VALIDATE_FAILED	105		//çŸ­ä¿¡æ— æ³•é€šè¿‡å‘é€æ£€æŸ¥
+#define SMS_BBS_CMD_LENGTH_ERR	106			//æ¶ˆæ¯åŒ…é•¿åº¦é”™è¯¯
+#define SMS_BBS_CMD_NO_VALIDCODE	107		//æ— è®¤è¯ç ä¾›éªŒè¯
+#define SMS_BBS_CMD_NO_SUCHMOBILE	108	//å–æ¶ˆè®¤è¯ç æ—¶å‘çŽ°æ­¤æ‰‹æœºæœªè®¤è¯
+#define SMS_BBS_CMD_REGISTERED		109 //æ‰‹æœºå·ç å’Œidå·²ç»‘å®š
+#define SMS_BBS_CMD_EXCEEDMONEY_LIMIT	110 //ç”¨æˆ·å½“æ—¥é¢åº¦å·²æ»¡
 
 
 #define SMS_BBS_CMD_LOGOUT 2
@@ -40,47 +40,47 @@ typedef struct _SMS_BBS_HEADER{	//
 
 #define SMS_BBS_USER_LEN	19	
 #define SMS_BBS_PASS_LEN	49
-#define SMS_BBS_VALID_LEN	6	//ÈÏÖ¤Âë³¤¶È
-#define SMS_BBS_TYPE_LEN	0	//¶ÌÐÅÀàÐÍ³¤¶È
-#define SMS_BBS_MAX_COMMAND_SMS_LEN	200	//¿ØÖÆ¶ÌÐÅ×î´ó³¤¶È
+#define SMS_BBS_VALID_LEN	6	//è®¤è¯ç é•¿åº¦
+#define SMS_BBS_TYPE_LEN	0	//çŸ­ä¿¡ç±»åž‹é•¿åº¦
+#define SMS_BBS_MAX_COMMAND_SMS_LEN	200	//æŽ§åˆ¶çŸ­ä¿¡æœ€å¤§é•¿åº¦
 
 
 #define SMS_BBS_USR_REQUIRE_BIND	0
 #define SMS_BBS_USR_REQUIRE_UNBIND	1
 
-//¶ÌÏûÏ¢ÀàÐÍ´úÂë
-#define SMS_BBS_TYPE_COMMON		0	//ÆÕÍ¨¶ÌÐÅ
-#define SMS_BBS_TYPE_COMMAND		1	//ÓÃ»§²Ù×÷¶ÌÐÅ
+//çŸ­æ¶ˆæ¯ç±»åž‹ä»£ç 
+#define SMS_BBS_TYPE_COMMON		0	//æ™®é€šçŸ­ä¿¡
+#define SMS_BBS_TYPE_COMMAND		1	//ç”¨æˆ·æ“ä½œçŸ­ä¿¡
 #define SMS_BBS_TYPE_NONE		-1
-//ÏûÏ¢ÀàÐÍ
+//æ¶ˆæ¯ç±»åž‹
 
 #define SMS_BBS_ID_LEN	13
-typedef struct _SMS_BBS_LOGINPACKET {	//BBSÁ¬½ÓÇëÇó
+typedef struct _SMS_BBS_LOGINPACKET {	//BBSè¿žæŽ¥è¯·æ±‚
 		SMS_BBS_HEADER header;
 	    char user[SMS_BBS_USER_LEN+1];
 	    char password[SMS_BBS_PASS_LEN+1];
 } SMS_BBS_LOGINPACKET, *PSMS_BBS_LOGINPACKET;
 
-typedef struct _SMS_BBS_REGISTERMOBILEPACKET { //BBSÇëÇóÍø¹Ø·¢ËÍÊÖ»ú°ó¶¨¶ÌÐÅ
+typedef struct _SMS_BBS_REGISTERMOBILEPACKET { //BBSè¯·æ±‚ç½‘å…³å‘é€æ‰‹æœºç»‘å®šçŸ­ä¿¡
 		SMS_BBS_HEADER header;
 	    char MobileNo[MOBILENUMBERLENGTH+1];
 	    char cUserID[SMS_BBS_ID_LEN+1];
 } SMS_BBS_REGISTERMOBILEPACKET,*PSMS_BBS_REGISTERMOBILEPACKET;
 
-typedef struct _SMS_BBS_REGISTERVALIDATIONPACKET { //BBSÇëÇóÍø¹Ø¼ì²éÊÖ»ú°ó¶¨Âë
+typedef struct _SMS_BBS_REGISTERVALIDATIONPACKET { //BBSè¯·æ±‚ç½‘å…³æ£€æŸ¥æ‰‹æœºç»‘å®šç 
 		SMS_BBS_HEADER header;
 	    char MobileNo[MOBILENUMBERLENGTH+1];
 		char cUserID[SMS_BBS_ID_LEN+1];
         char ValidateNo[SMS_BBS_VALID_LEN+1];
 } SMS_BBS_REGISTERVALIDATIONPACKET, *PSMS_BBS_REGISTERVALIDATIONPACKET;
 
-typedef struct _SMS_BBS_UNREGISTERMOBILEPACKET { //BBSÇëÇóÍø¹ØÈ¡ÏûÊÖ»ú°ó¶¨
+typedef struct _SMS_BBS_UNREGISTERMOBILEPACKET { //BBSè¯·æ±‚ç½‘å…³å–æ¶ˆæ‰‹æœºç»‘å®š
 		SMS_BBS_HEADER header;
 	    char MobileNo[MOBILENUMBERLENGTH+1];
 		char cUserID[SMS_BBS_ID_LEN+1];
 }SMS_BBS_UNREGISTERMOBILEPACKET, *PSMS_BBS_UNREGISTERMOBILEPACKET;
 
-typedef struct _SMS_BBS_BINDREQUESTPACKET { //Íø¹ØÒªÇóBBS°ó¶¨ÊÖ»úºÅÂë
+typedef struct _SMS_BBS_BINDREQUESTPACKET { //ç½‘å…³è¦æ±‚BBSç»‘å®šæ‰‹æœºå·ç 
 		SMS_BBS_HEADER header;
 	    char cUserID[SMS_BBS_ID_LEN+1];
         char MobileNo[MOBILENUMBERLENGTH+1];

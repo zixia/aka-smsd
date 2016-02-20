@@ -7,7 +7,7 @@ using namespace SMS;
 
 int CSMSDaemon::Run(){
 
-		//防止子类未正确初始化
+		//闃叉瀛愮被鏈纭垵濮嬪寲
 		assert(m_pSMSProtocol);
 
 		m_pSMSProtocol->Run(m_pSMSStorage);

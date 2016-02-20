@@ -19,12 +19,12 @@ class CSMSStorage{
 
 	//general class
 /*
- * 1������ incoming Ŀ¼�� dnotify
- * 2����� incoming Ŀ¼�������ļ�����ȫ������ CSMSStorage ���ڴ����
- * 3���ṩ�ӿڽ��ڴ�����е� SMS ���ݸ� CSMSDaemon
- * 4����� CSMSDaemon ������ϣ����� CSMSDaemon ���� CSMSStorage ��ɾ���ӿڣ�
- *	ɾ�� queue Ŀ¼�з�����ϵ� SMS �ļ�
- * 5���ṩ�ӿڣ���Ҫ���͵� SMS д�� Storage �� outgoing Ŀ¼
+ * 1、进行 incoming 目录的 dnotify
+ * 2、如果 incoming 目录中有新文件，则全部读入 CSMSStorage 的内存队列
+ * 3、提供接口将内存队列中的 SMS 传递给 CSMSDaemon
+ * 4、如果 CSMSDaemon 处理完毕，则由 CSMSDaemon 调用 CSMSStorage 的删除接口，
+ *	删除 queue 目录中发送完毕的 SMS 文件
+ * 5、提供接口，将要发送的 SMS 写入 Storage 的 outgoing 目录
  */
  protected:
 	CSMSProtocol	*m_pSMSPProtocol;

@@ -29,7 +29,7 @@ using namespace ost;
 #define GWUSER	"10001019"
 #define GWPASSWD	"1234"
 
-#define WAITTIME	100000 //100Ãë
+#define WAITTIME	100000 //100ç§’
 
 namespace SMS {
 
@@ -76,14 +76,14 @@ int process(struct CResp * pResp, CSMSStorage* pSMSStorage){
 	syslog(LOG_ERR," recieve gw msg type: 0x%X",pResp->head.dwCmdID);
 
 	switch (pResp->head.dwCmdID)  {
-	case SUBMITRESP:	//·¢ËÍ¶ÌÐÅµÄÍø¹Ø»ØÓ¦
+	case SUBMITRESP:	//å‘é€çŸ­ä¿¡çš„ç½‘å…³å›žåº”
 		if (pResp->sr.result==0) {
-			syslog(LOG_ERR," msg %d ·¢ËÍ³É¹¦£¡",pResp->sr.msg_id1);
+			syslog(LOG_ERR," msg %d å‘é€æˆåŠŸï¼",pResp->sr.msg_id1);
 		} else {
-			syslog(LOG_ERR," msg %d ·¢ËÍÊ§°Ü: 0x%X£¡",pResp->sr.msg_id1,pResp->sr.result);
+			syslog(LOG_ERR," msg %d å‘é€å¤±è´¥: 0x%Xï¼",pResp->sr.msg_id1,pResp->sr.result);
 		}
 		break;
-	case DELIVERY:		//ÊÕµ½Íø¹Ødeliver¶ÌÐÅ
+	case DELIVERY:		//æ”¶åˆ°ç½‘å…³deliverçŸ­ä¿¡
 		SMSMessage* formatedMsg;
 		unsigned int msgLen;
 		if (!convertMsgFormat(&(pResp->dl), &formatedMsg,&msgLen)){
@@ -123,7 +123,7 @@ public:
 					retCode=apiRecv(&msg,WAITTIME);
 					if (retCode==0) {
 						int loginResult=(msg.lr.result & 0x1111);
-						if (msg.lr.result==0) { //µÇÂ¼³É¹¦£¡
+						if (msg.lr.result==0) { //ç™»å½•æˆåŠŸï¼
 							m_connected=1;
 							break;
 						} else {
@@ -150,11 +150,11 @@ public:
 			for(;;) {
 				retCode=apiRecv(&msg,WAITTIME);
 				/* retcode:
-				0£ºµ÷ÓÃº¯Êý³É¹¦
-				1:  ½ÓÊÕÊý¾Ý°üÊ§°Ü
-				2:  ³¬Ê±
-				3:  µÈºòÊý¾Ý°üÊ§°Ü
-				4:  ÍøÂç¶Ï¿ª
+				0ï¼šè°ƒç”¨å‡½æ•°æˆåŠŸ
+				1:  æŽ¥æ”¶æ•°æ®åŒ…å¤±è´¥
+				2:  è¶…æ—¶
+				3:  ç­‰å€™æ•°æ®åŒ…å¤±è´¥
+				4:  ç½‘ç»œæ–­å¼€
 				*/
 				syslog(LOG_ERR,"apiRecv return: %d",retCode);
 				if (retCode==0) {
@@ -211,20 +211,20 @@ public:
 apiSend(  DWORD msg_id1,DWORD	msg_id2,	char mobile[21],char 	service_id[10],char		 src_term[21],	char		 fee_term[21],	char msg[160],char 	udhi,BYTE 		pid,	BYTE	 isReply,	WORD 	msg_len,	BYTE msg_fmt);
   
 
-  ²ÎÊýËµÃ÷:
-msg_id1:   ÓÃ»§ÐÅÏ¢idºÅ
-msg_id2:   ±£Áô²ÎÊý=0
-mobile[21]:   ½ÓÊÕºÅÂë
-           service_id:   ·þÎñ´úÂë. ÀýÈç-lsxz
-      	 src_term[21]:   ·¢ËÍÔ´ºÅÂë(ÔÚ½ÓÊÕÊÖ»ú¶ËÏÔÊ¾µÄ·¢ËÍÕßºÅÂë)±ÈÈç '51687001' 
-         fee_term[21]:   ¼Æ·ÑºÅÂë(ÎªÊÖ»úºÅÂë,¼´´ÓÄÄ¸öÊÖ»úÉÏÊÕ·Ñ)
-           msg[160]:   ·¢ËÍÐÅÏ¢
-udhi:   Í·±êÊ¾(Êý¾ÝÎª¶þ½øÖÆÊ±¿ÉÄÜÓÐÒâÒå£¬ÎÄ±¾ÐÅÏ¢Ìî0)
-pid:    Ð­ÒéID(Êý¾ÝÎª¶þ½øÖÆÊ±¿ÉÄÜÓÐÒâÒå£¬ÎÄ±¾ÐÅÏ¢Ìî0)
-isReply:   ÊÇ·ñÐèÒª×´Ì¬±¨¸æ£¬Ä¿Ç°APIÄÚÖÃ1£¬±íÃ÷ÐèÒª×´Ì¬±¨¸æ¡£
-msg_len:  ·¢ËÍÏûÏ¢³¤¶È
-msg_fmt:   ÐÅÏ¢ÀàÐÍ £¨0£ºASCII´®  3£º¶ÌÐÅÐ´¿¨²Ù×÷  4£º¶þ½øÖÆ
- 8£ºUCS2±àÂë15£ºº¬GBºº×Ö£©
+  å‚æ•°è¯´æ˜Ž:
+msg_id1:   ç”¨æˆ·ä¿¡æ¯idå·
+msg_id2:   ä¿ç•™å‚æ•°=0
+mobile[21]:   æŽ¥æ”¶å·ç 
+           service_id:   æœåŠ¡ä»£ç . ä¾‹å¦‚-lsxz
+      	 src_term[21]:   å‘é€æºå·ç (åœ¨æŽ¥æ”¶æ‰‹æœºç«¯æ˜¾ç¤ºçš„å‘é€è€…å·ç )æ¯”å¦‚ '51687001' 
+         fee_term[21]:   è®¡è´¹å·ç (ä¸ºæ‰‹æœºå·ç ,å³ä»Žå“ªä¸ªæ‰‹æœºä¸Šæ”¶è´¹)
+           msg[160]:   å‘é€ä¿¡æ¯
+udhi:   å¤´æ ‡ç¤º(æ•°æ®ä¸ºäºŒè¿›åˆ¶æ—¶å¯èƒ½æœ‰æ„ä¹‰ï¼Œæ–‡æœ¬ä¿¡æ¯å¡«0)
+pid:    åè®®ID(æ•°æ®ä¸ºäºŒè¿›åˆ¶æ—¶å¯èƒ½æœ‰æ„ä¹‰ï¼Œæ–‡æœ¬ä¿¡æ¯å¡«0)
+isReply:   æ˜¯å¦éœ€è¦çŠ¶æ€æŠ¥å‘Šï¼Œç›®å‰APIå†…ç½®1ï¼Œè¡¨æ˜Žéœ€è¦çŠ¶æ€æŠ¥å‘Šã€‚
+msg_len:  å‘é€æ¶ˆæ¯é•¿åº¦
+msg_fmt:   ä¿¡æ¯ç±»åž‹ ï¼ˆ0ï¼šASCIIä¸²  3ï¼šçŸ­ä¿¡å†™å¡æ“ä½œ  4ï¼šäºŒè¿›åˆ¶
+ 8ï¼šUCS2ç¼–ç 15ï¼šå«GBæ±‰å­—ï¼‰
 */     
 		len=msg->SMSBodyLength;
 		if (len>159) 

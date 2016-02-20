@@ -151,8 +151,8 @@ int doMessage(CSMSStorage* pSMSStorage, char* msg, unsigned long int len){
 			return -1;
 		}
 	}
-	if ((PSMSChildProtocolCommon(msg))->head.msgTypeID==MSGTYPE_CDR ) { //监测信息返回
-		//todo : 重设时钟
+	if ((PSMSChildProtocolCommon(msg))->head.msgTypeID==MSGTYPE_CDR ) { //鐩戞祴淇℃伅杩斿洖
+		//todo : 閲嶈鏃堕挓
 	}
 	return 0;
 }

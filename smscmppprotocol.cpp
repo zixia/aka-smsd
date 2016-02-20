@@ -28,14 +28,14 @@ using namespace ost;
 
 #define CONFIGFILE SMSETCDIR "cmppc.ini"
 
-#define WAITTIME	60 //60Ãë
+#define WAITTIME	60 //60ç§’
 
-//C¡¢T¡¢NÎªÍ¨Â·¼ì²é²ÎÊı£¬¾ßÌåº¬Òå¿É²Î¿¼CMPP2 Ğ­Òé6.1
-#define LINK_C		180 //3·ÖÖÓ
-#define LINK_T		60  //60Ãë
-#define LINK_N		3   //3´Î
+//Cã€Tã€Nä¸ºé€šè·¯æ£€æŸ¥å‚æ•°ï¼Œå…·ä½“å«ä¹‰å¯å‚è€ƒCMPP2 åè®®6.1
+#define LINK_C		180 //3åˆ†é’Ÿ
+#define LINK_T		60  //60ç§’
+#define LINK_N		3   //3æ¬¡
 
-//CMPPÍ¨ĞÅ´°¿Ú´óĞ¡£¬¾ßÌåº¬Òå²Î¿¼CMPP2Ğ­Òé6.1
+//CMPPé€šä¿¡çª—å£å¤§å°ï¼Œå…·ä½“å«ä¹‰å‚è€ƒCMPP2åè®®6.1
 #define WINDOWSIZE	8
 
 namespace SMS {
@@ -59,10 +59,10 @@ typedef std::vector<packetInfo> PacketInfoList;
 
 class CSMSCMPP2Protocol: public CSMSProtocol{
 	CSMSLogger* m_pSMSLogger;
-	int m_connected; //ÊÇ·ñÒÑÓëÉÏÓÎ³É¹¦Á¬½Ó
-	int m_link_test; //ÒÑ·¢ËÍÇÒÎ´ÊÕµ½»ØÓ¦µÄ²âÊÔ°ü¸öÊı
-	time_t m_lasttesttime; //ÉÏ´Î²âÊÔ°ü·¢ËÍÊ±¼ä
-	time_t m_lastsendtime; //×î½üÒ»´ÎÏòÉÏÓÎ·¢ËÍ·Ç²âÊÔ°üµÄÊ±¼ä
+	int m_connected; //æ˜¯å¦å·²ä¸ä¸Šæ¸¸æˆåŠŸè¿æ¥
+	int m_link_test; //å·²å‘é€ä¸”æœªæ”¶åˆ°å›åº”çš„æµ‹è¯•åŒ…ä¸ªæ•°
+	time_t m_lasttesttime; //ä¸Šæ¬¡æµ‹è¯•åŒ…å‘é€æ—¶é—´
+	time_t m_lastsendtime; //æœ€è¿‘ä¸€æ¬¡å‘ä¸Šæ¸¸å‘é€éæµ‹è¯•åŒ…çš„æ—¶é—´
 	UINT32 m_serial;
 	PacketInfoList m_packetInfoList;
 	
@@ -101,7 +101,7 @@ int isMsgValid(DeliverResp * pDeliverResp, SMSMessage** msg, unsigned int * msgL
 
 int deliverMsg(DeliverResp* pDeliverResp ) {
 	if (pDeliverResp->nIsReply==1) {
-		//´¦Àí·¢ËÍ±¨¸æ
+		//å¤„ç†å‘é€æŠ¥å‘Š
 	}
 	PSMSMessage formatedMsg;
 	unsigned int msgLen;

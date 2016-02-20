@@ -29,7 +29,7 @@ struct pattern_image {
         unsigned int HASH[MAXHASH];
 	unsigned char buf[MAXPATFILE + BLOCKSIZE];
 	unsigned char pat_spool[MAXPATFILE + 2 * max_num + MAXPAT];
-	unsigned long patt[max_num]; /*ÓÃÓÚÖ¸Ïòpat_spoolµÄÆ«ÒÆ*/
+	unsigned long patt[max_num]; /*ç”¨äºæŒ‡å‘pat_spoolçš„åç§»*/
 	unsigned char pat_len[max_num];
 	struct pat_list hashtable[max_num];
 };
@@ -99,7 +99,7 @@ static void f_prep(int pat_index, unsigned char * Pattern,struct pattern_image* 
     patt_img->HASH[hash] = pat_index;
 }
 
-int prepf(int fp,void** patternbuf,size_t* patt_image_len)  //¶ÁÈ¡patternÎÄ¼ş
+int prepf(int fp,void** patternbuf,size_t* patt_image_len)  //è¯»å–patternæ–‡ä»¶
 {
 	struct pattern_image** ppatt_img=(struct pattern_image**)patternbuf;
     int length = 0, i, p = 1, pdx = 0, num_pat;
@@ -188,7 +188,7 @@ int prepf(int fp,void** patternbuf,size_t* patt_image_len)  //¶ÁÈ¡patternÎÄ¼ş
 static int m_short(unsigned char* text,int start,int end,void * buf);
 static void monkey1(register unsigned char *text, int start, int end, void* buf);
 
-int mgrep_str(char *text, int num,void* buf)  //Æ¥Åä×Ö·û´®
+int mgrep_str(char *text, int num,void* buf)  //åŒ¹é…å­—ç¬¦ä¸²
 {
 	struct pattern_image* patt_img=(struct pattern_image*)buf;
     if (patt_img->SHORT)
@@ -198,7 +198,7 @@ int mgrep_str(char *text, int num,void* buf)  //Æ¥Åä×Ö·û´®
     return num_of_matched;
 }      /* end mgrep_str */
 
-static void countline(unsigned char *text, int len)				//¼ÆËãÎÄÕÂĞĞÊı
+static void countline(unsigned char *text, int len)				//è®¡ç®—æ–‡ç« è¡Œæ•°
 {
     int i;
 
@@ -207,7 +207,7 @@ static void countline(unsigned char *text, int len)				//¼ÆËãÎÄÕÂĞĞÊı
             total_line++;
 }
 
-int mgrep(int fd,void* buf)					//ÔÚÎÄ¼şÖĞÆ¥Åä
+int mgrep(int fd,void* buf)					//åœ¨æ–‡ä»¶ä¸­åŒ¹é…
 {
 	struct pattern_image *patt_img=(struct pattern_image *)buf;
     register char r_newline = '\n';

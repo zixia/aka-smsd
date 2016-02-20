@@ -1,5 +1,5 @@
 #ifndef MOBILENUMBERLENGTH
-#define MOBILENUMBERLENGTH 16  //ºÅÂë³¤¶È
+#define MOBILENUMBERLENGTH 16  //å·ç é•¿åº¦
 #endif
 struct TestMsg{
 	unsigned int length;
